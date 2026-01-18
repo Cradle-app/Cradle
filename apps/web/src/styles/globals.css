@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 2%;
+    --foreground: 240 10% 95%;
+    --card: 240 10% 5%;
+    --card-foreground: 240 10% 95%;
+    --popover: 240 10% 5%;
+    --popover-foreground: 240 10% 95%;
+    --primary: 190 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 285 100% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 10% 50%;
+    --accent: 142 76% 46%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 12%;
+    --input: 240 10% 8%;
+    --ring: 190 100% 50%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-forge-border;
+  }
+  
+  body {
+    @apply bg-forge-bg text-forge-text;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Improved focus states */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent-cyan/50 ring-offset-2 ring-offset-forge-bg;
+  }
+
+  /* Better scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-forge-border rounded-full transition-colors;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-forge-muted;
+  }
+}
+
+@layer components {
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-forge-surface;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-forge-border rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-forge-muted;
+  }
+
+  /* React Flow customizations */
+  .react-flow__node {
+    @apply shadow-lg;
+  }
+
+  .react-flow__edge-path {
+    stroke-width: 2;
+  }
+
+  .react-flow__handle {
+    @apply w-3 h-3 rounded-full border-2 bg-forge-surface;
+  }
+
+  .react-flow__handle-top {
+    top: -6px;
+  }
+
+  .react-flow__handle-bottom {
+    bottom: -6px;
+  }
+
+  .react-flow__handle-left {
+    left: -6px;
+  }
+
+  .react-flow__handle-right {
+    right: -6px;
+  }
+
+  .react-flow__minimap {
+    @apply bg-forge-surface border border-forge-border rounded-lg;
+  }
+
+  .react-flow__controls {
+    @apply bg-forge-surface border border-forge-border rounded-lg overflow-hidden;
+  }
+
+  .react-flow__controls-button {
+    @apply bg-transparent border-none text-forge-muted hover:text-white hover:bg-forge-elevated;
+  }
+
+  .react-flow__background {
+    @apply bg-forge-bg;
+  }
+}
+
+@layer utilities {
+  .text-gradient-cyan {
+    @apply bg-gradient-to-r from-accent-cyan to-accent-lime bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-magenta {
+    @apply bg-gradient-to-r from-accent-magenta to-accent-coral bg-clip-text text-transparent;
+  }
+
+  .glow-border {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+  }
+
+  .glow-border-magenta {
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
+  }
+
+  .glass {
+    @apply bg-forge-surface/80 backdrop-blur-xl;
+  }
+}
+
+/* Resizable panel styles */
+[data-panel-group-direction="horizontal"] > [data-panel-resize-handle-enabled] {
+  @apply transition-colors;
+}
+
+[data-panel-group-direction="horizontal"] > [data-panel-resize-handle-enabled]:hover {
+  @apply bg-accent-cyan/20;
+}
+
+[data-panel-group-direction="horizontal"] > [data-panel-resize-handle-enabled][data-resize-handle-state="drag"] {
+  @apply bg-accent-cyan/40;
+}
+

@@ -1,0 +1,80 @@
+{
+  "id": "example-ai-agent-paywall",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "agent-1",
+      "type": "erc8004-agent-runtime",
+      "position": { "x": 100, "y": 150 },
+      "config": {
+        "agentName": "SmartAssistant",
+        "agentVersion": "0.1.0",
+        "capabilities": ["text-generation", "code-execution"],
+        "registryIntegration": true,
+        "modelProvider": "openai",
+        "stakeAmount": "100000000000000000",
+        "rateLimit": {
+          "requestsPerMinute": 30,
+          "tokensPerMinute": 50000
+        }
+      }
+    },
+    {
+      "id": "paywall-1",
+      "type": "x402-paywall-api",
+      "position": { "x": 400, "y": 150 },
+      "config": {
+        "resourcePath": "/api/agent/invoke",
+        "priceInWei": "10000000000000000",
+        "currency": "ETH",
+        "paymentTimeout": 300,
+        "receiptValidation": true,
+        "openApiSpec": true
+      }
+    },
+    {
+      "id": "quality-1",
+      "type": "repo-quality-gates",
+      "position": { "x": 250, "y": 350 },
+      "config": {
+        "ciProvider": "github-actions",
+        "testFramework": "vitest",
+        "linter": "biome",
+        "formatter": "biome",
+        "typecheck": true,
+        "preCommitHooks": true,
+        "coverageThreshold": 70,
+        "securityScanning": true,
+        "dependencyAudit": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "agent-1",
+      "target": "paywall-1",
+      "type": "dependency"
+    }
+  ],
+  "config": {
+    "project": {
+      "name": "AI Agent Service",
+      "description": "An AI agent with pay-per-use access via x402 protocol",
+      "version": "0.1.0",
+      "license": "MIT",
+      "keywords": ["ai", "agent", "x402", "paywall", "web3"]
+    },
+    "network": {
+      "chainId": 421614,
+      "name": "Arbitrum Sepolia",
+      "isTestnet": true
+    },
+    "generateDocs": true,
+    "deployOnGenerate": false
+  },
+  "status": "draft",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+

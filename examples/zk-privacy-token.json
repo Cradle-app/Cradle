@@ -1,0 +1,57 @@
+{
+  "id": "example-zk-privacy-token",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "zk-contract-1",
+      "type": "stylus-zk-contract",
+      "position": { "x": 200, "y": 150 },
+      "config": {
+        "contractName": "PrivacyToken",
+        "contractType": "erc721",
+        "zkCircuitType": "balance-proof",
+        "minBalance": "1000000000000000000",
+        "oracleEnabled": true,
+        "nullifierEnabled": true,
+        "testCoverage": true
+      }
+    },
+    {
+      "id": "quality-1",
+      "type": "repo-quality-gates",
+      "position": { "x": 200, "y": 350 },
+      "config": {
+        "ciProvider": "github-actions",
+        "testFramework": "vitest",
+        "linter": "biome",
+        "formatter": "biome",
+        "typecheck": true,
+        "preCommitHooks": true,
+        "coverageThreshold": 80,
+        "securityScanning": true,
+        "dependencyAudit": true
+      }
+    }
+  ],
+  "edges": [],
+  "config": {
+    "project": {
+      "name": "Privacy Token with ZK Proofs",
+      "description": "A privacy-preserving ERC721 token using Zero-Knowledge proofs on Arbitrum Stylus",
+      "version": "0.1.0",
+      "license": "MIT",
+      "keywords": ["zk", "privacy", "stylus", "arbitrum", "erc721"]
+    },
+    "network": {
+      "chainId": 421614,
+      "name": "Arbitrum Sepolia",
+      "isTestnet": true
+    },
+    "generateDocs": true,
+    "deployOnGenerate": false
+  },
+  "status": "draft",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+

@@ -1,0 +1,108 @@
+{
+  "id": "example-full-stack",
+  "version": "1.0.0",
+  "nodes": [
+    {
+      "id": "contract-1",
+      "type": "stylus-contract",
+      "position": { "x": 100, "y": 100 },
+      "config": {
+        "contractName": "NFTMarketplace",
+        "contractType": "erc721",
+        "features": ["ownable", "pausable", "reentrancy-guard"],
+        "testCoverage": true
+      }
+    },
+    {
+      "id": "paywall-1",
+      "type": "x402-paywall-api",
+      "position": { "x": 100, "y": 280 },
+      "config": {
+        "resourcePath": "/api/premium/analytics",
+        "priceInWei": "5000000000000000",
+        "currency": "ETH",
+        "paymentTimeout": 600,
+        "receiptValidation": true,
+        "openApiSpec": true
+      }
+    },
+    {
+      "id": "agent-1",
+      "type": "erc8004-agent-runtime",
+      "position": { "x": 400, "y": 100 },
+      "config": {
+        "agentName": "MarketplaceBot",
+        "agentVersion": "0.1.0",
+        "capabilities": ["text-generation", "data-analysis"],
+        "registryIntegration": true,
+        "modelProvider": "anthropic",
+        "rateLimit": {
+          "requestsPerMinute": 60,
+          "tokensPerMinute": 100000
+        }
+      }
+    },
+    {
+      "id": "sdk-1",
+      "type": "sdk-generator",
+      "position": { "x": 400, "y": 280 },
+      "config": {
+        "outputFormat": "typescript",
+        "includeABI": true,
+        "includeTypes": true,
+        "includeHooks": true,
+        "packageName": "@myapp/sdk"
+      }
+    },
+    {
+      "id": "quality-1",
+      "type": "repo-quality-gates",
+      "position": { "x": 250, "y": 450 },
+      "config": {
+        "ciProvider": "github-actions",
+        "testFramework": "vitest",
+        "linter": "biome",
+        "formatter": "biome",
+        "typecheck": true,
+        "preCommitHooks": true,
+        "coverageThreshold": 80,
+        "securityScanning": true,
+        "dependencyAudit": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "contract-1",
+      "target": "sdk-1",
+      "type": "dependency"
+    },
+    {
+      "id": "edge-2",
+      "source": "agent-1",
+      "target": "sdk-1",
+      "type": "dependency"
+    }
+  ],
+  "config": {
+    "project": {
+      "name": "NFT Marketplace",
+      "description": "A full-stack NFT marketplace with AI-powered analytics",
+      "version": "0.1.0",
+      "license": "MIT",
+      "keywords": ["nft", "marketplace", "ai", "web3", "arbitrum"]
+    },
+    "network": {
+      "chainId": 42161,
+      "name": "Arbitrum One",
+      "isTestnet": false
+    },
+    "generateDocs": true,
+    "deployOnGenerate": false
+  },
+  "status": "draft",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+
