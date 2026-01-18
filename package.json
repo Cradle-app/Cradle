@@ -9,7 +9,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "start:orchestrator": "cd apps/orchestrator && node dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
