@@ -126,6 +126,7 @@ export function getDefaultRegistry(): PluginRegistry {
       'telegram-notifications',
       'telegram-commands',
       'telegram-wallet-link',
+      'telegram-ai-agent',
       'ostium-trading',
     ]);
   }

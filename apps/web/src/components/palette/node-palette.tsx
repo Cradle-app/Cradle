@@ -200,6 +200,13 @@ const NODE_CATEGORIES: NodeCategory[] = [
         color: 'node-app',
       },
       {
+        id: 'telegram-ai-agent',
+        name: 'AI Agent',
+        description: 'Conversational AI bot with LLM integration',
+        icon: Sparkles,
+        color: 'node-telegram',
+      },
+      {
         id: 'telegram-wallet-link',
         name: 'Wallet Link',
         description: 'Link Telegram profiles with Web3 wallets',
