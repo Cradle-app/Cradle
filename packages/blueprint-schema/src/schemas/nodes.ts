@@ -27,7 +27,8 @@ export const NodeType = z.enum([
   
   // Agents
   'erc8004-agent-runtime',
-  
+  'ostium-trading',
+
   // App
   'frontend-scaffold',
   'sdk-generator',
@@ -276,6 +277,17 @@ export const ZKPrimitivesConfig = BaseNodeConfig.extend({
 export type ZKPrimitivesConfig = z.infer<typeof ZKPrimitivesConfig>;
 
 /**
+ * Ostium One-Click Trading configuration
+ */
+export const OstiumTradingConfig = BaseNodeConfig.extend({
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum'),
+  usdcApprovalAmount: z.string().regex(/^\d+$/).default('1000000'),
+  delegationEnabled: z.boolean().default(false),
+  usdcApproved: z.boolean().default(false),
+});
+export type OstiumTradingConfig = z.infer<typeof OstiumTradingConfig>;
+
+/**
  * Union of all node configurations
  */
 export const NodeConfig = z.discriminatedUnion('type', [
@@ -315,6 +327,7 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'zk-primitives': 'contracts',
     'x402-paywall-api': 'payments',
     'erc8004-agent-runtime': 'agents',
+    'ostium-trading': 'agents',
     'frontend-scaffold': 'app',
     'sdk-generator': 'app',
     'wallet-auth': 'app',
@@ -348,6 +361,7 @@ export function getConfigSchemaForType(type: NodeType) {
     'ipfs-storage': IPFSStorageConfig,
     'chain-abstraction': ChainAbstractionConfig,
     'arbitrum-bridge': ArbitrumBridgeConfig,
+    'ostium-trading': OstiumTradingConfig,
   };
   return schemaMap[type];
 }

@@ -123,6 +123,7 @@ export function getDefaultRegistry(): PluginRegistry {
       'ipfs-storage',
       'chain-abstraction',
       'zk-primitives',
+      'ostium-trading',
     ]);
   }
   return defaultRegistry;

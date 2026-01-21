@@ -30,6 +30,15 @@ const nodeTypes: NodeTypes = {
   'repo-quality-gates': ForgeNode,
   'frontend-scaffold': ForgeNode,
   'sdk-generator': ForgeNode,
+  'eip7702-smart-eoa': ForgeNode,
+  'wallet-auth': ForgeNode,
+  'rpc-provider': ForgeNode,
+  'arbitrum-bridge': ForgeNode,
+  'chain-data': ForgeNode,
+  'ipfs-storage': ForgeNode,
+  'chain-abstraction': ForgeNode,
+  'zk-primitives': ForgeNode,
+  'ostium-trading': ForgeNode,
 };
 
 // Custom edge types
@@ -38,9 +47,9 @@ const edgeTypes: EdgeTypes = {
 };
 
 export function BlueprintCanvas() {
-  const { 
-    blueprint, 
-    addNode, 
+  const {
+    blueprint,
+    addNode,
     addEdge: storeAddEdge,
     selectNode,
     updateNode,
@@ -48,12 +57,12 @@ export function BlueprintCanvas() {
   } = useBlueprintStore();
 
   // Convert blueprint nodes to ReactFlow nodes
-  const initialNodes: Node[] = useMemo(() => 
+  const initialNodes: Node[] = useMemo(() =>
     blueprint.nodes.map(node => ({
       id: node.id,
       type: node.type,
       position: node.position,
-      data: { 
+      data: {
         ...node.config,
         nodeType: node.type,
         label: node.config.label || node.config.contractName || node.config.agentName || node.type,
@@ -61,7 +70,7 @@ export function BlueprintCanvas() {
     })), [blueprint.nodes]);
 
   // Convert blueprint edges to ReactFlow edges
-  const initialEdges: Edge[] = useMemo(() => 
+  const initialEdges: Edge[] = useMemo(() =>
     blueprint.edges.map(edge => ({
       id: edge.id,
       source: edge.source,
@@ -108,7 +117,7 @@ export function BlueprintCanvas() {
       };
 
       const newNode = addNode(type, position);
-      
+
       setNodes((nds) => [
         ...nds,
         {
@@ -118,9 +127,9 @@ export function BlueprintCanvas() {
           data: {
             ...newNode.config,
             nodeType: newNode.type,
-            label: (newNode.config as Record<string, unknown>).contractName || 
-                   (newNode.config as Record<string, unknown>).agentName || 
-                   newNode.type,
+            label: (newNode.config as Record<string, unknown>).contractName ||
+              (newNode.config as Record<string, unknown>).agentName ||
+              newNode.type,
           },
         },
       ]);
@@ -159,7 +168,7 @@ export function BlueprintCanvas() {
     <div className="w-full h-full relative">
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-grid-pattern bg-grid pointer-events-none z-0" />
-      
+
       {/* Glow effect */}
       <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-glow-cyan pointer-events-none z-0" />
       <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-glow-magenta pointer-events-none z-0" />
@@ -187,14 +196,14 @@ export function BlueprintCanvas() {
         }}
         className="z-10"
       >
-        <Background 
-          variant={BackgroundVariant.Dots} 
-          gap={20} 
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
           size={1}
           color="rgba(255,255,255,0.05)"
         />
         <Controls className="!bg-forge-surface !border-forge-border" />
-        <MiniMap 
+        <MiniMap
           nodeColor={(node) => {
             const color = nodeTypeToColor(node.type || '');
             const colorMap: Record<string, string> = {

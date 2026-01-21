@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       // #endregion
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 100000); // 100s timeout
       
       const response = await fetch(`${orchestratorUrl}/blueprints/generate/sync`, {
         method: 'POST',

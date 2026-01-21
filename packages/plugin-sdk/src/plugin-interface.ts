@@ -86,6 +86,17 @@ export interface NodePlugin<TConfig = Record<string, unknown>> {
   readonly dependencies?: PluginDependency[];
 
   /**
+   * Optional: Path to a pre-built component package (relative to project root)
+   * When set, the orchestrator will copy this component to the output
+   */
+  readonly componentPath?: string;
+
+  /**
+   * Optional: Package name for the component (e.g. '@cradle/ostium-onect')
+   */
+  readonly componentPackage?: string;
+
+  /**
    * Validate the node configuration
    * Called before generation to ensure config is valid
    */
@@ -119,7 +130,7 @@ export abstract class BasePlugin<TConfig = Record<string, unknown>> implements N
 
   async validate(config: TConfig, _context: ExecutionContext): Promise<PluginValidationResult> {
     const result = this.configSchema.safeParse(config);
-    
+
     if (!result.success) {
       return {
         valid: false,
@@ -165,9 +176,9 @@ export abstract class BasePlugin<TConfig = Record<string, unknown>> implements N
    * Helper to add an environment variable
    */
   protected addEnvVar(
-    output: CodegenOutput, 
-    key: string, 
-    description: string, 
+    output: CodegenOutput,
+    key: string,
+    description: string,
     options?: { required?: boolean; defaultValue?: string; secret?: boolean }
   ): void {
     output.envVars.push({

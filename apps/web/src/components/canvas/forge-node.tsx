@@ -2,10 +2,10 @@
 
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from 'reactflow';
-import { 
-  Box, CreditCard, Bot, Layout, ShieldCheck, Trash2, 
-  Lock, Key, Wallet, Globe, ArrowLeftRight, Database, 
-  HardDrive, Layers 
+import {
+  Box, CreditCard, Bot, Layout, ShieldCheck, Trash2,
+  Lock, Key, Wallet, Globe, ArrowLeftRight, Database,
+  HardDrive, Layers, TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useBlueprintStore } from '@/store/blueprint';
@@ -27,13 +27,14 @@ const iconMap: Record<string, typeof Box> = {
   'ipfs-storage': HardDrive,
   'chain-abstraction': Layers,
   'zk-primitives': Lock,
+  'ostium-trading': TrendingUp,
 };
 
-const colorMap: Record<string, { 
-  bg: string; 
-  border: string; 
+const colorMap: Record<string, {
+  bg: string;
+  border: string;
   borderSelected: string;
-  text: string; 
+  text: string;
   glow: string;
   accent: string;
 }> = {
@@ -108,7 +109,7 @@ function ForgeNodeComponent({ id, data, selected }: NodeProps) {
         'absolute inset-0 rounded-2xl bg-gradient-to-br opacity-50',
         colors.bg
       )} />
-      
+
       {/* Top accent line */}
       <div className={cn(
         'absolute top-0 left-4 right-4 h-[2px] rounded-full',
@@ -197,7 +198,17 @@ function ForgeNodeComponent({ id, data, selected }: NodeProps) {
               {data.modelProvider}
             </span>
           )}
-          
+
+          {nodeType === 'ostium-trading' && (
+            <span className={cn(
+              'text-[10px] px-2 py-1 rounded-md font-mono uppercase tracking-wide',
+              'bg-forge-bg/60 border border-white/5',
+              colors.text
+            )}>
+              {data.network || 'arbitrum'}
+            </span>
+          )}
+
           {/* Show a subtle ID indicator */}
           <span className="text-[9px] px-2 py-1 rounded-md font-mono text-forge-muted/50 bg-forge-bg/30">
             {id.slice(0, 6)}
@@ -216,7 +227,7 @@ function ForgeNodeComponent({ id, data, selected }: NodeProps) {
           isSelected && '!border-white/40'
         )}
       />
-      
+
       {/* Selection indicator ring */}
       {isSelected && (
         <div className={cn(

@@ -22,11 +22,12 @@ import { ChainDataForm } from './forms/chain-data-form';
 import { IPFSStorageForm } from './forms/ipfs-storage-form';
 import { ChainAbstractionForm } from './forms/chain-abstraction-form';
 import { ZKPrimitivesForm } from './forms/zk-primitives-form';
+import { OstiumTradingForm } from './forms/ostium-trading-form';
 
 export function ConfigPanel() {
   const { blueprint, selectedNodeId, selectNode } = useBlueprintStore();
-  
-  const selectedNode = selectedNodeId 
+
+  const selectedNode = selectedNodeId
     ? blueprint.nodes.find(n => n.id === selectedNodeId)
     : null;
 
@@ -42,7 +43,7 @@ export function ConfigPanel() {
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center p-8">
-          <motion.div 
+          <motion.div
             className="text-center"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -67,11 +68,11 @@ export function ConfigPanel() {
   }
 
   const colorClass = nodeTypeToColor(selectedNode.type);
-  
+
   return (
     <aside className="h-full border-l border-forge-border/50 bg-gradient-to-b from-forge-surface/80 to-forge-bg/50 flex flex-col overflow-hidden">
       {/* Header */}
-      <motion.div 
+      <motion.div
         className="p-4 border-b border-forge-border/50"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -105,7 +106,7 @@ export function ConfigPanel() {
             <X className="w-4 h-4" />
           </motion.button>
         </div>
-        
+
         {/* Color indicator bar */}
         <div className={cn(
           'h-1 rounded-full mt-4',
@@ -115,7 +116,7 @@ export function ConfigPanel() {
 
       {/* Configuration form */}
       <AnimatePresence mode="wait">
-        <motion.div 
+        <motion.div
           key={selectedNode.id}
           className="flex-1 overflow-y-auto p-4"
           initial={{ opacity: 0, x: 20 }}
@@ -139,7 +140,7 @@ export function ConfigPanel() {
           {selectedNode.type === 'repo-quality-gates' && (
             <QualityGatesForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
-          
+
           {/* New Arbitrum-focused nodes */}
           {selectedNode.type === 'eip7702-smart-eoa' && (
             <EIP7702Form nodeId={selectedNode.id} config={selectedNode.config} />
@@ -164,6 +165,9 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'zk-primitives' && (
             <ZKPrimitivesForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'ostium-trading' && (
+            <OstiumTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
         </motion.div>
       </AnimatePresence>

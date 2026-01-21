@@ -1,7 +1,9 @@
 import { Volume, createFsFromVolume } from 'memfs';
-import type { 
-  Blueprint, 
-  BlueprintNode, 
+import * as realFs from 'fs';
+import * as path from 'path';
+import type {
+  Blueprint,
+  BlueprintNode,
   CodegenOutput,
   ExecutionContext,
 } from '@dapp-forge/blueprint-schema';
@@ -11,6 +13,7 @@ import { RunStore } from '../store/runs';
 import { createExecutionLogger } from '../utils/logger';
 import { applyCodegenOutput, formatAndLint, createManifest } from './filesystem';
 import { GitHubIntegration } from './github';
+
 
 export interface ExecutionOptions {
   dryRun?: boolean;
@@ -43,7 +46,6 @@ export class ExecutionEngine {
     options: ExecutionOptions = {}
   ): Promise<ExecutionResult> {
     const logger = createExecutionLogger(runId);
-    
     // Mark run as started
     this.runStore.start(runId);
     logger.info('Starting blueprint execution', { blueprintId: blueprint.id });
@@ -109,6 +111,18 @@ export class ExecutionEngine {
         // Apply output to filesystem
         applyCodegenOutput(fs, '/output', output);
 
+        // Copy component package if plugin has one (pre-built component architecture)
+        if (plugin.componentPath) {
+          logger.info(`Copying component package: ${plugin.componentPackage}`, { nodeId: node.id });
+          this.copyComponentToOutput(
+            fs,
+            '/output',
+            plugin.componentPath,
+            plugin.componentPackage || 'component'
+          );
+        }
+
+
         // Collect env vars and scripts
         allEnvVars.push(...output.envVars);
         allScripts.push(...output.scripts);
@@ -125,7 +139,7 @@ export class ExecutionEngine {
         level: 'info',
         message: 'Running format and lint checks',
       });
-      
+
       const lintResult = await formatAndLint(fs, '/output');
       if (!lintResult.success) {
         logger.warn('Lint/format warnings', { warnings: lintResult.warnings });
@@ -153,9 +167,9 @@ export class ExecutionEngine {
           fs,
           '/output'
         );
-        
+
         repoUrl = repoResult.url;
-        
+
         this.runStore.addArtifact(runId, {
           name: 'GitHub Repository',
           type: 'repo',
@@ -187,7 +201,68 @@ export class ExecutionEngine {
       throw error;
     }
   }
+
+  /**
+   * Copy a component package from the source repo to the output
+   */
+  private copyComponentToOutput(
+    memFs: ReturnType<typeof createFsFromVolume>,
+    outputPath: string,
+    componentPath: string,
+    packageName: string
+  ): void {
+    const projectRoot = path.resolve(__dirname, '../../../../');
+    const sourcePath = path.join(projectRoot, componentPath);
+
+    if (!realFs.existsSync(sourcePath)) {
+      console.warn(`Component path not found: ${sourcePath}`);
+      return;
+    }
+
+    console.log(`Copying component from: ${sourcePath}`);
+
+    const dirName = packageName.includes('/')
+      ? packageName.split('/').pop()!
+      : packageName;
+
+    const targetPath = `${outputPath}/packages/${dirName}`;
+
+    this.copyDirectoryToMemfs(realFs, memFs, sourcePath, targetPath);
+
+  }
+
+  /**
+   * Recursively copy a directory from real fs to memfs
+   */
+  private copyDirectoryToMemfs(
+    sourceFs: typeof realFs,
+    targetFs: ReturnType<typeof createFsFromVolume>,
+    sourcePath: string,
+    targetPath: string
+  ): void {
+    targetFs.mkdirSync(targetPath, { recursive: true });
+
+    const items = sourceFs.readdirSync(sourcePath);
+
+    for (const item of items) {
+      if (item === 'node_modules' || item === 'dist' || item.startsWith('.')) {
+        continue;
+      }
+
+      const sourceItem = path.join(sourcePath, item);
+      const targetItem = `${targetPath}/${item}`;
+      const stat = sourceFs.statSync(sourceItem);
+
+      if (stat.isDirectory()) {
+        this.copyDirectoryToMemfs(sourceFs, targetFs, sourceItem, targetItem);
+      } else {
+        const content = sourceFs.readFileSync(sourceItem);
+        targetFs.writeFileSync(targetItem, content);
+      }
+    }
+  }
 }
+
 
 /**
  * Generate root project files

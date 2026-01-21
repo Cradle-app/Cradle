@@ -45,6 +45,8 @@ export function nodeTypeToLabel(type: string): string {
     'ipfs-storage': 'IPFS Storage',
     'chain-abstraction': 'Chain Abstraction',
     'zk-primitives': 'ZK Primitives',
+    'maxxit': 'Maxxit Trading Agent',
+    'ostium-trading': 'Ostium One-Click Trading',
   };
   return labels[type] || type;
 }
@@ -68,6 +70,8 @@ export function nodeTypeToColor(type: string): string {
     'ipfs-storage': 'node-app',
     'chain-abstraction': 'node-app',
     'zk-primitives': 'node-contracts',
+    'maxxit': 'node-agents',
+    'ostium-trading': 'node-agents',
   };
   return colors[type] || 'node-contracts';
 }
