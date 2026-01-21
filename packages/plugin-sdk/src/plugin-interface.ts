@@ -20,7 +20,7 @@ export interface PluginMetadata {
   version: string;
   description: string;
   author?: string;
-  category: 'contracts' | 'payments' | 'agents' | 'app' | 'quality';
+  category: 'contracts' | 'payments' | 'agents' | 'app' | 'quality' | 'telegram';
   icon?: string;
   tags?: string[];
 }

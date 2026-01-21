@@ -180,6 +180,35 @@ const NODE_CATEGORIES: NodeCategory[] = [
     ],
   },
   {
+    id: 'telegram',
+    name: 'Telegram',
+    icon: Bot,
+    color: 'node-app', // Reusing node-app color or could define 'node-telegram'
+    nodes: [
+      {
+        id: 'telegram-notifications',
+        name: 'Notifications',
+        description: 'Trigger alerts and updates to users',
+        icon: Sparkles,
+        color: 'node-app',
+      },
+      {
+        id: 'telegram-commands',
+        name: 'Commands',
+        description: 'Handle interactive commands via webhooks',
+        icon: Box,
+        color: 'node-app',
+      },
+      {
+        id: 'telegram-wallet-link',
+        name: 'Wallet Link',
+        description: 'Link Telegram profiles with Web3 wallets',
+        icon: Lock,
+        color: 'node-app',
+      },
+    ],
+  },
+  {
     id: 'quality',
     name: 'Quality',
     icon: ShieldCheck,

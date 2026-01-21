@@ -9,6 +9,7 @@ export const NodeCategory = z.enum([
   'agents',       // AI agent runtime + ERC-8004
   'app',          // Frontend/SDK generation
   'quality',      // CI/test/lint/format scaffolding
+  'telegram',     // Telegram-specific integrations
 ]);
 export type NodeCategory = z.infer<typeof NodeCategory>;
 
@@ -21,10 +22,10 @@ export const NodeType = z.enum([
   'stylus-zk-contract',
   'eip7702-smart-eoa',
   'zk-primitives',
-  
+
   // Payments
   'x402-paywall-api',
-  
+
   // Agents
   'erc8004-agent-runtime',
   'ostium-trading',
@@ -38,7 +39,13 @@ export const NodeType = z.enum([
   'ipfs-storage',
   'chain-abstraction',
   'arbitrum-bridge',
-  
+
+  // Telegram
+  'telegram-notifications',
+  'telegram-commands',
+  'telegram-wallet-link',
+
+
   // Quality
   'repo-quality-gates',
 ]);
@@ -70,7 +77,7 @@ export const StylusContractConfig = BaseNodeConfig.extend({
   contractType: z.enum(['erc20', 'erc721', 'erc1155', 'custom']),
   features: z.array(z.enum([
     'ownable',
-    'pausable', 
+    'pausable',
     'upgradeable',
     'access-control',
     'reentrancy-guard',
@@ -277,6 +284,42 @@ export const ZKPrimitivesConfig = BaseNodeConfig.extend({
 export type ZKPrimitivesConfig = z.infer<typeof ZKPrimitivesConfig>;
 
 /**
+ * Telegram Notification configuration
+ */
+export const TelegramNotifyConfig = BaseNodeConfig.extend({
+  notificationTypes: z.array(z.enum([
+    'transaction', 'price-alert', 'whale-alert',
+    'nft-activity', 'defi-position', 'governance',
+    'contract-event', 'custom'
+  ])).default(['transaction']),
+  templateFormat: z.enum(['HTML', 'Markdown', 'MarkdownV2']).default('HTML'),
+});
+export type TelegramNotifyConfig = z.infer<typeof TelegramNotifyConfig>;
+
+/**
+ * Telegram Commands configuration
+ */
+export const TelegramCommandsConfig = BaseNodeConfig.extend({
+  framework: z.enum(['grammy', 'telegraf']).default('grammy'),
+  deliveryMethod: z.enum(['webhook', 'polling']).default('webhook'),
+  commands: z.array(z.enum([
+    'start', 'help', 'balance', 'wallet',
+    'subscribe', 'unsubscribe', 'settings', 'status'
+  ])).default(['start', 'help']),
+  rateLimitEnabled: z.boolean().default(true),
+});
+export type TelegramCommandsConfig = z.infer<typeof TelegramCommandsConfig>;
+
+/**
+ * Telegram Wallet Linking configuration
+ */
+export const TelegramWalletLinkConfig = BaseNodeConfig.extend({
+  persistenceType: z.enum(['prisma', 'drizzle', 'in-memory']).default('prisma'),
+  verificationEnabled: z.boolean().default(true),
+});
+export type TelegramWalletLinkConfig = z.infer<typeof TelegramWalletLinkConfig>;
+
+/**
  * Ostium One-Click Trading configuration
  */
 export const OstiumTradingConfig = BaseNodeConfig.extend({
@@ -336,6 +379,9 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'ipfs-storage': 'app',
     'chain-abstraction': 'app',
     'arbitrum-bridge': 'app',
+    'telegram-notifications': 'telegram',
+    'telegram-commands': 'telegram',
+    'telegram-wallet-link': 'telegram',
     'repo-quality-gates': 'quality',
   };
   return categoryMap[type];
@@ -361,6 +407,9 @@ export function getConfigSchemaForType(type: NodeType) {
     'ipfs-storage': IPFSStorageConfig,
     'chain-abstraction': ChainAbstractionConfig,
     'arbitrum-bridge': ArbitrumBridgeConfig,
+    'telegram-notifications': TelegramNotifyConfig,
+    'telegram-commands': TelegramCommandsConfig,
+    'telegram-wallet-link': TelegramWalletLinkConfig,
     'ostium-trading': OstiumTradingConfig,
   };
   return schemaMap[type];

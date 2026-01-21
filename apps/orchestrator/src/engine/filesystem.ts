@@ -12,31 +12,31 @@ export function applyCodegenOutput(
 ): void {
   // Create files
   for (const file of output.files) {
-    const fullPath = path.join(basePath, file.path);
-    const dir = path.dirname(fullPath);
-    
+    const fullPath = path.posix.join(basePath, file.path);
+    const dir = path.posix.dirname(fullPath);
+
     // Create directory if needed
     fs.mkdirSync(dir, { recursive: true });
-    
+
     // Write file content
-    const content = file.encoding === 'base64' 
+    const content = file.encoding === 'base64'
       ? Buffer.from(file.content, 'base64')
       : file.content;
-    
+
     fs.writeFileSync(fullPath, content);
   }
 
   // Apply patches
   for (const patch of output.patches) {
-    const fullPath = path.join(basePath, patch.path);
-    
+    const fullPath = path.posix.join(basePath, patch.path);
+
     if (!fs.existsSync(fullPath)) {
       console.warn(`Cannot patch non-existent file: ${patch.path}`);
       continue;
     }
 
     let content = fs.readFileSync(fullPath, 'utf-8') as string;
-    
+
     for (const operation of patch.operations) {
       content = applyPatchOperation(content, operation);
     }
@@ -46,11 +46,11 @@ export function applyCodegenOutput(
 
   // Write documentation files
   for (const doc of output.docs) {
-    const fullPath = path.join(basePath, doc.path);
-    const dir = path.dirname(fullPath);
-    
+    const fullPath = path.posix.join(basePath, doc.path);
+    const dir = path.posix.dirname(fullPath);
+
     fs.mkdirSync(dir, { recursive: true });
-    
+
     const content = `# ${doc.title}\n\n${doc.content}`;
     fs.writeFileSync(fullPath, content);
   }
@@ -106,17 +106,17 @@ export async function formatAndLint(
 
   // Walk through all TypeScript/JavaScript files
   const files = walkDirectory(fs, basePath);
-  
+
   for (const file of files) {
     if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js') || file.endsWith('.jsx')) {
       // Basic validation - check for common issues
       const content = fs.readFileSync(file, 'utf-8') as string;
-      
+
       // Check for console.log in production code
       if (content.includes('console.log') && !file.includes('test')) {
         warnings.push(`${file}: contains console.log statements`);
       }
-      
+
       // Check for TODO comments
       if (content.includes('TODO')) {
         warnings.push(`${file}: contains TODO comments`);
@@ -135,14 +135,14 @@ export async function formatAndLint(
  */
 function walkDirectory(fs: IFs, dir: string): string[] {
   const results: string[] = [];
-  
+
   try {
     const items = fs.readdirSync(dir) as string[];
-    
+
     for (const item of items) {
-      const fullPath = path.join(dir, item);
+      const fullPath = path.posix.join(dir, item);
       const stat = fs.statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
         results.push(...walkDirectory(fs, fullPath));
       } else {
@@ -165,8 +165,8 @@ export function createManifest(
 ): { files: Array<{ path: string; size: number }> } {
   const files = walkDirectory(fs, basePath).map(fullPath => {
     const stat = fs.statSync(fullPath);
-    const relativePath = fullPath.replace(basePath + '/', '');
-    
+    const relativePath = path.posix.relative(basePath, fullPath);
+
     return {
       path: relativePath,
       size: stat.size as number,
@@ -189,8 +189,8 @@ export async function exportToDirectory(
   const files = walkDirectory(fs, sourcePath);
 
   for (const file of files) {
-    const relativePath = file.replace(sourcePath + '/', '');
-    const targetFile = path.join(targetPath, relativePath);
+    const relativePath = path.posix.relative(sourcePath, file);
+    const targetFile = path.join(targetPath, relativePath.replace(/\//g, path.sep));
     const targetDir = path.dirname(targetFile);
 
     // Create target directory

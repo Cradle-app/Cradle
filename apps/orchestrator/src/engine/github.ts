@@ -22,7 +22,7 @@ export class GitHubIntegration {
   setUserToken(token: string): void {
     this.userToken = token;
   }
-  
+
   /**
    * Get the token to use - prefer user token, fallback to env var
    */
@@ -48,13 +48,13 @@ export class GitHubIntegration {
     sourcePath: string
   ): Promise<CreateRepoResult> {
     const token = this.getToken();
-    
+
     // Create repository
     const repo = await this.createRepo(token, config);
-    
+
     // Commit files
     await this.commitFiles(token, config, fs, sourcePath);
-    
+
     // Optionally create PR
     let prUrl: string | undefined;
     if (config.createPR) {
@@ -121,14 +121,14 @@ export class GitHubIntegration {
 
     // Get all files
     const files = this.walkDirectory(fs, sourcePath);
-    
+
     // Create blobs for each file
     const blobs: Array<{ path: string; sha: string }> = [];
-    
+
     for (const file of files) {
       const content = fs.readFileSync(file);
-      const relativePath = file.replace(sourcePath + '/', '');
-      
+      const relativePath = path.posix.relative(sourcePath, file);
+
       const blobResponse = await fetch(
         `${this.baseUrl}/repos/${owner}/${repo}/git/blobs`,
         {
@@ -255,7 +255,7 @@ export class GitHubIntegration {
   ): Promise<string> {
     const owner = config.owner;
     const repo = config.repoName;
-    
+
     const response = await fetch(
       `${this.baseUrl}/repos/${owner}/${repo}/pulls`,
       {
@@ -288,14 +288,14 @@ export class GitHubIntegration {
    */
   private walkDirectory(fs: IFs, dir: string): string[] {
     const results: string[] = [];
-    
+
     try {
       const items = fs.readdirSync(dir) as string[];
-      
+
       for (const item of items) {
-        const fullPath = path.join(dir, item);
+        const fullPath = path.posix.join(dir, item);
         const stat = fs.statSync(fullPath);
-        
+
         if (stat.isDirectory()) {
           results.push(...this.walkDirectory(fs, fullPath));
         } else {

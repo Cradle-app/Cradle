@@ -14,6 +14,9 @@ export { ChainDataPlugin } from './chain-data';
 export { IPFSStoragePlugin } from './ipfs-storage';
 export { ChainAbstractionPlugin } from './chain-abstraction';
 export { ZKPrimitivesPlugin } from './zk-primitives';
+export { TelegramNotificationsPlugin } from './telegram-notifications';
+export { TelegramCommandsPlugin } from './telegram-commands';
+export { TelegramWalletLinkPlugin } from './telegram-wallet-link';
 export { OstiumTradingPlugin } from './ostium-trading';
 
 import { StylusContractPlugin } from './stylus-contract';
@@ -29,6 +32,9 @@ import { ChainDataPlugin } from './chain-data';
 import { IPFSStoragePlugin } from './ipfs-storage';
 import { ChainAbstractionPlugin } from './chain-abstraction';
 import { ZKPrimitivesPlugin } from './zk-primitives';
+import { TelegramNotificationsPlugin } from './telegram-notifications';
+import { TelegramCommandsPlugin } from './telegram-commands';
+import { TelegramWalletLinkPlugin } from './telegram-wallet-link';
 import { OstiumTradingPlugin } from './ostium-trading';
 import { PluginRegistry, getDefaultRegistry } from '@dapp-forge/plugin-sdk';
 
@@ -54,6 +60,9 @@ export function registerOfficialPlugins(registry?: PluginRegistry): void {
   targetRegistry.register(new IPFSStoragePlugin());
   targetRegistry.register(new ChainAbstractionPlugin());
   targetRegistry.register(new ZKPrimitivesPlugin());
+  targetRegistry.register(new TelegramNotificationsPlugin());
+  targetRegistry.register(new TelegramCommandsPlugin());
+  targetRegistry.register(new TelegramWalletLinkPlugin());
   targetRegistry.register(new OstiumTradingPlugin());
 }
 
@@ -77,6 +86,9 @@ export function getOfficialPlugins() {
     new IPFSStoragePlugin(),
     new ChainAbstractionPlugin(),
     new ZKPrimitivesPlugin(),
+    new TelegramNotificationsPlugin(),
+    new TelegramCommandsPlugin(),
+    new TelegramWalletLinkPlugin(),
     new OstiumTradingPlugin(),
   ];
 }

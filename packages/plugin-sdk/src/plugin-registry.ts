@@ -123,6 +123,9 @@ export function getDefaultRegistry(): PluginRegistry {
       'ipfs-storage',
       'chain-abstraction',
       'zk-primitives',
+      'telegram-notifications',
+      'telegram-commands',
+      'telegram-wallet-link',
       'ostium-trading',
     ]);
   }

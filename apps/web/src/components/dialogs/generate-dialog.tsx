@@ -31,7 +31,7 @@ interface GitHubSession {
 export function GenerateDialog({ open, onOpenChange }: Props) {
   const { blueprint } = useBlueprintStore();
   const { addToast } = useToast();
-  
+
   const [status, setStatus] = useState<GenerationStatus>('idle');
   const [createGitHubRepo, setCreateGitHubRepo] = useState(false);
   const [repoName, setRepoName] = useState(
@@ -89,7 +89,7 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
       });
 
       const validation = await validateResponse.json();
-      
+
       if (!validation.valid) {
         setStatus('error');
         setError(`Validation failed: ${validation.errors[0]?.message || 'Unknown error'}`);
@@ -153,7 +153,6 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
           title: 'Repository created!',
           description: `Your repository is ready at ${repoUrl}`,
           variant: 'success',
-          duration: 10000, // Show longer for repo links
         });
       } else {
         addToast({
@@ -198,7 +197,7 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
               <div>
                 <p className="text-sm font-medium text-white">Create GitHub Repository</p>
                 <p className="text-xs text-forge-muted">
-                  {githubSession?.authenticated 
+                  {githubSession?.authenticated
                     ? `Connected as ${githubSession.github?.username}`
                     : 'Push generated code to GitHub'}
                 </p>
@@ -251,15 +250,14 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
 
           {/* Status display */}
           {status !== 'idle' && (
-            <div className={`p-4 rounded-lg border ${
-              status === 'error' 
+            <div className={`p-4 rounded-lg border ${status === 'error'
                 ? 'bg-accent-coral/10 border-accent-coral/30'
                 : status === 'needs_auth'
-                ? 'bg-amber-500/10 border-amber-500/30'
-                : status === 'success'
-                ? 'bg-accent-lime/10 border-accent-lime/30'
-                : 'bg-forge-elevated border-forge-border'
-            }`}>
+                  ? 'bg-amber-500/10 border-amber-500/30'
+                  : status === 'success'
+                    ? 'bg-accent-lime/10 border-accent-lime/30'
+                    : 'bg-forge-elevated border-forge-border'
+              }`}>
               {status === 'validating' && (
                 <div className="flex items-center gap-2 text-forge-muted">
                   <Loader2 className="w-4 h-4 animate-spin" />

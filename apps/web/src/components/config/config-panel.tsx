@@ -22,6 +22,9 @@ import { ChainDataForm } from './forms/chain-data-form';
 import { IPFSStorageForm } from './forms/ipfs-storage-form';
 import { ChainAbstractionForm } from './forms/chain-abstraction-form';
 import { ZKPrimitivesForm } from './forms/zk-primitives-form';
+import { TelegramNotificationsForm } from './forms/telegram-notifications-form';
+import { TelegramCommandsForm } from './forms/telegram-commands-form';
+import { TelegramWalletLinkForm } from './forms/telegram-wallet-link-form';
 import { OstiumTradingForm } from './forms/ostium-trading-form';
 
 export function ConfigPanel() {
@@ -165,6 +168,17 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'zk-primitives' && (
             <ZKPrimitivesForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+
+          {/* Telegram nodes */}
+          {selectedNode.type === 'telegram-notifications' && (
+            <TelegramNotificationsForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'telegram-commands' && (
+            <TelegramCommandsForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'telegram-wallet-link' && (
+            <TelegramWalletLinkForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
           {selectedNode.type === 'ostium-trading' && (
             <OstiumTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
