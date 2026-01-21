@@ -155,6 +155,33 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     clientSideProving: true,
     generateVerifiers: true,
   },
+  'onchain-activity': {
+    network: 'arbitrum',
+    transactionLimit: '10',
+    categories: ['erc20', 'external'],
+  },
+  'ostium-trading': {
+    tradingPair: 'ETH/USD',
+    leverage: 10,
+    enableOneClick: true,
+  },
+  'telegram-notifications': {
+    webhookEnabled: true,
+    notificationTypes: ['transaction', 'price-alert'],
+  },
+  'telegram-commands': {
+    commands: ['/start', '/help', '/balance'],
+    webhookEnabled: true,
+  },
+  'telegram-ai-agent': {
+    modelProvider: 'openai',
+    personality: 'helpful',
+    contextMemory: true,
+  },
+  'telegram-wallet-link': {
+    verificationMethod: 'signature',
+    multiWallet: false,
+  },
 };
 
 const createInitialBlueprint = (): Blueprint => ({
