@@ -30,6 +30,7 @@ export const NodeType = z.enum([
   // Agents
   'erc8004-agent-runtime',
   'ostium-trading',
+  'maxxit',
   'onchain-activity',
 
   // App
@@ -352,6 +353,29 @@ export const OstiumTradingConfig = BaseNodeConfig.extend({
 });
 export type OstiumTradingConfig = z.infer<typeof OstiumTradingConfig>;
 
+const MAXXIT_AGENT_ID_MAX = 64;
+const MAXXIT_AGENT_NAME_MAX = 200;
+const MAXXIT_STATUS_MAX = 50;
+const MAXXIT_VENUE_MAX = 50;
+const MAXXIT_TELEGRAM_USERNAME_MAX = 64;
+const MAXXIT_TELEGRAM_NAME_MAX = 128;
+
+/**
+ * Maxxit Lazy Trader configuration
+ */
+export const MaxxitLazyTradingConfig = BaseNodeConfig.extend({
+  agentId: z.string().max(MAXXIT_AGENT_ID_MAX).optional(),
+  agentName: z.string().max(MAXXIT_AGENT_NAME_MAX).optional(),
+  agentStatus: z.string().max(MAXXIT_STATUS_MAX).optional(),
+  venue: z.string().max(MAXXIT_VENUE_MAX).optional(),
+  userWallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
+  deploymentStatus: z.string().max(MAXXIT_STATUS_MAX).optional(),
+  enabledVenues: z.array(z.string().max(MAXXIT_VENUE_MAX)).optional(),
+  telegramUsername: z.string().max(MAXXIT_TELEGRAM_USERNAME_MAX).optional(),
+  telegramName: z.string().max(MAXXIT_TELEGRAM_NAME_MAX).optional(),
+});
+export type MaxxitLazyTradingConfig = z.infer<typeof MaxxitLazyTradingConfig>;
+
 /**
  * Onchain Activity configuration
  */
@@ -435,6 +459,7 @@ export const NodeConfig = z.discriminatedUnion('type', [
   z.object({ type: z.literal('telegram-wallet-link'), config: TelegramWalletLinkConfig }),
   z.object({ type: z.literal('telegram-ai-agent'), config: TelegramAIAgentConfig }),
   z.object({ type: z.literal('ostium-trading'), config: OstiumTradingConfig }),
+  z.object({ type: z.literal('maxxit'), config: MaxxitLazyTradingConfig }),
   z.object({ type: z.literal('aixbt-momentum'), config: AIXBTMomentumConfig }),
   z.object({ type: z.literal('aixbt-signals'), config: AIXBTSignalsConfig }),
   z.object({ type: z.literal('aixbt-indigo'), config: AIXBTIndigoConfig }),
@@ -469,6 +494,7 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'x402-paywall-api': 'payments',
     'erc8004-agent-runtime': 'agents',
     'ostium-trading': 'agents',
+    'maxxit': 'agents',
     'onchain-activity': 'agents',
     'frontend-scaffold': 'app',
     'sdk-generator': 'app',
@@ -516,6 +542,7 @@ export function getConfigSchemaForType(type: NodeType) {
     'telegram-wallet-link': TelegramWalletLinkConfig,
     'telegram-ai-agent': TelegramAIAgentConfig,
     'ostium-trading': OstiumTradingConfig,
+    'maxxit': MaxxitLazyTradingConfig,
     'onchain-activity': OnchainActivityConfig,
     'aixbt-momentum': AIXBTMomentumConfig,
     'aixbt-signals': AIXBTSignalsConfig,

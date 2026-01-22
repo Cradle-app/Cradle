@@ -165,6 +165,7 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     leverage: 10,
     enableOneClick: true,
   },
+  'maxxit': {},
   'telegram-notifications': {
     webhookEnabled: true,
     notificationTypes: ['transaction', 'price-alert'],

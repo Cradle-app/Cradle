@@ -14,6 +14,9 @@ const toolTypeMap: Record<string, string> = {
   'erc8004_agent': 'erc8004-agent-runtime',
   'ai_agent': 'erc8004-agent-runtime',
   'ostium_trading': 'ostium-trading',
+  'maxxit_lazy_trader': 'maxxit',
+  'maxxit_trader': 'maxxit',
+  'maxxit': 'maxxit',
   'onchain_activity': 'onchain-activity',
   // App
   'wallet_auth': 'wallet-auth',
@@ -49,6 +52,7 @@ const validNodeTypes = [
   'x402-paywall-api',
   'erc8004-agent-runtime',
   'ostium-trading',
+  'maxxit',
   'onchain-activity',
   'wallet-auth',
   'rpc-provider',
@@ -185,6 +189,7 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     leverage: 10,
     enableOneClick: true,
   },
+  'maxxit': {},
   'onchain-activity': {
     network: 'arbitrum',
     transactionLimit: '10',
@@ -405,6 +410,7 @@ PAYMENTS:
 AGENTS:
 - erc8004_agent: AI agent with on-chain registry (ERC-8004)
 - ostium_trading: One-click trading setup for Ostium
+- maxxit_lazy_trader: Maxxit Lazy Trader API integration
 - onchain_activity: Fetch wallet transactions by category
 
 APP:

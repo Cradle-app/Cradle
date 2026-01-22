@@ -28,6 +28,7 @@ const iconMap: Record<string, typeof Box> = {
   'chain-abstraction': Layers,
   'zk-primitives': Lock,
   'ostium-trading': TrendingUp,
+  'maxxit': Bot,
   'aixbt-momentum': TrendingUp,
   'aixbt-signals': Zap,
   'aixbt-indigo': Sparkles,
@@ -218,6 +219,16 @@ function ForgeNodeComponent({ id, data, selected }: NodeProps) {
               colors.text
             )}>
               {data.network || 'arbitrum'}
+            </span>
+          )}
+
+          {nodeType === 'maxxit' && (
+            <span className={cn(
+              'text-[10px] px-2 py-1 rounded-md font-mono uppercase tracking-wide',
+              'bg-forge-bg/60 border border-white/5',
+              colors.text
+            )}>
+              {data.agentStatus || 'NOT LINKED'}
             </span>
           )}
 

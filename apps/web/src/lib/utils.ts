@@ -61,7 +61,7 @@ export function nodeTypeToLabel(type: string): string {
     'aixbt-indigo': 'AIXBT Indigo',
     'aixbt-observer': 'AIXBT Market Observer',
     // Legacy
-    'maxxit': 'Maxxit Trading Agent',
+    'maxxit': 'Maxxit Lazy Trader',
   };
   return labels[type] || type;
 }

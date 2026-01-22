@@ -29,6 +29,7 @@ import { TelegramAIAgentForm } from './forms/telegram-ai-agent-form';
 import { OstiumTradingForm } from './forms/ostium-trading-form';
 import { OnchainActivityForm } from './forms/onchain-activity-form';
 import { AIXBTForm } from './forms/aixbt-form';
+import { MaxxitLazyTradingForm } from './forms/maxxit-lazy-trading-form';
 
 
 export function ConfigPanel() {
@@ -192,6 +193,9 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'onchain-activity' && (
             <OnchainActivityForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'maxxit' && (
+            <MaxxitLazyTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
 
           {/* AIXBT nodes */}

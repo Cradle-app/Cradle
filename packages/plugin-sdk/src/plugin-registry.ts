@@ -128,6 +128,7 @@ export function getDefaultRegistry(): PluginRegistry {
       'telegram-wallet-link',
       'telegram-ai-agent',
       'ostium-trading',
+      'maxxit',
       'onchain-activity',
       "aixbt-momentum",
       "aixbt-signals",

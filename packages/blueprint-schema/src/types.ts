@@ -14,6 +14,7 @@ import type {
   X402PaywallConfig,
   ERC8004AgentConfig,
   RepoQualityGatesConfig,
+  MaxxitLazyTradingConfig,
 } from './schemas/nodes';
 import type { BlueprintEdge, EdgeType } from './schemas/edges';
 import type { BlueprintConfig, NetworkConfig, GitHubConfig } from './schemas/config';
@@ -34,6 +35,7 @@ export type {
   X402PaywallConfig,
   ERC8004AgentConfig,
   RepoQualityGatesConfig,
+  MaxxitLazyTradingConfig,
   BlueprintEdge,
   EdgeType,
   BlueprintConfig,

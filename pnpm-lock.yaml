@@ -204,6 +204,21 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
+  packages/components/maxxit-lazy-trader:
+    devDependencies:
+      '@types/react':
+        specifier: ^18.2.0
+        version: 18.3.27
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+
   packages/components/onchain-activity:
     dependencies:
       viem:

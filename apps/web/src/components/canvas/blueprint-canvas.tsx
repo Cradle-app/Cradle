@@ -33,6 +33,7 @@ const nodeTypes: NodeTypes = {
   // Agents
   'erc8004-agent-runtime': ForgeNode,
   'ostium-trading': ForgeNode,
+  'maxxit': ForgeNode,
   'onchain-activity': ForgeNode,
   // App
   'wallet-auth': ForgeNode,

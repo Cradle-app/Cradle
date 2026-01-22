@@ -19,6 +19,7 @@ export { TelegramCommandsPlugin } from './telegram-commands';
 export { TelegramWalletLinkPlugin } from './telegram-wallet-link';
 export { TelegramAIAgentPlugin } from './telegram-ai-agent';
 export { OstiumTradingPlugin } from './ostium-trading';
+export { MaxxitLazyTradingPlugin } from './maxxit';
 export { OnchainActivityPlugin } from './onchain-activity';
 export {
   AIXBTMomentumPlugin,
@@ -45,6 +46,7 @@ import { TelegramCommandsPlugin } from './telegram-commands';
 import { TelegramWalletLinkPlugin } from './telegram-wallet-link';
 import { TelegramAIAgentPlugin } from './telegram-ai-agent';
 import { OstiumTradingPlugin } from './ostium-trading';
+import { MaxxitLazyTradingPlugin } from './maxxit';
 import { OnchainActivityPlugin } from './onchain-activity';
 import {
   AIXBTMomentumPlugin,
@@ -81,6 +83,7 @@ export function registerOfficialPlugins(registry?: PluginRegistry): void {
   targetRegistry.register(new TelegramWalletLinkPlugin());
   targetRegistry.register(new TelegramAIAgentPlugin());
   targetRegistry.register(new OstiumTradingPlugin());
+  targetRegistry.register(new MaxxitLazyTradingPlugin());
   targetRegistry.register(new OnchainActivityPlugin());
   targetRegistry.register(new AIXBTMomentumPlugin());
   targetRegistry.register(new AIXBTSignalsPlugin());
@@ -113,6 +116,7 @@ export function getOfficialPlugins() {
     new TelegramWalletLinkPlugin(),
     new TelegramAIAgentPlugin(),
     new OstiumTradingPlugin(),
+    new MaxxitLazyTradingPlugin(),
     new OnchainActivityPlugin(),
     new AIXBTMomentumPlugin(),
     new AIXBTSignalsPlugin(),

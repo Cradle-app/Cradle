@@ -114,6 +114,13 @@ const NODE_CATEGORIES: NodeCategory[] = [
         color: 'node-agents',
       },
       {
+        id: 'maxxit',
+        name: 'Maxxit Lazy Trader',
+        description: 'Connect and message Maxxit Lazy Trader agents',
+        icon: Bot,
+        color: 'node-agents',
+      },
+      {
         id: 'onchain-activity',
         name: 'Onchain Activity',
         description: 'Fetch wallet transactions by category from Arbitrum',
