@@ -10,6 +10,7 @@ export const NodeCategory = z.enum([
   'app',          // Frontend/SDK generation
   'quality',      // CI/test/lint/format scaffolding
   'telegram',     // Telegram-specific integrations
+  'intelligence', // AIXBT Market Intelligence
 ]);
 export type NodeCategory = z.infer<typeof NodeCategory>;
 
@@ -52,6 +53,12 @@ export const NodeType = z.enum([
 
   // Quality
   'repo-quality-gates',
+
+  // Intelligence (AIXBT)
+  'aixbt-momentum',
+  'aixbt-signals',
+  'aixbt-indigo',
+  'aixbt-observer',
 ]);
 export type NodeType = z.infer<typeof NodeType>;
 
@@ -401,6 +408,53 @@ export const OnchainActivityConfig = BaseNodeConfig.extend({
 export type OnchainActivityConfig = z.infer<typeof OnchainActivityConfig>;
 
 /**
+ * AIXBT Project Momentum configuration
+ */
+export const AIXBTMomentumConfig = BaseNodeConfig.extend({
+  projectId: z.string().min(1).default('bitcoin'),
+  interval: z.enum(['1h', '4h', '24h', '7d']).default('24h'),
+  includeHistoricalData: z.boolean().default(true),
+  trackClusterConvergence: z.boolean().default(true),
+});
+export type AIXBTMomentumConfig = z.infer<typeof AIXBTMomentumConfig>;
+
+/**
+ * AIXBT Signals configuration
+ */
+export const AIXBTSignalsConfig = BaseNodeConfig.extend({
+  projectId: z.string().optional(), // Optional for global signal feed
+  categories: z.array(z.enum([
+    'TECH_EVENT', 'PARTNERSHIP', 'LISTING', 'FUNDING',
+    'ONCHAIN_HOT', 'RISK_ALERT', 'SOCIAL_CONVERGENCE'
+  ])).default(['LISTING', 'FUNDING', 'PARTNERSHIP']),
+  minConvictionScore: z.number().min(0).max(1).default(0.7),
+  limit: z.number().int().min(1).max(100).default(20),
+});
+export type AIXBTSignalsConfig = z.infer<typeof AIXBTSignalsConfig>;
+
+/**
+ * AIXBT Indigo Intelligence configuration
+ */
+export const AIXBTIndigoConfig = BaseNodeConfig.extend({
+  model: z.enum(['indigo-mini', 'indigo-full']).default('indigo-mini'),
+  systemPrompt: z.string().max(2000).default('You are a professional market researcher provided by AIXBT.'),
+  outputFormat: z.enum(['text', 'json', 'markdown']).default('markdown'),
+  useX402Paywall: z.boolean().default(true),
+});
+export type AIXBTIndigoConfig = z.infer<typeof AIXBTIndigoConfig>;
+
+/**
+ * AIXBT Market Observer configuration
+ */
+export const AIXBTObserverConfig = BaseNodeConfig.extend({
+  network: z.enum(['arbitrum', 'ethereum']).default('arbitrum'),
+  watchWallets: z.array(z.string().regex(/^0x[a-fA-F0-9]{40}$/)).optional(),
+  alertOnMomentumDrop: z.boolean().default(true),
+  alertOnNegativeSignal: z.boolean().default(true),
+});
+export type AIXBTObserverConfig = z.infer<typeof AIXBTObserverConfig>;
+
+/**
  * Union of all node configurations
  */
 export const NodeConfig = z.discriminatedUnion('type', [
@@ -425,6 +479,10 @@ export const NodeConfig = z.discriminatedUnion('type', [
   z.object({ type: z.literal('telegram-wallet-link'), config: TelegramWalletLinkConfig }),
   z.object({ type: z.literal('telegram-ai-agent'), config: TelegramAIAgentConfig }),
   z.object({ type: z.literal('ostium-trading'), config: OstiumTradingConfig }),
+  z.object({ type: z.literal('aixbt-momentum'), config: AIXBTMomentumConfig }),
+  z.object({ type: z.literal('aixbt-signals'), config: AIXBTSignalsConfig }),
+  z.object({ type: z.literal('aixbt-indigo'), config: AIXBTIndigoConfig }),
+  z.object({ type: z.literal('aixbt-observer'), config: AIXBTObserverConfig }),
 ]);
 export type NodeConfig = z.infer<typeof NodeConfig>;
 
@@ -471,6 +529,10 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'telegram-wallet-link': 'telegram',
     'telegram-ai-agent': 'telegram',
     'repo-quality-gates': 'quality',
+    'aixbt-momentum': 'intelligence',
+    'aixbt-signals': 'intelligence',
+    'aixbt-indigo': 'intelligence',
+    'aixbt-observer': 'intelligence',
   };
   return categoryMap[type];
 }
@@ -503,6 +565,10 @@ export function getConfigSchemaForType(type: NodeType) {
     'telegram-ai-agent': TelegramAIAgentConfig,
     'ostium-trading': OstiumTradingConfig,
     'onchain-activity': OnchainActivityConfig,
+    'aixbt-momentum': AIXBTMomentumConfig,
+    'aixbt-signals': AIXBTSignalsConfig,
+    'aixbt-indigo': AIXBTIndigoConfig,
+    'aixbt-observer': AIXBTObserverConfig,
   };
   return schemaMap[type];
 }

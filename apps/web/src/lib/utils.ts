@@ -55,6 +55,11 @@ export function nodeTypeToLabel(type: string): string {
     'telegram-wallet-link': 'Telegram Wallet Link',
     // Quality
     'repo-quality-gates': 'Quality Gates',
+    // AIXBT Intelligence
+    'aixbt-momentum': 'AIXBT Momentum',
+    'aixbt-signals': 'AIXBT Signals',
+    'aixbt-indigo': 'AIXBT Indigo',
+    'aixbt-observer': 'AIXBT Market Observer',
     // Legacy
     'maxxit': 'Maxxit Trading Agent',
     // ERC-20/ERC-721 Stylus nodes
@@ -93,6 +98,11 @@ export function nodeTypeToColor(type: string): string {
     'telegram-wallet-link': 'node-telegram',
     // Quality
     'repo-quality-gates': 'node-quality',
+    // AIXBT Intelligence
+    'aixbt-momentum': 'node-intelligence',
+    'aixbt-signals': 'node-intelligence',
+    'aixbt-indigo': 'node-intelligence',
+    'aixbt-observer': 'node-intelligence',
     // Legacy
     'maxxit': 'node-agents',
     // ERC-20/ERC-721 Stylus nodes

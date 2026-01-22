@@ -33,6 +33,7 @@ const config: Config = {
           agents: '#c026d3',
           app: '#22c55e',
           quality: '#f43f5e',
+          intelligence: '#8b5cf6',
         },
       },
       fontFamily: {

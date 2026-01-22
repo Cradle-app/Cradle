@@ -252,6 +252,42 @@ const NODE_CATEGORIES: NodeCategory[] = [
       },
     ],
   },
+  {
+    id: 'intelligence',
+    name: 'Intelligence',
+    icon: Sparkles,
+    color: 'node-intelligence',
+    nodes: [
+      {
+        id: 'aixbt-momentum',
+        name: 'Momentum',
+        description: 'Track social heat and project trends',
+        icon: TrendingUp,
+        color: 'node-intelligence',
+      },
+      {
+        id: 'aixbt-signals',
+        name: 'Signals',
+        description: 'Real-time project activity alerts',
+        icon: Zap,
+        color: 'node-intelligence',
+      },
+      {
+        id: 'aixbt-indigo',
+        name: 'Indigo',
+        description: 'Conversational market research',
+        icon: Sparkles,
+        color: 'node-intelligence',
+      },
+      {
+        id: 'aixbt-observer',
+        name: 'Observer',
+        description: 'Correlate on-chain activity',
+        icon: Search,
+        color: 'node-intelligence',
+      },
+    ],
+  },
 ];
 
 export function NodePalette() {

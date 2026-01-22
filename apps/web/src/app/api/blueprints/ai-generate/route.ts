@@ -48,10 +48,16 @@ Examples of CONVERSATIONAL intents:
 - "how does this work?"
 
 Examples of BUILD REQUEST intents:
-- "I want to build an NFT marketplace"
-- "Create a DeFi dashboard"
-- "Make a Telegram bot for crypto alerts"
-- "NFT marketplace with wallet auth"`;
+- "NFT marketplace with wallet auth"
+- "Market momentum dashboard with AIXBT"
+- "Smart trading bot with Indigo research"
+- "Project alert system using AIXBT signals"
+
+For Intelligence-related requests, prioritize these components:
+- aixbt_momentum: Use for market heat, trending projects, and cluster data.
+- aixbt_signals: Use for real-time alerts (partnerships, whale activity).
+- aixbt_indigo: Use for deep AI research and automated reporting.
+- aixbt_observer: Use for correlating on-chain wallet activity with market sentiment.`;
 
 interface AITool {
   id: string;
@@ -89,7 +95,7 @@ function parseAIResponse(content: string): AIResponse | null {
         // Continue to next attempt
       }
     }
-    
+
     // Try to find JSON object in the content
     const jsonObjectMatch = content.match(/\{[\s\S]*("type"|"tools")[\s\S]*\}/);
     if (jsonObjectMatch) {
@@ -99,7 +105,7 @@ function parseAIResponse(content: string): AIResponse | null {
         // Continue to next attempt
       }
     }
-    
+
     return null;
   }
 }
@@ -107,13 +113,13 @@ function parseAIResponse(content: string): AIResponse | null {
 // Check if query is conversational (greeting, help, etc.)
 function isConversationalQuery(query: string): boolean {
   const lowerQuery = query.toLowerCase().trim();
-  
+
   // Common greetings
   const greetings = ['hello', 'hi', 'hey', 'hola', 'howdy', 'greetings', 'good morning', 'good afternoon', 'good evening', 'sup', 'yo', 'hii', 'hiii', 'heya', 'heyo'];
   if (greetings.some(g => lowerQuery === g || lowerQuery.startsWith(g + ' ') || lowerQuery.startsWith(g + '!'))) {
     return true;
   }
-  
+
   // Help/question patterns
   const helpPatterns = [
     'what can you do',
@@ -137,23 +143,23 @@ function isConversationalQuery(query: string): boolean {
     'awesome',
     'got it',
   ];
-  
+
   if (helpPatterns.some(p => lowerQuery.includes(p))) {
     return true;
   }
-  
+
   // Very short queries that aren't build commands
   if (lowerQuery.length < 10 && !lowerQuery.includes('build') && !lowerQuery.includes('create') && !lowerQuery.includes('make')) {
     return true;
   }
-  
+
   return false;
 }
 
 // Generate conversational response
 function generateConversationalResponse(query: string): AIMessageResponse {
   const lowerQuery = query.toLowerCase().trim();
-  
+
   // Greetings
   if (['hello', 'hi', 'hey', 'hola', 'howdy', 'sup', 'yo', 'hii', 'hiii', 'heya', 'heyo'].some(g => lowerQuery.startsWith(g))) {
     const responses = [
@@ -163,7 +169,7 @@ function generateConversationalResponse(query: string): AIMessageResponse {
     ];
     return { type: 'message', content: responses[Math.floor(Math.random() * responses.length)] };
   }
-  
+
   // Help requests
   if (lowerQuery.includes('help') || lowerQuery.includes('what can you do') || lowerQuery.includes('how')) {
     return {
@@ -171,17 +177,17 @@ function generateConversationalResponse(query: string): AIMessageResponse {
       content: "I can help you design Web3 application architectures! Just describe what you want to build, like:\n\n• \"NFT marketplace with wallet auth\"\n• \"DeFi dashboard with bridging\"\n• \"Telegram bot for crypto alerts\"\n• \"Trading agent on Ostium\"\n\nI'll suggest the right components and you can add them to your canvas.",
     };
   }
-  
+
   // Thanks
   if (lowerQuery.includes('thank') || lowerQuery.includes('thanks')) {
     return { type: 'message', content: "You're welcome! Let me know if you need help with anything else. 🙂" };
   }
-  
+
   // Affirmations
   if (['okay', 'ok', 'cool', 'nice', 'great', 'awesome', 'got it'].some(a => lowerQuery.includes(a))) {
     return { type: 'message', content: "Great! Feel free to describe any Web3 app you'd like to build and I'll design an architecture for it." };
   }
-  
+
   // Default
   return {
     type: 'message',
@@ -208,7 +214,7 @@ export async function POST(request: NextRequest) {
 
     // Check for OpenAI API key
     const openaiApiKey = process.env.OPENAI_API_KEY;
-    
+
     if (!openaiApiKey) {
       // Return a mock response for demo purposes when no API key is configured
       console.log('[AI-Generate] No OpenAI API key configured, returning mock response');
@@ -249,7 +255,7 @@ export async function POST(request: NextRequest) {
       }
 
       const parsedResponse = parseAIResponse(content);
-      
+
       if (!parsedResponse) {
         console.error('[AI-Generate] Failed to parse AI response:', content);
         return NextResponse.json(generateMockWorkflowResponse(user_query));
@@ -343,7 +349,7 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
       name: hasZK ? 'Private NFT Contract' : 'NFT Smart Contract',
       next_tools: [],
     });
-    
+
     if (hasIPFS || hasMarketplace) {
       tools.push({
         id: getToolId(),

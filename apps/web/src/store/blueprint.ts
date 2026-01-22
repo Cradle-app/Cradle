@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { 
-  Blueprint, 
-  BlueprintNode, 
+import type {
+  Blueprint,
+  BlueprintNode,
   BlueprintEdge,
   BlueprintConfig,
 } from '@dapp-forge/blueprint-schema';
@@ -22,20 +22,20 @@ const generateUUID = (): string => {
 interface BlueprintState {
   blueprint: Blueprint;
   selectedNodeId: string | null;
-  
+
   // Node operations
   addNode: (type: string, position: { x: number; y: number }) => BlueprintNode;
   updateNode: (nodeId: string, updates: Partial<BlueprintNode>) => void;
   updateNodeConfig: (nodeId: string, config: Record<string, unknown>) => void;
   removeNode: (nodeId: string) => void;
-  
+
   // Edge operations
   addEdge: (source: string, target: string) => BlueprintEdge | null;
   removeEdge: (edgeId: string) => void;
-  
+
   // Selection
   selectNode: (nodeId: string | null) => void;
-  
+
   // Blueprint operations
   updateConfig: (config: Partial<BlueprintConfig>) => void;
   exportBlueprint: () => string;
@@ -181,6 +181,29 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
   'telegram-wallet-link': {
     verificationMethod: 'signature',
     multiWallet: false,
+  },
+  'aixbt-momentum': {
+    projectId: 'bitcoin',
+    interval: '24h',
+    includeHistoricalData: true,
+    trackClusterConvergence: true,
+  },
+  'aixbt-signals': {
+    categories: ['LISTING', 'FUNDING', 'PARTNERSHIP'],
+    minConvictionScore: 0.7,
+    limit: 20,
+  },
+  'aixbt-indigo': {
+    model: 'indigo-mini',
+    systemPrompt: 'You are a professional market researcher provided by AIXBT.',
+    outputFormat: 'markdown',
+    useX402Paywall: true,
+  },
+  'aixbt-observer': {
+    network: 'arbitrum',
+    watchWallets: [],
+    alertOnMomentumDrop: true,
+    alertOnNegativeSignal: true,
   },
 };
 

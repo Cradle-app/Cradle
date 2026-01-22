@@ -52,6 +52,11 @@ const nodeTypes: NodeTypes = {
   'telegram-wallet-link': ForgeNode,
   // Quality
   'repo-quality-gates': ForgeNode,
+  // Intelligence
+  'aixbt-momentum': ForgeNode,
+  'aixbt-signals': ForgeNode,
+  'aixbt-indigo': ForgeNode,
+  'aixbt-observer': ForgeNode,
 };
 
 // Custom edge types

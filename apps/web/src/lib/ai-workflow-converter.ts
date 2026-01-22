@@ -33,6 +33,11 @@ const toolTypeMap: Record<string, string> = {
   // Quality
   'quality_gates': 'repo-quality-gates',
   'repo_quality_gates': 'repo-quality-gates',
+  // AIXBT Intelligence
+  'aixbt_momentum': 'aixbt-momentum',
+  'aixbt_signals': 'aixbt-signals',
+  'aixbt_indigo': 'aixbt-indigo',
+  'aixbt_observer': 'aixbt-observer',
 };
 
 // Valid node types in our system
@@ -58,6 +63,10 @@ const validNodeTypes = [
   'telegram-ai-agent',
   'telegram-wallet-link',
   'repo-quality-gates',
+  'aixbt-momentum',
+  'aixbt-signals',
+  'aixbt-indigo',
+  'aixbt-observer',
 ];
 
 // Default node configs matching the blueprint store
@@ -198,6 +207,29 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     verificationMethod: 'signature',
     multiWallet: false,
   },
+  'aixbt-momentum': {
+    projectId: 'bitcoin',
+    interval: '24h',
+    includeHistoricalData: true,
+    trackClusterConvergence: true,
+  },
+  'aixbt-signals': {
+    categories: ['LISTING', 'FUNDING', 'PARTNERSHIP'],
+    minConvictionScore: 0.7,
+    limit: 20,
+  },
+  'aixbt-indigo': {
+    model: 'indigo-mini',
+    systemPrompt: 'You are a professional market researcher provided by AIXBT.',
+    outputFormat: 'markdown',
+    useX402Paywall: true,
+  },
+  'aixbt-observer': {
+    network: 'arbitrum',
+    watchWallets: [],
+    alertOnMomentumDrop: true,
+    alertOnNegativeSignal: true,
+  },
 };
 
 // Generate proper UUIDs
@@ -245,33 +277,33 @@ export interface WorkflowEdge {
 /**
  * Convert AI response format to workflow nodes and edges
  */
-export function aiResponseToWorkflow(aiResponse: AIResponse): { 
-  nodes: WorkflowNode[]; 
+export function aiResponseToWorkflow(aiResponse: AIResponse): {
+  nodes: WorkflowNode[];
   edges: WorkflowEdge[];
   blueprintNodes: BlueprintNode[];
 } {
   const nodes: WorkflowNode[] = [];
   const edges: WorkflowEdge[] = [];
   const blueprintNodes: BlueprintNode[] = [];
-  
+
   // Create a map of AI tool IDs to our node IDs
   const toolIdToNodeId = new Map<string, string>();
-  
+
   // Create nodes with proper positioning
   aiResponse.tools.forEach((tool, index) => {
     // Map AI tool type to our tool type
     const normalizedType = tool.type.toLowerCase().replace(/-/g, '_');
     const ourNodeType = toolTypeMap[normalizedType] || tool.type.replace(/_/g, '-');
-    
+
     // Check if this tool type exists in our system
     if (!validNodeTypes.includes(ourNodeType)) {
       console.warn(`Unknown tool type from AI: ${tool.type} (mapped to: ${ourNodeType})`);
       return;
     }
-    
+
     const nodeId = generateUUID();
     toolIdToNodeId.set(tool.id, nodeId);
-    
+
     // Position nodes in a grid layout
     const row = Math.floor(index / 3);
     const col = index % 3;
@@ -279,10 +311,10 @@ export function aiResponseToWorkflow(aiResponse: AIResponse): {
       x: col * 320 + 150,
       y: row * 200 + 120,
     };
-    
+
     // Get default config for this node type
     const config = DEFAULT_NODE_CONFIGS[ourNodeType] || {};
-    
+
     // Create ReactFlow node
     const node: WorkflowNode = {
       id: nodeId,
@@ -294,7 +326,7 @@ export function aiResponseToWorkflow(aiResponse: AIResponse): {
         label: tool.name || ourNodeType,
       },
     };
-    
+
     // Create Blueprint node
     const blueprintNode: BlueprintNode = {
       id: nodeId,
@@ -302,16 +334,16 @@ export function aiResponseToWorkflow(aiResponse: AIResponse): {
       position,
       config,
     };
-    
+
     nodes.push(node);
     blueprintNodes.push(blueprintNode);
   });
-  
+
   // Create edges based on next_tools relationships
   aiResponse.tools.forEach((tool) => {
     const sourceNodeId = toolIdToNodeId.get(tool.id);
     if (!sourceNodeId) return;
-    
+
     tool.next_tools.forEach((nextToolId) => {
       const targetNodeId = toolIdToNodeId.get(nextToolId);
       if (targetNodeId) {
@@ -325,7 +357,7 @@ export function aiResponseToWorkflow(aiResponse: AIResponse): {
       }
     });
   });
-  
+
   return { nodes, edges, blueprintNodes };
 }
 
@@ -334,9 +366,9 @@ export function aiResponseToWorkflow(aiResponse: AIResponse): {
  */
 export function isValidAIWorkflowResponse(data: unknown): data is AIResponse {
   if (!data || typeof data !== 'object') return false;
-  
+
   const response = data as Record<string, unknown>;
-  
+
   return (
     Array.isArray(response.tools) &&
     response.tools.length > 0 &&

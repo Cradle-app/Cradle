@@ -5,7 +5,7 @@ import { Handle, Position, type NodeProps } from 'reactflow';
 import {
   Box, CreditCard, Bot, Layout, ShieldCheck, Trash2,
   Lock, Key, Wallet, Globe, ArrowLeftRight, Database,
-  HardDrive, Layers, TrendingUp
+  HardDrive, Layers, TrendingUp, Zap, Sparkles, Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useBlueprintStore } from '@/store/blueprint';
@@ -28,6 +28,10 @@ const iconMap: Record<string, typeof Box> = {
   'chain-abstraction': Layers,
   'zk-primitives': Lock,
   'ostium-trading': TrendingUp,
+  'aixbt-momentum': TrendingUp,
+  'aixbt-signals': Zap,
+  'aixbt-indigo': Sparkles,
+  'aixbt-observer': Search,
 };
 
 const colorMap: Record<string, {
@@ -77,6 +81,14 @@ const colorMap: Record<string, {
     text: 'text-rose-400',
     glow: 'shadow-[0_0_30px_-5px] shadow-rose-500/30',
     accent: 'bg-rose-500',
+  },
+  'node-intelligence': {
+    bg: 'from-purple-500/15 via-purple-500/5 to-transparent',
+    border: 'border-purple-500/20',
+    borderSelected: 'border-purple-400/60',
+    text: 'text-purple-400',
+    glow: 'shadow-[0_0_30_px_-5px] shadow-purple-500/30',
+    accent: 'bg-purple-500',
   },
 };
 

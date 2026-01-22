@@ -132,6 +132,10 @@ export function getDefaultRegistry(): PluginRegistry {
       'erc20-stylus',
       'erc721-stylus',
       'onchain-activity',
+      "aixbt-momentum",
+      "aixbt-signals",
+      "aixbt-indigo",
+      "aixbt-observer"
     ]);
   }
   return defaultRegistry;
