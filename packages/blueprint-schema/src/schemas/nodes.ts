@@ -31,6 +31,7 @@ export const NodeType = z.enum([
   // Agents
   'erc8004-agent-runtime',
   'ostium-trading',
+  'onchain-activity',
 
   // App
   'frontend-scaffold',
@@ -46,6 +47,7 @@ export const NodeType = z.enum([
   'telegram-notifications',
   'telegram-commands',
   'telegram-wallet-link',
+  'telegram-ai-agent',
 
 
   // Quality
@@ -309,6 +311,7 @@ export const TelegramCommandsConfig = BaseNodeConfig.extend({
     'subscribe', 'unsubscribe', 'settings', 'status'
   ])).default(['start', 'help']),
   rateLimitEnabled: z.boolean().default(true),
+  chatFlowEnabled: z.boolean().default(false),
 });
 export type TelegramCommandsConfig = z.infer<typeof TelegramCommandsConfig>;
 
@@ -320,6 +323,18 @@ export const TelegramWalletLinkConfig = BaseNodeConfig.extend({
   verificationEnabled: z.boolean().default(true),
 });
 export type TelegramWalletLinkConfig = z.infer<typeof TelegramWalletLinkConfig>;
+
+/**
+ * Telegram AI Agent configuration
+ */
+export const TelegramAIAgentConfig = BaseNodeConfig.extend({
+  provider: z.enum(['openai', 'anthropic', 'local']).default('openai'),
+  model: z.string().default('gpt-4-turbo'),
+  systemPrompt: z.string().default('You are a helpful Web3 assistant.'),
+  memoryEnabled: z.boolean().default(true),
+  temperature: z.number().min(0).max(2).default(0.7),
+});
+export type TelegramAIAgentConfig = z.infer<typeof TelegramAIAgentConfig>;
 
 /**
  * Ostium One-Click Trading configuration
@@ -374,6 +389,16 @@ export const ERC721StylusConfig = BaseNodeConfig.extend({
   factoryAddress: z.string().optional(),
 });
 export type ERC721StylusConfig = z.infer<typeof ERC721StylusConfig>;
+ /**
+  Onchain Activity configuration
+ */
+export const OnchainActivityConfig = BaseNodeConfig.extend({
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum'),
+  transactionLimit: z.enum(['5', '10', '15', '20', 'custom']).default('10'),
+  customLimit: z.number().min(1).max(100).optional().default(25),
+  categories: z.array(z.enum(['erc20', 'erc721', 'erc1155', 'external'])).default(['erc20']),
+});
+export type OnchainActivityConfig = z.infer<typeof OnchainActivityConfig>;
 
 /**
  * Union of all node configurations
@@ -386,6 +411,20 @@ export const NodeConfig = z.discriminatedUnion('type', [
   z.object({ type: z.literal('repo-quality-gates'), config: RepoQualityGatesConfig }),
   z.object({ type: z.literal('frontend-scaffold'), config: FrontendScaffoldConfig }),
   z.object({ type: z.literal('sdk-generator'), config: SDKGeneratorConfig }),
+  // New Arbitrum/Telegram nodes
+  z.object({ type: z.literal('eip7702-smart-eoa'), config: EIP7702SmartEOAConfig }),
+  z.object({ type: z.literal('wallet-auth'), config: WalletAuthConfig }),
+  z.object({ type: z.literal('rpc-provider'), config: RPCProviderConfig }),
+  z.object({ type: z.literal('arbitrum-bridge'), config: ArbitrumBridgeConfig }),
+  z.object({ type: z.literal('chain-data'), config: ChainDataConfig }),
+  z.object({ type: z.literal('ipfs-storage'), config: IPFSStorageConfig }),
+  z.object({ type: z.literal('chain-abstraction'), config: ChainAbstractionConfig }),
+  z.object({ type: z.literal('zk-primitives'), config: ZKPrimitivesConfig }),
+  z.object({ type: z.literal('telegram-notifications'), config: TelegramNotifyConfig }),
+  z.object({ type: z.literal('telegram-commands'), config: TelegramCommandsConfig }),
+  z.object({ type: z.literal('telegram-wallet-link'), config: TelegramWalletLinkConfig }),
+  z.object({ type: z.literal('telegram-ai-agent'), config: TelegramAIAgentConfig }),
+  z.object({ type: z.literal('ostium-trading'), config: OstiumTradingConfig }),
 ]);
 export type NodeConfig = z.infer<typeof NodeConfig>;
 
@@ -418,6 +457,7 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'x402-paywall-api': 'payments',
     'erc8004-agent-runtime': 'agents',
     'ostium-trading': 'agents',
+    'onchain-activity': 'agents',
     'frontend-scaffold': 'app',
     'sdk-generator': 'app',
     'wallet-auth': 'app',
@@ -429,6 +469,7 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'telegram-notifications': 'telegram',
     'telegram-commands': 'telegram',
     'telegram-wallet-link': 'telegram',
+    'telegram-ai-agent': 'telegram',
     'repo-quality-gates': 'quality',
   };
   return categoryMap[type];
@@ -459,7 +500,9 @@ export function getConfigSchemaForType(type: NodeType) {
     'telegram-notifications': TelegramNotifyConfig,
     'telegram-commands': TelegramCommandsConfig,
     'telegram-wallet-link': TelegramWalletLinkConfig,
+    'telegram-ai-agent': TelegramAIAgentConfig,
     'ostium-trading': OstiumTradingConfig,
+    'onchain-activity': OnchainActivityConfig,
   };
   return schemaMap[type];
 }

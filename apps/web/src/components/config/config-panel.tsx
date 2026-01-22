@@ -25,7 +25,9 @@ import { ZKPrimitivesForm } from './forms/zk-primitives-form';
 import { TelegramNotificationsForm } from './forms/telegram-notifications-form';
 import { TelegramCommandsForm } from './forms/telegram-commands-form';
 import { TelegramWalletLinkForm } from './forms/telegram-wallet-link-form';
+import { TelegramAIAgentForm } from './forms/telegram-ai-agent-form';
 import { OstiumTradingForm } from './forms/ostium-trading-form';
+import { OnchainActivityForm } from './forms/onchain-activity-form';
 
 // ERC-20/ERC-721 Stylus forms
 import { ERC20StylusForm } from './forms/erc20-stylus-form';
@@ -184,6 +186,9 @@ export function ConfigPanel() {
           {selectedNode.type === 'telegram-wallet-link' && (
             <TelegramWalletLinkForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
+          {selectedNode.type === 'telegram-ai-agent' && (
+            <TelegramAIAgentForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
           {selectedNode.type === 'ostium-trading' && (
             <OstiumTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
@@ -194,6 +199,9 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'erc721-stylus' && (
             <ERC721StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'onchain-activity' && (
+            <OnchainActivityForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
         </motion.div>
       </AnimatePresence>

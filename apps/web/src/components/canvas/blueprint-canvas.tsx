@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -23,27 +23,35 @@ import { nodeTypeToColor } from '@/lib/utils';
 
 // Custom node types
 const nodeTypes: NodeTypes = {
+  // Contracts
   'stylus-contract': ForgeNode,
   'stylus-zk-contract': ForgeNode,
-  'x402-paywall-api': ForgeNode,
-  'erc8004-agent-runtime': ForgeNode,
-  'repo-quality-gates': ForgeNode,
-  'frontend-scaffold': ForgeNode,
-  'sdk-generator': ForgeNode,
   'eip7702-smart-eoa': ForgeNode,
+  'zk-primitives': ForgeNode,
+  // Payments
+  'x402-paywall-api': ForgeNode,
+  // Agents
+  'erc8004-agent-runtime': ForgeNode,
+  'ostium-trading': ForgeNode,
+  'onchain-activity': ForgeNode,
+  // App
   'wallet-auth': ForgeNode,
   'rpc-provider': ForgeNode,
   'arbitrum-bridge': ForgeNode,
   'chain-data': ForgeNode,
   'ipfs-storage': ForgeNode,
   'chain-abstraction': ForgeNode,
-  'zk-primitives': ForgeNode,
-  'ostium-trading': ForgeNode,
   'erc20-stylus': ForgeNode,
   'erc721-stylus': ForgeNode,
+  'frontend-scaffold': ForgeNode,
+  'sdk-generator': ForgeNode,
+  // Telegram
   'telegram-notifications': ForgeNode,
   'telegram-commands': ForgeNode,
+  'telegram-ai-agent': ForgeNode,
   'telegram-wallet-link': ForgeNode,
+  // Quality
+  'repo-quality-gates': ForgeNode,
 };
 
 // Custom edge types
@@ -62,7 +70,7 @@ export function BlueprintCanvas() {
   } = useBlueprintStore();
 
   // Convert blueprint nodes to ReactFlow nodes
-  const initialNodes: Node[] = useMemo(() =>
+  const blueprintNodes: Node[] = useMemo(() =>
     blueprint.nodes.map(node => ({
       id: node.id,
       type: node.type,
@@ -75,7 +83,7 @@ export function BlueprintCanvas() {
     })), [blueprint.nodes]);
 
   // Convert blueprint edges to ReactFlow edges
-  const initialEdges: Edge[] = useMemo(() =>
+  const blueprintEdges: Edge[] = useMemo(() =>
     blueprint.edges.map(edge => ({
       id: edge.id,
       source: edge.source,
@@ -84,8 +92,17 @@ export function BlueprintCanvas() {
       animated: true,
     })), [blueprint.edges]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(blueprintNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(blueprintEdges);
+
+  // Sync blueprint store changes to local ReactFlow state
+  useEffect(() => {
+    setNodes(blueprintNodes);
+  }, [blueprintNodes, setNodes]);
+
+  useEffect(() => {
+    setEdges(blueprintEdges);
+  }, [blueprintEdges, setEdges]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -217,6 +234,7 @@ export function BlueprintCanvas() {
               'node-agents': '#ff00ff',
               'node-app': '#00ff88',
               'node-quality': '#ff6b6b',
+              'node-telegram': '#0088cc',
             };
             return colorMap[color] || '#666';
           }}
@@ -256,4 +274,3 @@ export function BlueprintCanvas() {
     </div>
   );
 }
-

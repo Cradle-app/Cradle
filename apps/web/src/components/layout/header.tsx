@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Download, 
@@ -10,17 +10,45 @@ import {
   Hexagon,
   ChevronDown,
   Sparkles,
+  Wand2,
 } from 'lucide-react';
 import { useBlueprintStore } from '@/store/blueprint';
 import { Button } from '@/components/ui/button';
 import { GenerateDialog } from '@/components/dialogs/generate-dialog';
 import { ProjectSettingsDialog } from '@/components/dialogs/project-settings-dialog';
 import { GitHubConnect } from '@/components/auth/github-connect';
+import { AIChatModal } from '@/components/dialogs/ai-chat-modal';
+import type { BlueprintNode, BlueprintEdge } from '@dapp-forge/blueprint-schema';
 
 export function Header() {
   const [showGenerate, setShowGenerate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const { blueprint, exportBlueprint, importBlueprint } = useBlueprintStore();
+  const [showAI, setShowAI] = useState(false);
+  const { 
+    blueprint, 
+    exportBlueprint, 
+    importBlueprint,
+  } = useBlueprintStore();
+
+  // Handle applying AI-generated workflow to canvas
+  const handleApplyWorkflow = useCallback((
+    blueprintNodes: BlueprintNode[],
+    blueprintEdges: BlueprintEdge[]
+  ) => {
+    // Get current state and update the blueprint directly
+    const currentState = useBlueprintStore.getState();
+    
+    // Update blueprint with new nodes and edges (append to existing)
+    useBlueprintStore.setState({
+      ...currentState,
+      blueprint: {
+        ...currentState.blueprint,
+        nodes: [...currentState.blueprint.nodes, ...blueprintNodes],
+        edges: [...currentState.blueprint.edges, ...blueprintEdges],
+        updatedAt: new Date().toISOString(),
+      },
+    });
+  }, []);
 
   const handleExport = () => {
     const json = exportBlueprint();
@@ -52,70 +80,66 @@ export function Header() {
   };
 
   return (
-    <header className="h-16 border-b border-forge-border/50 bg-forge-surface/80 backdrop-blur-2xl flex items-center justify-between px-5 z-50 relative overflow-hidden">
+    <header className="h-14 border-b border-forge-border/50 bg-forge-surface/80 backdrop-blur-xl flex items-center justify-between px-4 z-50 relative">
       {/* Subtle gradient line at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-cyan/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-cyan/20 to-transparent" />
       
       {/* Logo & Title */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <motion.div 
-          className="flex items-center gap-3"
+          className="flex items-center gap-2.5"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.4 }}
         >
-          <div className="relative">
-            <div className="absolute inset-0 bg-accent-cyan/20 blur-xl rounded-full" />
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-accent-cyan via-accent-purple to-accent-magenta p-[2px]">
-              <div className="w-full h-full rounded-[10px] bg-forge-bg flex items-center justify-center">
-                <Hexagon className="w-5 h-5 text-accent-cyan" strokeWidth={2.5} />
-              </div>
+          <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-accent-cyan to-accent-cyan/60 p-[1.5px]">
+            <div className="w-full h-full rounded-[6px] bg-forge-bg flex items-center justify-center">
+              <Hexagon className="w-4 h-4 text-accent-cyan" strokeWidth={2} />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-white to-forge-muted bg-clip-text text-transparent">
+            <span className="text-base font-semibold text-white leading-tight">
               Cradle
             </span>
-            <span className="text-[10px] uppercase tracking-widest text-forge-muted font-medium -mt-0.5">
+            <span className="text-[9px] uppercase tracking-wider text-forge-muted -mt-0.5">
               Web3 Foundation Builder
             </span>
           </div>
         </motion.div>
         
-        <div className="h-8 w-px bg-gradient-to-b from-transparent via-forge-border to-transparent mx-1" />
+        <div className="h-6 w-px bg-forge-border/40 mx-2" />
         
-        <motion.button 
+        <button 
           onClick={() => setShowSettings(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-forge-elevated/50 transition-all duration-200 group"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-forge-elevated/50 transition-colors group"
         >
-          <span className="text-xs text-forge-muted uppercase tracking-wide">Project</span>
-          <span className="text-sm font-semibold text-white group-hover:text-accent-cyan transition-colors">
+          <span className="text-[10px] text-forge-muted uppercase tracking-wide">Project</span>
+          <span className="text-sm font-medium text-white group-hover:text-accent-cyan transition-colors">
             {blueprint.config.project.name || 'Untitled'}
           </span>
-          <ChevronDown className="w-3.5 h-3.5 text-forge-muted group-hover:text-accent-cyan transition-colors" />
-        </motion.button>
+          <ChevronDown className="w-3 h-3 text-forge-muted" />
+        </button>
       </div>
 
       {/* Center - Stats */}
       <motion.div 
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 px-4 py-2 rounded-full bg-forge-elevated/50 border border-forge-border/50"
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 px-3 py-1.5 rounded-full bg-forge-elevated/40 border border-forge-border/30"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <div className="flex items-center gap-2 pr-3 border-r border-forge-border/50">
-          <div className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
-          <span className="text-sm font-mono text-forge-text">
-            <span className="text-accent-cyan font-semibold">{blueprint.nodes.length}</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-accent-cyan" />
+          <span className="text-xs font-mono text-forge-text">
+            <span className="text-accent-cyan font-medium">{blueprint.nodes.length}</span>
             <span className="text-forge-muted ml-1">nodes</span>
           </span>
         </div>
-        <div className="flex items-center gap-2 pl-3">
-          <div className="w-2 h-2 rounded-full bg-accent-purple animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <span className="text-sm font-mono text-forge-text">
-            <span className="text-accent-purple font-semibold">{blueprint.edges.length}</span>
+        <div className="w-px h-3 bg-forge-border/40" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-accent-purple" />
+          <span className="text-xs font-mono text-forge-text">
+            <span className="text-accent-purple font-medium">{blueprint.edges.length}</span>
             <span className="text-forge-muted ml-1">edges</span>
           </span>
         </div>
@@ -123,18 +147,18 @@ export function Header() {
 
       {/* Actions */}
       <motion.div 
-        className="flex items-center gap-2"
+        className="flex items-center gap-1"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        transition={{ duration: 0.4 }}
       >
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={handleImport}
-          className="text-forge-muted hover:text-white hover:bg-forge-elevated/50 transition-all duration-200"
+          className="h-8 px-2.5 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
         >
-          <Upload className="w-4 h-4 mr-2" />
+          <Upload className="w-3.5 h-3.5 mr-1.5" />
           Import
         </Button>
         
@@ -142,46 +166,56 @@ export function Header() {
           variant="ghost" 
           size="sm" 
           onClick={handleExport}
-          className="text-forge-muted hover:text-white hover:bg-forge-elevated/50 transition-all duration-200"
+          className="h-8 px-2.5 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
         >
-          <Download className="w-4 h-4 mr-2" />
+          <Download className="w-3.5 h-3.5 mr-1.5" />
           Export
         </Button>
 
-        <div className="h-6 w-px bg-forge-border/50 mx-1" />
+        <div className="w-px h-5 bg-forge-border/40 mx-1" />
+        
+        <Button
+          onClick={() => setShowAI(true)}
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2.5 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
+        >
+          <Wand2 className="w-3.5 h-3.5 mr-1.5" />
+          AI Assist
+        </Button>
+
+        <div className="w-px h-5 bg-forge-border/40 mx-1" />
 
         <GitHubConnect />
-
-        <div className="h-6 w-px bg-forge-border/50 mx-1" />
 
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => setShowSettings(true)}
-          className="text-forge-muted hover:text-white hover:bg-forge-elevated/50 w-9 h-9 p-0"
+          className="h-8 w-8 p-0 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-3.5 h-3.5" />
         </Button>
 
-        <motion.div
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
+        <Button
+          onClick={() => setShowGenerate(true)}
+          size="sm"
+          className="h-8 ml-1 bg-accent-cyan hover:bg-accent-cyan/90 text-black font-medium"
         >
-          <Button
-            onClick={() => setShowGenerate(true)}
-            className="relative overflow-hidden bg-gradient-to-r from-accent-cyan via-accent-lime to-accent-cyan bg-[length:200%_100%] animate-gradient-shift text-black font-semibold shadow-lg shadow-accent-cyan/20 hover:shadow-accent-cyan/40 transition-shadow duration-300"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Generate
-            <Play className="w-3 h-3 ml-1.5 fill-current" />
-          </Button>
-        </motion.div>
+          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+          Generate
+          <Play className="w-2.5 h-2.5 ml-1 fill-current" />
+        </Button>
       </motion.div>
 
       {/* Dialogs */}
       <GenerateDialog open={showGenerate} onOpenChange={setShowGenerate} />
       <ProjectSettingsDialog open={showSettings} onOpenChange={setShowSettings} />
+      <AIChatModal 
+        open={showAI} 
+        onOpenChange={setShowAI} 
+        onApplyWorkflow={handleApplyWorkflow}
+      />
     </header>
   );
 }
-

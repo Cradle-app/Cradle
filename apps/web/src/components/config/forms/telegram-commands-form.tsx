@@ -59,6 +59,17 @@ export function TelegramCommandsForm({ nodeId, config }: Props) {
                 />
             </div>
 
+            <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                    <span className="text-sm text-white">Standard Chat Flow</span>
+                    <p className="text-[10px] text-forge-muted">Handle non-command messages</p>
+                </div>
+                <Switch
+                    checked={(config.chatFlowEnabled as boolean) ?? false}
+                    onCheckedChange={(v) => updateConfig('chatFlowEnabled', v)}
+                />
+            </div>
+
             <div>
                 <label className="text-xs text-forge-muted mb-1.5 block">Commands</label>
                 <div className="space-y-2">

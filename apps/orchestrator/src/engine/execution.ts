@@ -1,6 +1,8 @@
 import { Volume, createFsFromVolume } from 'memfs';
 import * as realFs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import type {
   Blueprint,
   BlueprintNode,
@@ -211,7 +213,8 @@ export class ExecutionEngine {
     componentPath: string,
     packageName: string
   ): void {
-    const projectRoot = path.resolve(__dirname, '../../../../');
+    const currentFileDir = dirname(fileURLToPath(import.meta.url));
+    const projectRoot = path.resolve(currentFileDir, '../../../../');
     const sourcePath = path.join(projectRoot, componentPath);
 
     if (!realFs.existsSync(sourcePath)) {

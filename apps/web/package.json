@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cradle/onchain-activity": "workspace:*",
     "@cradle/ostium-onect": "workspace:*",
     "@dapp-forge/blueprint-schema": "workspace:*",
     "@fontsource/jetbrains-mono": "^5.2.8",

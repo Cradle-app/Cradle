@@ -128,6 +128,13 @@ const NODE_CATEGORIES: NodeCategory[] = [
         icon: Zap,
         color: 'node-agents',
       },
+      {
+        id: 'onchain-activity',
+        name: 'Onchain Activity',
+        description: 'Fetch wallet transactions by category from Arbitrum',
+        icon: TrendingUp,
+        color: 'node-agents',
+      },
     ],
   },
   {
@@ -213,6 +220,13 @@ const NODE_CATEGORIES: NodeCategory[] = [
         description: 'Handle interactive commands via webhooks',
         icon: Box,
         color: 'node-app',
+      },
+      {
+        id: 'telegram-ai-agent',
+        name: 'AI Agent',
+        description: 'Conversational AI bot with LLM integration',
+        icon: Sparkles,
+        color: 'node-telegram',
       },
       {
         id: 'telegram-wallet-link',

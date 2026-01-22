@@ -41,19 +41,22 @@ export class TelegramCommandsPlugin extends BasePlugin<Config> {
         const output = this.createEmptyOutput();
 
         const libDir = 'src/lib/telegram';
+        const composerDir = 'src/lib/telegram/composers';
         const apiDir = 'src/api/telegram';
 
-        // Bot Client & Router
+        // Core Bot Client (shared gateway)
         this.addFile(output, `${libDir}/bot-client.ts`, this.generateBotClient(config));
-        this.addFile(output, `${libDir}/command-router.ts`, this.generateCommandRouter(config));
 
-        // Webhook Handler (if applicable)
+        // Commands Composer
+        this.addFile(output, `${composerDir}/commands.ts`, this.generateCommandsComposer(config));
+
+        // Webhook Handler
         if (config.deliveryMethod === 'webhook') {
             this.addFile(output, `${apiDir}/webhook/route.ts`, this.generateWebhookHandler(config));
             this.addEnvVar(output, 'TELEGRAM_WEBHOOK_SECRET', 'Secret for webhook verification', { required: true, secret: true });
         }
 
-        // Polling Script (if applicable)
+        // Polling Script
         if (config.deliveryMethod === 'polling') {
             this.addFile(output, 'scripts/telegram-bot.ts', this.generatePollingScript(config));
         }
@@ -67,32 +70,51 @@ export class TelegramCommandsPlugin extends BasePlugin<Config> {
     private generateBotClient(config: Config): string {
         return dedent(`
       import { Bot } from 'grammy';
+      import { commandsComposer } from './composers/commands';
+      /* @ts-ignore - AI composer might not exist yet */
+      import { aiComposer } from './composers/ai-agent';
 
       const token = process.env.TELEGRAM_BOT_TOKEN;
       if (!token) throw new Error('TELEGRAM_BOT_TOKEN is not defined');
 
       export const telegramBot = new Bot(token);
+
+      // Register feature-specific composers
+      telegramBot.use(commandsComposer);
+      
+      // AI Agent integration (if present)
+      try {
+        telegramBot.use(aiComposer);
+      } catch (e) {
+        // AI component missing, skipping
+      }
     `);
     }
 
-    private generateCommandRouter(config: Config): string {
+    private generateCommandsComposer(config: Config): string {
         const commandHandlers = config.commands.map(cmd => `
-      bot.command('${cmd}', async (ctx) => {
-        await ctx.reply('Handled /${cmd} command!');
-      });
-    `).join('\n');
+commandsComposer.command('${cmd}', async (ctx) => {
+  await ctx.reply('Handled /${cmd} command!');
+});
+`).join('\n');
+
+        const chatFlowLogic = config.chatFlowEnabled ? `
+// Standard Chat Flow - Traditional message handling
+commandsComposer.on('message:text', async (ctx) => {
+  const text = ctx.message.text;
+  if (text.startsWith('/')) return; // Ignore commands
+  
+  await ctx.reply(\`You said: \${text}. This is a standard chat response foundation.\`);
+});
+` : '';
 
         return dedent(`
-      import { telegramBot as bot } from './bot-client';
+      import { Composer } from 'grammy';
 
-      export function setupCommands() {
-        ${commandHandlers}
-        
-        // Default message handler
-        bot.on('message', async (ctx) => {
-          await ctx.reply('I received your message!');
-        });
-      }
+      export const commandsComposer = new Composer();
+
+      ${commandHandlers}
+      ${chatFlowLogic}
     `);
     }
 
@@ -101,14 +123,11 @@ export class TelegramCommandsPlugin extends BasePlugin<Config> {
       import { NextRequest, NextResponse } from 'next/server';
       import { webhookCallback } from 'grammy';
       import { telegramBot } from '@/lib/telegram/bot-client';
-      import { setupCommands } from '@/lib/telegram/command-router';
 
-      setupCommands();
       const handleUpdate = webhookCallback(telegramBot, 'std/http');
 
       export async function POST(req: NextRequest) {
         try {
-          // Optional: Verify webhook secret header
           return await handleUpdate(req);
         } catch (error) {
           console.error('Webhook error:', error);
@@ -121,11 +140,9 @@ export class TelegramCommandsPlugin extends BasePlugin<Config> {
     private generatePollingScript(config: Config): string {
         return dedent(`
       import { telegramBot } from '../src/lib/telegram/bot-client';
-      import { setupCommands } from '../src/lib/telegram/command-router';
 
       async function main() {
         console.log('🤖 Starting Telegram bot in polling mode...');
-        setupCommands();
         await telegramBot.start();
         console.log('✅ Bot is running!');
       }

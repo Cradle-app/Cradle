@@ -126,10 +126,12 @@ export function getDefaultRegistry(): PluginRegistry {
       'telegram-notifications',
       'telegram-commands',
       'telegram-wallet-link',
+      'telegram-ai-agent',
       'ostium-trading',
       // ERC-20/ERC-721 Stylus plugins
       'erc20-stylus',
       'erc721-stylus',
+      'onchain-activity',
     ]);
   }
   return defaultRegistry;
