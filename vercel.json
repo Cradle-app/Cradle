@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm --filter @dapp-forge/web build",
+  "buildCommand": "cd ../.. && npx turbo run build --filter=@dapp-forge/web",
   "outputDirectory": ".next",
   "installCommand": "cd ../.. && pnpm install",
   "framework": "nextjs"
