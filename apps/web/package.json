@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@cradle/ostium-onect": "workspace:*",
+    "@cradle/telegram-commands": "workspace:*",
     "@dapp-forge/blueprint-schema": "workspace:*",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/space-grotesk": "^5.2.10",
