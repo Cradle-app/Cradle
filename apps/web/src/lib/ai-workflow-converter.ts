@@ -5,6 +5,9 @@ const toolTypeMap: Record<string, string> = {
   // Contracts
   'stylus_contract': 'stylus-contract',
   'stylus_zk_contract': 'stylus-zk-contract',
+  'stylus_rust_contract': 'stylus-rust-contract',
+  'smartcache_caching': 'smartcache-caching',
+  'auditware_analyzing': 'auditware-analyzing',
   'eip7702_smart_eoa': 'eip7702-smart-eoa',
   'zk_primitives': 'zk-primitives',
   // Payments
@@ -47,6 +50,9 @@ const toolTypeMap: Record<string, string> = {
 const validNodeTypes = [
   'stylus-contract',
   'stylus-zk-contract',
+  'stylus-rust-contract',
+  'smartcache-caching',
+  'auditware-analyzing',
   'eip7702-smart-eoa',
   'zk-primitives',
   'x402-paywall-api',
@@ -234,6 +240,20 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     alertOnMomentumDrop: true,
     alertOnNegativeSignal: true,
   },
+  'stylus-rust-contract': {
+    network: 'arbitrum-sepolia',
+    exampleType: 'counter',
+    contractName: 'MyContract',
+  },
+  'smartcache-caching': {
+    crateVersion: 'latest',
+    autoOptIn: true,
+  },
+  'auditware-analyzing': {
+    outputFormat: 'both',
+    severityFilter: ['low', 'medium', 'high'],
+    projectPath: '.',
+  },
 };
 
 // Generate proper UUIDs
@@ -400,6 +420,9 @@ Available components for building Web3 applications on Arbitrum:
 CONTRACTS:
 - stylus_contract: Rust/WASM smart contract for Arbitrum Stylus
 - stylus_zk_contract: Privacy-preserving contract with ZK proofs
+- stylus_rust_contract: Build and deploy Rust contracts on Stylus
+- smartcache_caching: Enable contract caching for cheaper gas costs
+- auditware_analyzing: Security analysis with Radar static analyzer
 - eip7702_smart_eoa: EIP-7702 Smart EOA delegation (trending)
 - zk_primitives: Privacy proofs (membership, range, semaphore)
 

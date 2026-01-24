@@ -58,58 +58,39 @@ export class RPCProviderPlugin extends BasePlugin<z.infer<typeof RPCProviderConf
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/rpc';
-    const hooksDir = 'src/hooks';
-
     // Generate provider configuration
-    this.addFile(
-      output,
-      `${libDir}/provider-config.ts`,
-      generateProviderConfig(config)
-    );
+    this.addFile(output, 'provider-config.ts', generateProviderConfig(config), 'frontend-lib');
 
     // Generate client factory
-    this.addFile(
-      output,
-      `${libDir}/client-factory.ts`,
-      generateClientFactory(config)
-    );
+    this.addFile(output, 'client-factory.ts', generateClientFactory(config), 'frontend-lib');
 
     // Generate health check utilities
-    this.addFile(
-      output,
-      `${libDir}/health-check.ts`,
-      generateHealthCheck(config)
-    );
+    this.addFile(output, 'health-check.ts', generateHealthCheck(config), 'frontend-lib');
 
     // Generate React hooks
-    this.addFile(
-      output,
-      `${hooksDir}/useProvider.ts`,
-      generateProviderHooks(config)
-    );
+    this.addFile(output, 'useProvider.ts', generateProviderHooks(config), 'frontend-hooks');
 
     // Add environment variables based on providers
     const providers = [config.primaryProvider, ...config.fallbackProviders];
-    
+
     if (providers.includes('alchemy')) {
       this.addEnvVar(output, 'NEXT_PUBLIC_ALCHEMY_API_KEY', 'Alchemy API key for RPC access', {
         required: config.primaryProvider === 'alchemy',
       });
     }
-    
+
     if (providers.includes('quicknode')) {
       this.addEnvVar(output, 'NEXT_PUBLIC_QUICKNODE_ENDPOINT', 'QuickNode endpoint URL', {
         required: config.primaryProvider === 'quicknode',
       });
     }
-    
+
     if (providers.includes('infura')) {
       this.addEnvVar(output, 'NEXT_PUBLIC_INFURA_API_KEY', 'Infura API key for RPC access', {
         required: config.primaryProvider === 'infura',
       });
     }
-    
+
     if (providers.includes('ankr')) {
       this.addEnvVar(output, 'NEXT_PUBLIC_ANKR_API_KEY', 'Ankr API key (optional for free tier)', {
         required: false,

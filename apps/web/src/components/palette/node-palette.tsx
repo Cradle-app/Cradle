@@ -98,6 +98,27 @@ const NODE_CATEGORIES: NodeCategory[] = [
         icon: Lock,
         color: 'node-contracts',
       },
+      {
+        id: 'stylus-rust-contract',
+        name: 'Stylus Rust Contract',
+        description: 'Build Rust smart contracts for Arbitrum',
+        icon: Box,
+        color: 'node-contracts',
+      },
+      {
+        id: 'smartcache-caching',
+        name: 'SmartCache Caching',
+        description: 'Enable contract caching for cheaper gas',
+        icon: Database,
+        color: 'node-contracts',
+      },
+      {
+        id: 'auditware-analyzing',
+        name: 'Auditware Analyzer',
+        description: 'Security analysis with Radar',
+        icon: ShieldCheck,
+        color: 'node-contracts',
+      },
     ],
   },
   {

@@ -73,59 +73,34 @@ export class SuperpositionThirdwebPlugin extends BasePlugin<z.infer<typeof Super
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const typesDir = 'src/types';
-    const configDir = 'src/config';
-    const hooksDir = 'src/hooks';
-    const providersDir = 'src/providers';
-
     // Generate types
-    this.addFile(output, `${typesDir}/thirdweb.ts`, generateThirdwebTypes());
+    this.addFile(output, 'thirdweb.ts', generateThirdwebTypes(), 'frontend-types');
 
     // Generate Thirdweb configuration
-    this.addFile(output, `${configDir}/thirdweb.ts`, generateThirdwebConfig());
+    this.addFile(output, 'thirdweb-config.ts', generateThirdwebConfig(), 'frontend-lib');
 
     // Generate deploy hook
     if (config.generateDeployHelpers) {
-      this.addFile(
-        output,
-        `${hooksDir}/useThirdwebSuperposition.ts`,
-        generateDeployHook(config)
-      );
+      this.addFile(output, 'useThirdwebSuperposition.ts', generateDeployHook(config), 'frontend-hooks');
     }
 
     // Generate contract interaction hook
     if (config.generateContractHooks) {
-      this.addFile(
-        output,
-        `${hooksDir}/useSuperpositionContract.ts`,
-        generateContractHook()
-      );
+      this.addFile(output, 'useSuperpositionContract.ts', generateContractHook(), 'frontend-hooks');
     }
 
     // Generate provider component
     if (config.generateThirdwebProvider) {
-      this.addFile(
-        output,
-        `${providersDir}/SuperpositionThirdwebProvider.tsx`,
-        generateThirdwebProvider()
-      );
+      this.addFile(output, 'SuperpositionThirdwebProvider.tsx', generateThirdwebProvider(), 'frontend-components');
     }
 
     // Generate prebuilt contracts helpers
     if (config.includePrebuiltContracts) {
-      this.addFile(
-        output,
-        `${configDir}/prebuilt-contracts.ts`,
-        generatePrebuiltContracts()
-      );
+      this.addFile(output, 'prebuilt-contracts.ts', generatePrebuiltContracts(), 'frontend-lib');
     }
 
     // Generate index file
-    this.addFile(
-      output,
-      `${configDir}/thirdweb-index.ts`,
-      generateIndexFile(config)
-    );
+    this.addFile(output, 'thirdweb-index.ts', generateIndexFile(config), 'frontend-lib');
 
     // Add environment variables
     this.addEnvVar(

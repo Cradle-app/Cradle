@@ -600,7 +600,7 @@ export function generateDuneHooks(_config: AnyDuneConfig, hookType?: string): st
     
     import { useState, useCallback } from 'react';
     import { useQuery, useMutation } from '@tanstack/react-query';
-    import { duneClient, type DuneExecuteParams, type DuneQueryResult } from '@/lib/dune/dune-client';
+    import { duneClient, type DuneExecuteParams, type DuneQueryResult } from '@/lib/dune-client';
     
     export interface UseDuneQueryOptions {
       enabled?: boolean;
@@ -658,7 +658,7 @@ function generateTokenPriceHook(): string {
     'use client';
     
     import { useQuery } from '@tanstack/react-query';
-    import { duneClient, type TokenPrice } from '@/lib/dune/dune-client';
+    import { duneClient, type TokenPrice } from '@/lib/dune-client';
     
     export interface UseTokenPriceParams {
       blockchain: string;
@@ -705,7 +705,7 @@ function generateWalletBalancesHook(): string {
     
     import { useQuery } from '@tanstack/react-query';
     import { useAccount } from 'wagmi';
-    import { duneClient, type WalletBalance } from '@/lib/dune/dune-client';
+    import { duneClient, type WalletBalance } from '@/lib/dune-client';
     
     export interface UseWalletBalancesParams {
       address?: string;
@@ -752,7 +752,7 @@ function generateDEXVolumeHook(): string {
     'use client';
     
     import { useQuery } from '@tanstack/react-query';
-    import { duneClient, type DEXVolume } from '@/lib/dune/dune-client';
+    import { duneClient, type DEXVolume } from '@/lib/dune-client';
     
     export interface UseDEXVolumeParams {
       blockchain?: string;
@@ -800,7 +800,7 @@ function generateNFTFloorHook(): string {
     'use client';
     
     import { useQuery } from '@tanstack/react-query';
-    import { duneClient, type NFTFloorData } from '@/lib/dune/dune-client';
+    import { duneClient, type NFTFloorData } from '@/lib/dune-client';
     
     export interface UseNFTFloorParams {
       collectionAddress: string;
@@ -830,7 +830,7 @@ function generateAddressLabelsHook(): string {
     'use client';
     
     import { useQuery } from '@tanstack/react-query';
-    import { duneClient, type AddressLabel } from '@/lib/dune/dune-client';
+    import { duneClient, type AddressLabel } from '@/lib/dune-client';
     
     export function useAddressLabels(address?: string) {
       return useQuery({
@@ -866,7 +866,7 @@ function generateTransactionHistoryHook(): string {
     
     import { useQuery } from '@tanstack/react-query';
     import { useAccount } from 'wagmi';
-    import { duneClient, type Transaction } from '@/lib/dune/dune-client';
+    import { duneClient, type Transaction } from '@/lib/dune-client';
     
     export interface UseTransactionHistoryParams {
       address?: string;
@@ -901,7 +901,7 @@ function generateGasPriceHook(): string {
     'use client';
     
     import { useQuery } from '@tanstack/react-query';
-    import { duneClient, type GasPriceData } from '@/lib/dune/dune-client';
+    import { duneClient, type GasPriceData } from '@/lib/dune-client';
     
     export interface UseGasPriceParams {
       blockchain?: string;
@@ -929,7 +929,7 @@ function generateProtocolTVLHook(): string {
     'use client';
     
     import { useQuery } from '@tanstack/react-query';
-    import { duneClient, type ProtocolTVL } from '@/lib/dune/dune-client';
+    import { duneClient, type ProtocolTVL } from '@/lib/dune-client';
     
     export interface UseProtocolTVLParams {
       protocol: string;

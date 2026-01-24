@@ -23,6 +23,9 @@ export const NodeType = z.enum([
   // Contracts
   'stylus-contract',
   'stylus-zk-contract',
+  'stylus-rust-contract',
+  'smartcache-caching',
+  'auditware-analyzing',
   'eip7702-smart-eoa',
   'zk-primitives',
   'erc20-stylus',
@@ -195,15 +198,46 @@ export type RepoQualityGatesConfig = z.infer<typeof RepoQualityGatesConfig>;
 
 /**
  * Frontend scaffold configuration
+ * Comprehensive Next.js Web3 application scaffold with wallet integration
  */
 export const FrontendScaffoldConfig = BaseNodeConfig.extend({
+  // Framework Selection (Next.js is primary, others coming soon)
   framework: z.enum(['nextjs', 'vite-react', 'remix']).default('nextjs'),
-  styling: z.enum(['tailwind', 'css-modules', 'styled-components']).default('tailwind'),
-  web3Provider: z.enum(['wagmi', 'ethers', 'viem']).default('wagmi'),
+
+  // Styling Options
+  styling: z.enum(['tailwind', 'css-modules', 'styled-components', 'vanilla']).default('tailwind'),
+  darkModeSupport: z.boolean().default(true),
+
+  // Web3 Configuration
+  // Note: 'wagmi' is accepted as alias for 'wagmi-viem' for backward compatibility
+  web3Provider: z.enum(['wagmi-viem', 'wagmi', 'ethers-v6']).transform(v => v === 'wagmi' ? 'wagmi-viem' : v).default('wagmi-viem'),
   walletConnect: z.boolean().default(true),
   rainbowKit: z.boolean().default(true),
+  siweAuth: z.boolean().default(false),
+
+  // Smart Contract Integration
+  includeContracts: z.boolean().default(true),
+  contractsPath: z.string().default('contracts'),
+  generateContractHooks: z.boolean().default(true),
+
+  // Project Structure
+  projectStructure: z.enum(['app-router', 'pages-router']).default('app-router'),
+  srcDirectory: z.boolean().default(true),
+
+  // State Management & Features
+  stateManagement: z.enum(['tanstack-query', 'zustand', 'none']).default('tanstack-query'),
+  ssrEnabled: z.boolean().default(true),
+  pwaSupport: z.boolean().default(false),
+
+  // TypeScript Configuration
+  strictMode: z.boolean().default(true),
+
+  // Output Configuration
+  appName: z.string().min(1).max(100).default('My DApp'),
+  appDescription: z.string().max(500).optional(),
 });
 export type FrontendScaffoldConfig = z.infer<typeof FrontendScaffoldConfig>;
+
 
 /**
  * SDK generator configuration
@@ -466,9 +500,9 @@ export const ERC1155StylusConfig = BaseNodeConfig.extend({
 });
 export type ERC1155StylusConfig = z.infer<typeof ERC1155StylusConfig>;
 
- /**
-  Onchain Activity configuration
- */
+/**
+ Onchain Activity configuration
+*/
 export const OnchainActivityConfig = BaseNodeConfig.extend({
   network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum'),
   transactionLimit: z.enum(['5', '10', '15', '20', 'custom']).default('10'),
@@ -476,6 +510,40 @@ export const OnchainActivityConfig = BaseNodeConfig.extend({
   categories: z.array(z.enum(['erc20', 'erc721', 'erc1155', 'external'])).default(['erc20']),
 });
 export type OnchainActivityConfig = z.infer<typeof OnchainActivityConfig>;
+
+/**
+ * Stylus Rust Contract configuration
+ * Guides users on creating Stylus Rust contracts
+ */
+export const StylusRustContractConfig = BaseNodeConfig.extend({
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum-sepolia'),
+  exampleType: z.enum(['counter', 'storage', 'custom']).default('counter'),
+  contractName: z.string().min(1).max(64).default('MyContract'),
+  contractCode: z.string().optional(),
+});
+export type StylusRustContractConfig = z.infer<typeof StylusRustContractConfig>;
+
+/**
+ * SmartCache Caching configuration
+ * Enables contract caching with stylus-cache-sdk
+ */
+export const SmartCacheCachingConfig = BaseNodeConfig.extend({
+  crateVersion: z.string().default('latest'),
+  autoOptIn: z.boolean().default(true),
+  contractCode: z.string().optional(),
+});
+export type SmartCacheCachingConfig = z.infer<typeof SmartCacheCachingConfig>;
+
+/**
+ * Auditware Analyzing configuration
+ * Security analysis with Radar tool
+ */
+export const AuditwareAnalyzingConfig = BaseNodeConfig.extend({
+  outputFormat: z.enum(['console', 'json', 'both']).default('both'),
+  severityFilter: z.array(z.enum(['low', 'medium', 'high'])).default(['low', 'medium', 'high']),
+  projectPath: z.string().default('.'),
+});
+export type AuditwareAnalyzingConfig = z.infer<typeof AuditwareAnalyzingConfig>;
 
 /**
  * AIXBT Project Momentum configuration
@@ -848,6 +916,9 @@ export function getNodeCategory(type: NodeType): NodeCategory {
   const categoryMap: Record<NodeType, NodeCategory> = {
     'stylus-contract': 'contracts',
     'stylus-zk-contract': 'contracts',
+    'stylus-rust-contract': 'contracts',
+    'smartcache-caching': 'contracts',
+    'auditware-analyzing': 'contracts',
     'eip7702-smart-eoa': 'contracts',
     'zk-primitives': 'contracts',
     'erc20-stylus': 'contracts',
@@ -905,6 +976,9 @@ export function getConfigSchemaForType(type: NodeType) {
   const schemaMap = {
     'stylus-contract': StylusContractConfig,
     'stylus-zk-contract': StylusZKContractConfig,
+    'stylus-rust-contract': StylusRustContractConfig,
+    'smartcache-caching': SmartCacheCachingConfig,
+    'auditware-analyzing': AuditwareAnalyzingConfig,
     'eip7702-smart-eoa': EIP7702SmartEOAConfig,
     'zk-primitives': ZKPrimitivesConfig,
     'erc20-stylus': ERC20StylusConfig,

@@ -28,6 +28,9 @@ const nodeTypes: NodeTypes = {
   'stylus-zk-contract': ForgeNode,
   'eip7702-smart-eoa': ForgeNode,
   'zk-primitives': ForgeNode,
+  'stylus-rust-contract': ForgeNode,
+  'smartcache-caching': ForgeNode,
+  'auditware-analyzing': ForgeNode,
   // Payments
   'x402-paywall-api': ForgeNode,
   // Agents

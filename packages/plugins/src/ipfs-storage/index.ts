@@ -50,19 +50,15 @@ export class IPFSStoragePlugin extends BasePlugin<z.infer<typeof IPFSStorageConf
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/storage';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/storage';
-
     // Generate storage client
-    this.addFile(output, `${libDir}/storage-client.ts`, generateStorageClient(config));
+    this.addFile(output, 'storage-client.ts', generateStorageClient(config), 'frontend-lib');
 
     // Generate hooks
-    this.addFile(output, `${hooksDir}/useIPFS.ts`, generateStorageHooks(config));
+    this.addFile(output, 'useIPFS.ts', generateStorageHooks(config), 'frontend-hooks');
 
     // Generate UI if enabled
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/FileUpload.tsx`, generateUploadComponent(config));
+      this.addFile(output, 'FileUpload.tsx', generateUploadComponent(config), 'frontend-components');
     }
 
     // Add environment variables

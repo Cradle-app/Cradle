@@ -167,9 +167,18 @@ export abstract class BasePlugin<TConfig = Record<string, unknown>> implements N
 
   /**
    * Helper to add a file to the output
+   * @param output - The output object to add the file to
+   * @param path - File path (or just filename if using category)
+   * @param content - File content
+   * @param category - Optional category for intelligent path routing
    */
-  protected addFile(output: CodegenOutput, path: string, content: string): void {
-    output.files.push({ path, content });
+  protected addFile(
+    output: CodegenOutput,
+    path: string,
+    content: string,
+    category?: import('@dapp-forge/blueprint-schema').PathCategory
+  ): void {
+    output.files.push({ path, content, category });
   }
 
   /**

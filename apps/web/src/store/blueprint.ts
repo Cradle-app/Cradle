@@ -173,8 +173,11 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     notificationTypes: ['transaction', 'price-alert'],
   },
   'telegram-commands': {
-    commands: ['/start', '/help', '/balance'],
-    webhookEnabled: true,
+    commands: ['start', 'help', 'balance'],
+    framework: 'grammy',
+    deliveryMethod: 'webhook',
+    rateLimitEnabled: true,
+    chatFlowEnabled: false,
   },
   'telegram-ai-agent': {
     modelProvider: 'openai',
@@ -255,6 +258,22 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     blockchain: 'arbitrum',
     generateUI: true,
     cacheDuration: 600000,
+  },
+  // Stylus workflow nodes
+  'stylus-rust-contract': {
+    network: 'arbitrum-sepolia',
+    exampleType: 'counter',
+    contractName: 'MyContract',
+    contractCode: '',
+  },
+  'smartcache-caching': {
+    crateVersion: 'latest',
+    autoOptIn: true,
+  },
+  'auditware-analyzing': {
+    outputFormat: 'both',
+    severityFilter: ['low', 'medium', 'high'],
+    projectPath: '.',
   },
 };
 

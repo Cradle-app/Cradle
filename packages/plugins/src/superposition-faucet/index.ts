@@ -65,50 +65,29 @@ export class SuperpositionFaucetPlugin extends BasePlugin<z.infer<typeof Superpo
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const typesDir = 'src/types';
-    const configDir = 'src/config';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components';
-
     // Generate types
-    this.addFile(output, `${typesDir}/faucet.ts`, generateFaucetTypes());
+    this.addFile(output, 'faucet.ts', generateFaucetTypes(), 'frontend-types');
 
     // Generate constants
-    this.addFile(output, `${configDir}/faucet-constants.ts`, generateFaucetConstants());
+    this.addFile(output, 'faucet-constants.ts', generateFaucetConstants(), 'frontend-lib');
 
     // Generate faucet hook
     if (config.generateFaucetHook) {
-      this.addFile(
-        output,
-        `${hooksDir}/useSuperpositionFaucet.ts`,
-        generateFaucetHook(config)
-      );
+      this.addFile(output, 'useSuperpositionFaucet.ts', generateFaucetHook(config), 'frontend-hooks');
     }
 
     // Generate faucet UI
     if (config.generateFaucetUI) {
-      this.addFile(
-        output,
-        `${componentsDir}/SuperpositionFaucet.tsx`,
-        generateFaucetUI(config)
-      );
+      this.addFile(output, 'SuperpositionFaucet.tsx', generateFaucetUI(config), 'frontend-components');
     }
 
     // Generate balance check hook
     if (config.includeBalanceCheck) {
-      this.addFile(
-        output,
-        `${hooksDir}/useTestnetBalances.ts`,
-        generateBalanceHook()
-      );
+      this.addFile(output, 'useTestnetBalances.ts', generateBalanceHook(), 'frontend-hooks');
     }
 
     // Generate index file
-    this.addFile(
-      output,
-      `${configDir}/faucet-index.ts`,
-      generateIndexFile(config)
-    );
+    this.addFile(output, 'faucet-index.ts', generateIndexFile(config), 'frontend-lib');
 
     // Add documentation
     this.addDoc(

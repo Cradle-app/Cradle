@@ -12,6 +12,7 @@ import { StylusZKContractForm } from './forms/stylus-zk-contract-form';
 import { X402PaywallForm } from './forms/x402-paywall-form';
 import { ERC8004AgentForm } from './forms/erc8004-agent-form';
 import { QualityGatesForm } from './forms/quality-gates-form';
+import { FrontendScaffoldForm } from './forms/frontend-scaffold-form';
 
 // New Arbitrum-focused forms
 import { EIP7702Form } from './forms/eip7702-form';
@@ -49,6 +50,10 @@ import { ERC1155StylusForm } from './forms/erc1155-stylus-form';
 
 // Dune Analytics form
 import { DuneAnalyticsForm } from './forms/dune-analytics-form';
+// Stylus workflow forms
+import { StylusRustContractForm } from './forms/stylus-rust-contract-form';
+import { SmartCacheCachingForm } from './forms/smartcache-caching-form';
+import { AuditwareAnalyzingForm } from './forms/auditware-analyzing-form';
 
 export function ConfigPanel() {
   const { blueprint, selectedNodeId, selectNode } = useBlueprintStore();
@@ -166,6 +171,9 @@ export function ConfigPanel() {
           {selectedNode.type === 'repo-quality-gates' && (
             <QualityGatesForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
+          {selectedNode.type === 'frontend-scaffold' && (
+            <FrontendScaffoldForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
 
           {/* New Arbitrum-focused nodes */}
           {selectedNode.type === 'eip7702-smart-eoa' && (
@@ -225,6 +233,17 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'maxxit' && (
             <MaxxitLazyTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+
+          {/* Stylus workflow nodes */}
+          {selectedNode.type === 'stylus-rust-contract' && (
+            <StylusRustContractForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'smartcache-caching' && (
+            <SmartCacheCachingForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'auditware-analyzing' && (
+            <AuditwareAnalyzingForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
 
           {/* AIXBT nodes */}

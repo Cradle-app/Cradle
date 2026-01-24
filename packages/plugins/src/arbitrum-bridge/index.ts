@@ -57,38 +57,18 @@ export class ArbitrumBridgePlugin extends BasePlugin<z.infer<typeof ArbitrumBrid
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/bridge';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/bridge';
-
     // Generate bridge utilities
-    this.addFile(
-      output,
-      `${libDir}/bridge-utils.ts`,
-      generateBridgeUtils(config)
-    );
+    this.addFile(output, 'bridge-utils.ts', generateBridgeUtils(config), 'frontend-lib');
 
     // Generate retryable ticket helpers
-    this.addFile(
-      output,
-      `${libDir}/retryable-helpers.ts`,
-      generateRetryableHelpers(config)
-    );
+    this.addFile(output, 'retryable-helpers.ts', generateRetryableHelpers(config), 'frontend-lib');
 
     // Generate React hooks
-    this.addFile(
-      output,
-      `${hooksDir}/useBridge.ts`,
-      generateBridgeHooks(config)
-    );
+    this.addFile(output, 'useBridge.ts', generateBridgeHooks(config), 'frontend-hooks');
 
     // Generate UI components if enabled
     if (config.generateUI) {
-      this.addFile(
-        output,
-        `${componentsDir}/BridgeWidget.tsx`,
-        generateBridgeUI(config)
-      );
+      this.addFile(output, 'BridgeWidget.tsx', generateBridgeUI(config), 'frontend-components');
     }
 
     // Add environment variables

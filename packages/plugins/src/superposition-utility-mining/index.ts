@@ -67,51 +67,30 @@ export class SuperpositionUtilityMiningPlugin extends BasePlugin<z.infer<typeof 
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const typesDir = 'src/types';
-    const configDir = 'src/config';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components';
-
     // Generate types
-    this.addFile(output, `${typesDir}/utility-mining.ts`, generateUtilityMiningTypes());
+    this.addFile(output, 'utility-mining.ts', generateUtilityMiningTypes(), 'frontend-types');
 
     // Generate constants and ABIs
-    this.addFile(output, `${configDir}/utility-mining-constants.ts`, generateUtilityMiningConstants());
-    this.addFile(output, `${configDir}/utility-mining-abi.ts`, generateUtilityMiningABIs());
+    this.addFile(output, 'utility-mining-constants.ts', generateUtilityMiningConstants(), 'frontend-lib');
+    this.addFile(output, 'utility-mining-abi.ts', generateUtilityMiningABIs(), 'frontend-lib');
 
     // Generate rewards tracking hook
     if (config.generateRewardTracking) {
-      this.addFile(
-        output,
-        `${hooksDir}/useUtilityMiningRewards.ts`,
-        generateRewardsHook(config)
-      );
+      this.addFile(output, 'useUtilityMiningRewards.ts', generateRewardsHook(config), 'frontend-hooks');
     }
 
     // Generate leaderboard hook
     if (config.includeLeaderboard) {
-      this.addFile(
-        output,
-        `${hooksDir}/useUtilityMiningLeaderboard.ts`,
-        generateLeaderboardHook()
-      );
+      this.addFile(output, 'useUtilityMiningLeaderboard.ts', generateLeaderboardHook(), 'frontend-hooks');
     }
 
     // Generate UI component
     if (config.generateUI) {
-      this.addFile(
-        output,
-        `${componentsDir}/UtilityMiningRewardDisplay.tsx`,
-        generateRewardUI()
-      );
+      this.addFile(output, 'UtilityMiningRewardDisplay.tsx', generateRewardUI(), 'frontend-components');
     }
 
     // Generate index file
-    this.addFile(
-      output,
-      `${configDir}/utility-mining-index.ts`,
-      generateIndexFile(config)
-    );
+    this.addFile(output, 'utility-mining-index.ts', generateIndexFile(config), 'frontend-lib');
 
     // Add documentation
     this.addDoc(

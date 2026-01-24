@@ -84,22 +84,19 @@ export class DuneExecuteSQLPlugin extends BaseDunePlugin<z.infer<typeof DuneExec
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-
     // Generate Dune API client with only execute-sql feature
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'execute-sql'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'execute-sql'), 'frontend-lib');
 
     // Generate React hooks for SQL queries
     if (config.generateHooks) {
-      this.addFile(output, `${hooksDir}/useDuneQuery.ts`, generateDuneHooks(config));
+      this.addFile(output, 'useDuneQuery.ts', generateDuneHooks(config), 'frontend-hooks');
     }
 
     // Add environment variables
     this.addDuneEnvVars(output);
 
     // Add documentation
-    this.addDoc(output, 'docs/dune/execute-sql.md', 'Dune Execute SQL', generateExecuteSQLDocs(config));
+    this.addFile(output, 'dune-execute-sql.md', generateExecuteSQLDocs(config), 'docs');
 
     context.logger.info('Generated Dune Execute SQL utilities', {
       nodeId: node.id,
@@ -151,23 +148,19 @@ export class DuneTokenPricePlugin extends BaseDunePlugin<z.infer<typeof DuneToke
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
     // Generate Dune client with token-price feature only
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'token-price'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'token-price'), 'frontend-lib');
 
     // Generate token price hooks
-    this.addFile(output, `${hooksDir}/useTokenPrice.ts`, generateDuneHooks(config, 'token-price'));
+    this.addFile(output, 'useTokenPrice.ts', generateDuneHooks(config, 'token-price'), 'frontend-hooks');
 
     // Generate UI components if enabled
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/TokenPriceCard.tsx`, generateTokenPriceComponent(config));
+      this.addFile(output, 'TokenPriceCard.tsx', generateTokenPriceComponent(config), 'frontend-components');
     }
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/token-price.md', 'Dune Token Price', generateTokenPriceDocs(config));
+    this.addFile(output, 'dune-token-price.md', generateTokenPriceDocs(config), 'docs');
 
     context.logger.info('Generated Dune Token Price utilities', {
       nodeId: node.id,
@@ -219,19 +212,15 @@ export class DuneWalletBalancesPlugin extends BaseDunePlugin<z.infer<typeof Dune
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'wallet-balances'));
-    this.addFile(output, `${hooksDir}/useWalletBalances.ts`, generateDuneHooks(config, 'wallet-balances'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'wallet-balances'), 'frontend-lib');
+    this.addFile(output, 'useWalletBalances.ts', generateDuneHooks(config, 'wallet-balances'), 'frontend-hooks');
 
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/WalletBalances.tsx`, generateWalletBalancesComponent(config));
+      this.addFile(output, 'WalletBalances.tsx', generateWalletBalancesComponent(config), 'frontend-components');
     }
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/wallet-balances.md', 'Dune Wallet Balances', generateWalletBalancesDocs(config));
+    this.addFile(output, 'dune-wallet-balances.md', generateWalletBalancesDocs(config), 'docs');
 
     context.logger.info('Generated Dune Wallet Balances utilities', {
       nodeId: node.id,
@@ -282,19 +271,15 @@ export class DuneDEXVolumePlugin extends BaseDunePlugin<z.infer<typeof DuneDEXVo
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'dex-volume'));
-    this.addFile(output, `${hooksDir}/useDEXVolume.ts`, generateDuneHooks(config, 'dex-volume'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'dex-volume'), 'frontend-lib');
+    this.addFile(output, 'useDEXVolume.ts', generateDuneHooks(config, 'dex-volume'), 'frontend-hooks');
 
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/DEXVolumeChart.tsx`, generateDEXVolumeComponent(config));
+      this.addFile(output, 'DEXVolumeChart.tsx', generateDEXVolumeComponent(config), 'frontend-components');
     }
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/dex-volume.md', 'Dune DEX Volume', generateDEXVolumeDocs(config));
+    this.addFile(output, 'dune-dex-volume.md', generateDEXVolumeDocs(config), 'docs');
 
     context.logger.info('Generated Dune DEX Volume utilities', {
       nodeId: node.id,
@@ -345,19 +330,15 @@ export class DuneNFTFloorPlugin extends BaseDunePlugin<z.infer<typeof DuneNFTFlo
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'nft-floor'));
-    this.addFile(output, `${hooksDir}/useNFTFloor.ts`, generateDuneHooks(config, 'nft-floor'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'nft-floor'), 'frontend-lib');
+    this.addFile(output, 'useNFTFloor.ts', generateDuneHooks(config, 'nft-floor'), 'frontend-hooks');
 
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/NFTFloorCard.tsx`, generateNFTFloorComponent(config));
+      this.addFile(output, 'NFTFloorCard.tsx', generateNFTFloorComponent(config), 'frontend-components');
     }
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/nft-floor.md', 'Dune NFT Floor Price', generateNFTFloorDocs(config));
+    this.addFile(output, 'dune-nft-floor.md', generateNFTFloorDocs(config), 'docs');
 
     context.logger.info('Generated Dune NFT Floor utilities', {
       nodeId: node.id,
@@ -408,16 +389,12 @@ export class DuneAddressLabelsPlugin extends BaseDunePlugin<z.infer<typeof DuneA
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'address-labels'));
-    this.addFile(output, `${hooksDir}/useAddressLabels.ts`, generateDuneHooks(config, 'address-labels'));
-    this.addFile(output, `${componentsDir}/AddressLabel.tsx`, generateAddressLabelsComponent(config));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'address-labels'), 'frontend-lib');
+    this.addFile(output, 'useAddressLabels.ts', generateDuneHooks(config, 'address-labels'), 'frontend-hooks');
+    this.addFile(output, 'AddressLabel.tsx', generateAddressLabelsComponent(config), 'frontend-components');
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/address-labels.md', 'Dune Address Labels', generateAddressLabelsDocs(config));
+    this.addFile(output, 'dune-address-labels.md', generateAddressLabelsDocs(config), 'docs');
 
     context.logger.info('Generated Dune Address Labels utilities', {
       nodeId: node.id,
@@ -467,19 +444,15 @@ export class DuneTransactionHistoryPlugin extends BaseDunePlugin<z.infer<typeof 
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'transaction-history'));
-    this.addFile(output, `${hooksDir}/useTransactionHistory.ts`, generateDuneHooks(config, 'transaction-history'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'transaction-history'), 'frontend-lib');
+    this.addFile(output, 'useTransactionHistory.ts', generateDuneHooks(config, 'transaction-history'), 'frontend-hooks');
 
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/TransactionHistory.tsx`, generateTransactionHistoryComponent(config));
+      this.addFile(output, 'TransactionHistory.tsx', generateTransactionHistoryComponent(config), 'frontend-components');
     }
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/transaction-history.md', 'Dune Transaction History', generateTransactionHistoryDocs(config));
+    this.addFile(output, 'dune-transaction-history.md', generateTransactionHistoryDocs(config), 'docs');
 
     context.logger.info('Generated Dune Transaction History utilities', {
       nodeId: node.id,
@@ -530,19 +503,15 @@ export class DuneGasPricePlugin extends BaseDunePlugin<z.infer<typeof DuneGasPri
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'gas-price'));
-    this.addFile(output, `${hooksDir}/useGasPrice.ts`, generateDuneHooks(config, 'gas-price'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'gas-price'), 'frontend-lib');
+    this.addFile(output, 'useGasPrice.ts', generateDuneHooks(config, 'gas-price'), 'frontend-hooks');
 
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/GasPriceCard.tsx`, generateGasPriceComponent(config));
+      this.addFile(output, 'GasPriceCard.tsx', generateGasPriceComponent(config), 'frontend-components');
     }
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/gas-price.md', 'Dune Gas Price Analytics', generateGasPriceDocs(config));
+    this.addFile(output, 'dune-gas-price.md', generateGasPriceDocs(config), 'docs');
 
     context.logger.info('Generated Dune Gas Price utilities', {
       nodeId: node.id,
@@ -593,19 +562,15 @@ export class DuneProtocolTVLPlugin extends BaseDunePlugin<z.infer<typeof DunePro
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/dune';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/dune';
-
-    this.addFile(output, `${libDir}/dune-client.ts`, generateDuneClient(config, 'protocol-tvl'));
-    this.addFile(output, `${hooksDir}/useProtocolTVL.ts`, generateDuneHooks(config, 'protocol-tvl'));
+    this.addFile(output, 'dune-client.ts', generateDuneClient(config, 'protocol-tvl'), 'frontend-lib');
+    this.addFile(output, 'useProtocolTVL.ts', generateDuneHooks(config, 'protocol-tvl'), 'frontend-hooks');
 
     if (config.generateUI) {
-      this.addFile(output, `${componentsDir}/ProtocolTVLCard.tsx`, generateProtocolTVLComponent(config));
+      this.addFile(output, 'ProtocolTVLCard.tsx', generateProtocolTVLComponent(config), 'frontend-components');
     }
 
     this.addDuneEnvVars(output);
-    this.addDoc(output, 'docs/dune/protocol-tvl.md', 'Dune Protocol TVL', generateProtocolTVLDocs(config));
+    this.addFile(output, 'dune-protocol-tvl.md', generateProtocolTVLDocs(config), 'docs');
 
     context.logger.info('Generated Dune Protocol TVL utilities', {
       nodeId: node.id,
