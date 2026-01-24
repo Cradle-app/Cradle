@@ -97,6 +97,19 @@ export interface NodePlugin<TConfig = Record<string, unknown>> {
   readonly componentPackage?: string;
 
   /**
+   * Optional: Define path category mappings for component files
+   * Maps source file patterns to path categories for intelligent routing
+   * 
+   * Example:
+   * {
+   *   'src/hooks/**': 'frontend-hooks',
+   *   'src/types.ts': 'frontend-types',
+   *   'src/*.ts': 'frontend-lib',
+   * }
+   */
+  readonly componentPathMappings?: Record<string, import('@dapp-forge/blueprint-schema').PathCategory>;
+
+  /**
    * Validate the node configuration
    * Called before generation to ensure config is valid
    */

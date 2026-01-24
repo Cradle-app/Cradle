@@ -37,6 +37,17 @@ export class MaxxitLazyTradingPlugin extends BasePlugin<z.infer<typeof MaxxitLaz
    */
   readonly componentPackage = '@cradle/maxxit-lazy-trader';
 
+  /**
+   * Path mappings for component files to enable intelligent routing
+   */
+  readonly componentPathMappings = {
+    'src/hooks/**': 'frontend-hooks' as const,
+    'src/types.ts': 'frontend-types' as const,
+    'src/api.ts': 'frontend-lib' as const,
+    'src/index.ts': 'frontend-lib' as const,
+    'src/example.tsx': 'frontend-components' as const,
+  };
+
   readonly ports: PluginPort[] = [
     {
       id: 'api-key',

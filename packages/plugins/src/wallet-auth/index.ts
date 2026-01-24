@@ -38,6 +38,18 @@ export class WalletAuthPlugin extends BasePlugin<z.infer<typeof WalletAuthConfig
    */
   readonly componentPackage = '@cradle/wallet-auth';
 
+  /**
+   * Path mappings for component files to enable intelligent routing
+   */
+  readonly componentPathMappings = {
+    'src/hooks/**': 'frontend-hooks' as const,
+    'src/types.ts': 'frontend-types' as const,
+    'src/config.ts': 'frontend-lib' as const,
+    'src/constants.ts': 'frontend-lib' as const,
+    'src/providers.tsx': 'frontend-components' as const,
+    'src/index.ts': 'frontend-lib' as const,
+  };
+
   readonly ports: PluginPort[] = [
     {
       id: 'auth-out',

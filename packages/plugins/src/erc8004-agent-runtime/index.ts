@@ -38,6 +38,19 @@ export class ERC8004AgentPlugin extends BasePlugin<z.infer<typeof ERC8004AgentCo
    */
   readonly componentPackage = '@cradle/erc8004-agent';
 
+  /**
+   * Path mappings for component files to enable intelligent routing
+   */
+  readonly componentPathMappings = {
+    'src/hooks/**': 'frontend-hooks' as const,
+    'src/types.ts': 'frontend-types' as const,
+    'src/constants.ts': 'frontend-lib' as const,
+    'src/abi.ts': 'frontend-lib' as const,
+    'src/registry.ts': 'frontend-lib' as const,
+    'src/openrouter-client.ts': 'frontend-lib' as const,
+    'src/index.ts': 'frontend-lib' as const,
+  };
+
   readonly ports: PluginPort[] = [
     {
       id: 'contract-in',
