@@ -64,6 +64,13 @@ const NODE_CATEGORIES: NodeCategory[] = [
         color: 'node-contracts',
       },
       {
+        id: 'erc1155-stylus',
+        name: 'ERC-1155 Multi-Token',
+        description: 'Deploy multi-token contract on Arbitrum Stylus',
+        icon: Layers,
+        color: 'node-contracts',
+      },
+      {
         id: 'stylus-contract',
         name: 'Stylus Contract',
         description: 'Rust/WASM smart contract for Arbitrum',

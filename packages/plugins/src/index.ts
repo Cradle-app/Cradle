@@ -27,9 +27,10 @@ export {
   AIXBTObserverPlugin
 } from './aixbt-intelligence';
 
-// ERC-20/ERC-721 Stylus plugins
+// ERC-20/ERC-721/ERC-1155 Stylus plugins
 export { ERC20StylusPlugin } from './erc20-stylus';
 export { ERC721StylusPlugin } from './erc721-stylus';
+export { ERC1155StylusPlugin } from './erc1155-stylus';
 
 import { StylusContractPlugin } from './stylus-contract';
 import { StylusZKContractPlugin } from './stylus-zk-contract';
@@ -51,6 +52,7 @@ import { TelegramAIAgentPlugin } from './telegram-ai-agent';
 import { OstiumTradingPlugin } from './ostium-trading';
 import { ERC20StylusPlugin } from './erc20-stylus';
 import { ERC721StylusPlugin } from './erc721-stylus';
+import { ERC1155StylusPlugin } from './erc1155-stylus';
 import { OnchainActivityPlugin } from './onchain-activity';
 import {
   AIXBTMomentumPlugin,
@@ -88,9 +90,10 @@ export function registerOfficialPlugins(registry?: PluginRegistry): void {
   targetRegistry.register(new TelegramAIAgentPlugin());
   targetRegistry.register(new OstiumTradingPlugin());
 
-  // ERC-20/ERC-721 Stylus plugins
+  // ERC-20/ERC-721/ERC-1155 Stylus plugins
   targetRegistry.register(new ERC20StylusPlugin());
   targetRegistry.register(new ERC721StylusPlugin());
+  targetRegistry.register(new ERC1155StylusPlugin());
   targetRegistry.register(new OnchainActivityPlugin());
   targetRegistry.register(new AIXBTMomentumPlugin());
   targetRegistry.register(new AIXBTSignalsPlugin());
@@ -123,9 +126,10 @@ export function getOfficialPlugins() {
     new TelegramWalletLinkPlugin(),
     new TelegramAIAgentPlugin(),
     new OstiumTradingPlugin(),
-    // ERC-20/ERC-721 Stylus plugins
+    // ERC-20/ERC-721/ERC-1155 Stylus plugins
     new ERC20StylusPlugin(),
     new ERC721StylusPlugin(),
+    new ERC1155StylusPlugin(),
     new OnchainActivityPlugin(),
     new AIXBTMomentumPlugin(),
     new AIXBTSignalsPlugin(),

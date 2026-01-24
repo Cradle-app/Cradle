@@ -165,6 +165,12 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     leverage: 10,
     enableOneClick: true,
   },
+  'erc1155-stylus': {
+    collectionName: 'My Multi-Token Collection',
+    baseUri: 'https://api.example.com/metadata/',
+    network: 'arbitrum-sepolia',
+    features: ['ownable', 'mintable', 'burnable', 'pausable', 'supply-tracking', 'batch-operations'],
+  },
   'telegram-notifications': {
     webhookEnabled: true,
     notificationTypes: ['transaction', 'price-alert'],

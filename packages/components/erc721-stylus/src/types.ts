@@ -94,6 +94,8 @@ export type AsyncState<T> =
  */
 export interface UseERC721DeployOptions {
   network: SupportedNetwork;
+  privateKey?: string;
+  rpcEndpoint?: string;
   publicClient?: PublicClient;
   walletClient?: WalletClient;
   userAddress?: Address;

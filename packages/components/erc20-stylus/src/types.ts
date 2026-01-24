@@ -93,6 +93,8 @@ export type AsyncState<T> =
  */
 export interface UseERC20DeployOptions {
   network: SupportedNetwork;
+  privateKey?: string;
+  rpcEndpoint?: string;
   publicClient?: PublicClient;
   walletClient?: WalletClient;
   userAddress?: Address;

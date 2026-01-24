@@ -131,6 +131,7 @@ export function getDefaultRegistry(): PluginRegistry {
       // ERC-20/ERC-721 Stylus plugins
       'erc20-stylus',
       'erc721-stylus',
+      'erc1155-stylus',
       'onchain-activity',
       "aixbt-momentum",
       "aixbt-signals",

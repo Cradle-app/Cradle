@@ -25,6 +25,7 @@ export const NodeType = z.enum([
   'zk-primitives',
   'erc20-stylus',
   'erc721-stylus',
+  'erc1155-stylus',
 
   // Payments
   'x402-paywall-api',
@@ -396,6 +397,29 @@ export const ERC721StylusConfig = BaseNodeConfig.extend({
   factoryAddress: z.string().optional(),
 });
 export type ERC721StylusConfig = z.infer<typeof ERC721StylusConfig>;
+
+/**
+ * ERC1155 Stylus Multi-Token configuration
+ */
+export const ERC1155StylusConfig = BaseNodeConfig.extend({
+  collectionName: z.string().min(1).max(64).default('My Multi-Token Collection'),
+  baseUri: z.string().min(1).default('https://api.example.com/metadata/'),
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum-sepolia'),
+  features: z.array(z.enum([
+    'mintable',
+    'burnable',
+    'pausable',
+    'ownable',
+    'supply-tracking',
+    'batch-operations',
+  ])).default(['ownable', 'mintable', 'burnable', 'pausable', 'supply-tracking', 'batch-operations']),
+  // Deployment state
+  isDeployed: z.boolean().default(false),
+  contractAddress: z.string().optional(),
+  factoryAddress: z.string().optional(),
+});
+export type ERC1155StylusConfig = z.infer<typeof ERC1155StylusConfig>;
+
  /**
   Onchain Activity configuration
  */
@@ -512,6 +536,7 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'zk-primitives': 'contracts',
     'erc20-stylus': 'contracts',
     'erc721-stylus': 'contracts',
+    'erc1155-stylus': 'contracts',
     'x402-paywall-api': 'payments',
     'erc8004-agent-runtime': 'agents',
     'ostium-trading': 'agents',
@@ -548,6 +573,7 @@ export function getConfigSchemaForType(type: NodeType) {
     'zk-primitives': ZKPrimitivesConfig,
     'erc20-stylus': ERC20StylusConfig,
     'erc721-stylus': ERC721StylusConfig,
+    'erc1155-stylus': ERC1155StylusConfig,
     'x402-paywall-api': X402PaywallConfig,
     'erc8004-agent-runtime': ERC8004AgentConfig,
     'repo-quality-gates': RepoQualityGatesConfig,

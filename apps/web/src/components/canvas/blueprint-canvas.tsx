@@ -43,6 +43,7 @@ const nodeTypes: NodeTypes = {
   'chain-abstraction': ForgeNode,
   'erc20-stylus': ForgeNode,
   'erc721-stylus': ForgeNode,
+  'erc1155-stylus': ForgeNode,
   'frontend-scaffold': ForgeNode,
   'sdk-generator': ForgeNode,
   // Telegram

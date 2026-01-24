@@ -151,15 +151,16 @@ export function useERC20Interactions(options: UseERC20InteractionsOptions): UseE
     setTxState({ status: 'pending' });
 
     try {
+      // Use any type assertion for dynamic contract calls
       const { request } = await publicClient.simulateContract({
         address: contractAddress,
         abi: ERC20_ABI,
-        functionName,
-        args,
+        functionName: functionName as any,
+        args: args as any,
         account: walletClient.account,
-      });
+      } as any);
 
-      const hash = await walletClient.writeContract(request);
+      const hash = await walletClient.writeContract(request as any);
       setTxState({ status: 'confirming', hash });
 
       await publicClient.waitForTransactionReceipt({ hash });
