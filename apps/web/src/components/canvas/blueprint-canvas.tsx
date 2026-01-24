@@ -68,6 +68,16 @@ const nodeTypes: NodeTypes = {
   'superposition-utility-mining': ForgeNode,
   'superposition-faucet': ForgeNode,
   'superposition-meow-domains': ForgeNode,
+  // Dune Analytics
+  'dune-execute-sql': ForgeNode,
+  'dune-token-price': ForgeNode,
+  'dune-wallet-balances': ForgeNode,
+  'dune-dex-volume': ForgeNode,
+  'dune-nft-floor': ForgeNode,
+  'dune-address-labels': ForgeNode,
+  'dune-transaction-history': ForgeNode,
+  'dune-gas-price': ForgeNode,
+  'dune-protocol-tvl': ForgeNode,
 };
 
 // Custom edge types
@@ -251,6 +261,9 @@ export function BlueprintCanvas() {
               'node-app': '#00ff88',
               'node-quality': '#ff6b6b',
               'node-telegram': '#0088cc',
+              'node-intelligence': '#a855f7',
+              'accent-cyan': '#00d4ff',
+              'accent-purple': '#8b5cf6',
             };
             return colorMap[color] || '#666';
           }}

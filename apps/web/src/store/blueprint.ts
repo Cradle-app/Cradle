@@ -208,6 +208,54 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     alertOnMomentumDrop: true,
     alertOnNegativeSignal: true,
   },
+  // Dune Analytics
+  'dune-execute-sql': {
+    performanceMode: 'medium',
+    timeout: 60000,
+    generateHooks: true,
+  },
+  'dune-token-price': {
+    blockchain: 'arbitrum',
+    cacheEnabled: true,
+    cacheDuration: 60000,
+    generateUI: true,
+  },
+  'dune-wallet-balances': {
+    blockchain: 'arbitrum',
+    minBalanceUsd: 1,
+    includeNFTs: false,
+    generateUI: true,
+  },
+  'dune-dex-volume': {
+    blockchain: 'arbitrum',
+    timeRange: '24h',
+    generateUI: true,
+  },
+  'dune-nft-floor': {
+    blockchain: 'ethereum',
+    generateUI: true,
+    cacheDuration: 300000,
+  },
+  'dune-address-labels': {
+    includeENS: true,
+    includeOwnerInfo: true,
+    cacheDuration: 86400000,
+  },
+  'dune-transaction-history': {
+    blockchain: 'arbitrum',
+    limit: 100,
+    generateUI: true,
+  },
+  'dune-gas-price': {
+    blockchain: 'arbitrum',
+    generateUI: true,
+    cacheDuration: 60000,
+  },
+  'dune-protocol-tvl': {
+    blockchain: 'arbitrum',
+    generateUI: true,
+    cacheDuration: 600000,
+  },
 };
 
 const createInitialBlueprint = (): Blueprint => ({

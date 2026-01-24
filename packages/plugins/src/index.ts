@@ -42,6 +42,19 @@ export { ERC20StylusPlugin } from './erc20-stylus';
 export { ERC721StylusPlugin } from './erc721-stylus';
 export { ERC1155StylusPlugin } from './erc1155-stylus';
 
+// Dune Analytics plugins
+export {
+  DuneExecuteSQLPlugin,
+  DuneTokenPricePlugin,
+  DuneWalletBalancesPlugin,
+  DuneDEXVolumePlugin,
+  DuneNFTFloorPlugin,
+  DuneAddressLabelsPlugin,
+  DuneTransactionHistoryPlugin,
+  DuneGasPricePlugin,
+  DuneProtocolTVLPlugin,
+} from './dune-analytics';
+
 import { StylusContractPlugin } from './stylus-contract';
 import { StylusZKContractPlugin } from './stylus-zk-contract';
 import { X402PaywallPlugin } from './x402-paywall-api';
@@ -81,6 +94,19 @@ import { SuperpositionThirdwebPlugin } from './superposition-thirdweb';
 import { SuperpositionUtilityMiningPlugin } from './superposition-utility-mining';
 import { SuperpositionFaucetPlugin } from './superposition-faucet';
 import { SuperpositionMeowDomainsPlugin } from './superposition-meow-domains';
+
+// Dune Analytics plugins
+import {
+  DuneExecuteSQLPlugin,
+  DuneTokenPricePlugin,
+  DuneWalletBalancesPlugin,
+  DuneDEXVolumePlugin,
+  DuneNFTFloorPlugin,
+  DuneAddressLabelsPlugin,
+  DuneTransactionHistoryPlugin,
+  DuneGasPricePlugin,
+  DuneProtocolTVLPlugin,
+} from './dune-analytics';
 
 import { PluginRegistry, getDefaultRegistry } from '@dapp-forge/plugin-sdk';
 
@@ -132,6 +158,17 @@ export function registerOfficialPlugins(registry?: PluginRegistry): void {
   targetRegistry.register(new SuperpositionUtilityMiningPlugin());
   targetRegistry.register(new SuperpositionFaucetPlugin());
   targetRegistry.register(new SuperpositionMeowDomainsPlugin());
+
+  // Dune Analytics plugins
+  targetRegistry.register(new DuneExecuteSQLPlugin());
+  targetRegistry.register(new DuneTokenPricePlugin());
+  targetRegistry.register(new DuneWalletBalancesPlugin());
+  targetRegistry.register(new DuneDEXVolumePlugin());
+  targetRegistry.register(new DuneNFTFloorPlugin());
+  targetRegistry.register(new DuneAddressLabelsPlugin());
+  targetRegistry.register(new DuneTransactionHistoryPlugin());
+  targetRegistry.register(new DuneGasPricePlugin());
+  targetRegistry.register(new DuneProtocolTVLPlugin());
 }
 
 /**
@@ -178,5 +215,15 @@ export function getOfficialPlugins() {
     new SuperpositionUtilityMiningPlugin(),
     new SuperpositionFaucetPlugin(),
     new SuperpositionMeowDomainsPlugin(),
+    // Dune Analytics plugins
+    new DuneExecuteSQLPlugin(),
+    new DuneTokenPricePlugin(),
+    new DuneWalletBalancesPlugin(),
+    new DuneDEXVolumePlugin(),
+    new DuneNFTFloorPlugin(),
+    new DuneAddressLabelsPlugin(),
+    new DuneTransactionHistoryPlugin(),
+    new DuneGasPricePlugin(),
+    new DuneProtocolTVLPlugin(),
   ];
 }

@@ -47,6 +47,9 @@ import { ERC20StylusForm } from './forms/erc20-stylus-form';
 import { ERC721StylusForm } from './forms/erc721-stylus-form';
 import { ERC1155StylusForm } from './forms/erc1155-stylus-form';
 
+// Dune Analytics form
+import { DuneAnalyticsForm } from './forms/dune-analytics-form';
+
 export function ConfigPanel() {
   const { blueprint, selectedNodeId, selectNode } = useBlueprintStore();
 
@@ -257,6 +260,19 @@ export function ConfigPanel() {
           {selectedNode.type === 'superposition-meow-domains' && (
             <SuperpositionMeowDomainsForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
+
+          {/* Dune Analytics nodes */}
+          {(selectedNode.type === 'dune-execute-sql' ||
+            selectedNode.type === 'dune-token-price' ||
+            selectedNode.type === 'dune-wallet-balances' ||
+            selectedNode.type === 'dune-dex-volume' ||
+            selectedNode.type === 'dune-nft-floor' ||
+            selectedNode.type === 'dune-address-labels' ||
+            selectedNode.type === 'dune-transaction-history' ||
+            selectedNode.type === 'dune-gas-price' ||
+            selectedNode.type === 'dune-protocol-tvl') && (
+              <DuneAnalyticsForm nodeId={selectedNode.id} type={selectedNode.type} config={selectedNode.config} />
+            )}
         </motion.div>
       </AnimatePresence>
     </aside>

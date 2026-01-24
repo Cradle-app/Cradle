@@ -12,6 +12,7 @@ export const NodeCategory = z.enum([
   'telegram',     // Telegram-specific integrations
   'intelligence', // AIXBT Market Intelligence
   'superposition', // Superposition L3 integrations
+  'analytics',    // Dune Analytics integrations
 ]);
 export type NodeCategory = z.infer<typeof NodeCategory>;
 
@@ -72,6 +73,17 @@ export const NodeType = z.enum([
   'superposition-utility-mining',
   'superposition-faucet',
   'superposition-meow-domains',
+
+  // Dune Analytics
+  'dune-execute-sql',
+  'dune-token-price',
+  'dune-wallet-balances',
+  'dune-dex-volume',
+  'dune-nft-floor',
+  'dune-address-labels',
+  'dune-transaction-history',
+  'dune-gas-price',
+  'dune-protocol-tvl',
 ]);
 export type NodeType = z.infer<typeof NodeType>;
 
@@ -656,6 +668,112 @@ export const SuperpositionMeowDomainsConfig = BaseNodeConfig.extend({
 });
 export type SuperpositionMeowDomainsConfig = z.infer<typeof SuperpositionMeowDomainsConfig>;
 
+// ============================================================================
+// DUNE ANALYTICS CONFIGURATIONS
+// ============================================================================
+
+/**
+ * Dune Execute SQL configuration
+ * Execute custom SQL queries on Dune's blockchain data warehouse
+ */
+export const DuneExecuteSQLConfig = BaseNodeConfig.extend({
+  performanceMode: z.enum(['medium', 'large']).default('medium'),
+  timeout: z.number().int().min(10000).max(300000).default(60000),
+  generateHooks: z.boolean().default(true),
+});
+export type DuneExecuteSQLConfig = z.infer<typeof DuneExecuteSQLConfig>;
+
+/**
+ * Dune Token Price configuration
+ * Fetch latest token prices from Dune
+ */
+export const DuneTokenPriceConfig = BaseNodeConfig.extend({
+  blockchain: z.enum(['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']).default('arbitrum'),
+  cacheEnabled: z.boolean().default(true),
+  cacheDuration: z.number().int().min(0).max(3600000).default(60000),
+  generateUI: z.boolean().default(true),
+});
+export type DuneTokenPriceConfig = z.infer<typeof DuneTokenPriceConfig>;
+
+/**
+ * Dune Wallet Balances configuration
+ * Fetch wallet token balances with USD values
+ */
+export const DuneWalletBalancesConfig = BaseNodeConfig.extend({
+  blockchain: z.enum(['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']).default('arbitrum'),
+  minBalanceUsd: z.number().min(0).default(1),
+  includeNFTs: z.boolean().default(false),
+  generateUI: z.boolean().default(true),
+});
+export type DuneWalletBalancesConfig = z.infer<typeof DuneWalletBalancesConfig>;
+
+/**
+ * Dune DEX Volume configuration
+ * Fetch DEX trading volume and statistics
+ */
+export const DuneDEXVolumeConfig = BaseNodeConfig.extend({
+  blockchain: z.enum(['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']).default('arbitrum'),
+  timeRange: z.enum(['24h', '7d', '30d']).default('24h'),
+  protocol: z.string().optional(),
+  generateUI: z.boolean().default(true),
+});
+export type DuneDEXVolumeConfig = z.infer<typeof DuneDEXVolumeConfig>;
+
+/**
+ * Dune NFT Floor Price configuration
+ * Fetch NFT collection floor prices and statistics
+ */
+export const DuneNFTFloorConfig = BaseNodeConfig.extend({
+  blockchain: z.enum(['ethereum', 'arbitrum', 'optimism', 'polygon']).default('ethereum'),
+  generateUI: z.boolean().default(true),
+  cacheDuration: z.number().int().min(0).max(3600000).default(300000),
+});
+export type DuneNFTFloorConfig = z.infer<typeof DuneNFTFloorConfig>;
+
+/**
+ * Dune Address Labels configuration
+ * Fetch human-readable labels for blockchain addresses
+ */
+export const DuneAddressLabelsConfig = BaseNodeConfig.extend({
+  includeENS: z.boolean().default(true),
+  includeOwnerInfo: z.boolean().default(true),
+  cacheDuration: z.number().int().min(0).max(604800000).default(86400000),
+});
+export type DuneAddressLabelsConfig = z.infer<typeof DuneAddressLabelsConfig>;
+
+/**
+ * Dune Transaction History configuration
+ * Fetch transaction history for wallets
+ */
+export const DuneTransactionHistoryConfig = BaseNodeConfig.extend({
+  blockchain: z.enum(['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']).default('arbitrum'),
+  limit: z.number().int().min(1).max(10000).default(100),
+  generateUI: z.boolean().default(true),
+});
+export type DuneTransactionHistoryConfig = z.infer<typeof DuneTransactionHistoryConfig>;
+
+/**
+ * Dune Gas Price configuration
+ * Fetch gas price analytics
+ */
+export const DuneGasPriceConfig = BaseNodeConfig.extend({
+  blockchain: z.enum(['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']).default('arbitrum'),
+  generateUI: z.boolean().default(true),
+  cacheDuration: z.number().int().min(0).max(300000).default(60000),
+});
+export type DuneGasPriceConfig = z.infer<typeof DuneGasPriceConfig>;
+
+/**
+ * Dune Protocol TVL configuration
+ * Fetch Total Value Locked for DeFi protocols
+ */
+export const DuneProtocolTVLConfig = BaseNodeConfig.extend({
+  blockchain: z.enum(['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']).default('arbitrum'),
+  generateUI: z.boolean().default(true),
+  cacheDuration: z.number().int().min(0).max(3600000).default(600000),
+});
+export type DuneProtocolTVLConfig = z.infer<typeof DuneProtocolTVLConfig>;
+
 /**
  * Union of all node configurations
  */
@@ -695,6 +813,16 @@ export const NodeConfig = z.discriminatedUnion('type', [
   z.object({ type: z.literal('superposition-utility-mining'), config: SuperpositionUtilityMiningConfig }),
   z.object({ type: z.literal('superposition-faucet'), config: SuperpositionFaucetConfig }),
   z.object({ type: z.literal('superposition-meow-domains'), config: SuperpositionMeowDomainsConfig }),
+  // Dune Analytics
+  z.object({ type: z.literal('dune-execute-sql'), config: DuneExecuteSQLConfig }),
+  z.object({ type: z.literal('dune-token-price'), config: DuneTokenPriceConfig }),
+  z.object({ type: z.literal('dune-wallet-balances'), config: DuneWalletBalancesConfig }),
+  z.object({ type: z.literal('dune-dex-volume'), config: DuneDEXVolumeConfig }),
+  z.object({ type: z.literal('dune-nft-floor'), config: DuneNFTFloorConfig }),
+  z.object({ type: z.literal('dune-address-labels'), config: DuneAddressLabelsConfig }),
+  z.object({ type: z.literal('dune-transaction-history'), config: DuneTransactionHistoryConfig }),
+  z.object({ type: z.literal('dune-gas-price'), config: DuneGasPriceConfig }),
+  z.object({ type: z.literal('dune-protocol-tvl'), config: DuneProtocolTVLConfig }),
 ]);
 export type NodeConfig = z.infer<typeof NodeConfig>;
 
@@ -756,6 +884,16 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'superposition-utility-mining': 'superposition',
     'superposition-faucet': 'superposition',
     'superposition-meow-domains': 'superposition',
+    // Dune Analytics
+    'dune-execute-sql': 'analytics',
+    'dune-token-price': 'analytics',
+    'dune-wallet-balances': 'analytics',
+    'dune-dex-volume': 'analytics',
+    'dune-nft-floor': 'analytics',
+    'dune-address-labels': 'analytics',
+    'dune-transaction-history': 'analytics',
+    'dune-gas-price': 'analytics',
+    'dune-protocol-tvl': 'analytics',
   };
   return categoryMap[type];
 }
@@ -803,6 +941,16 @@ export function getConfigSchemaForType(type: NodeType) {
     'superposition-utility-mining': SuperpositionUtilityMiningConfig,
     'superposition-faucet': SuperpositionFaucetConfig,
     'superposition-meow-domains': SuperpositionMeowDomainsConfig,
+    // Dune Analytics
+    'dune-execute-sql': DuneExecuteSQLConfig,
+    'dune-token-price': DuneTokenPriceConfig,
+    'dune-wallet-balances': DuneWalletBalancesConfig,
+    'dune-dex-volume': DuneDEXVolumeConfig,
+    'dune-nft-floor': DuneNFTFloorConfig,
+    'dune-address-labels': DuneAddressLabelsConfig,
+    'dune-transaction-history': DuneTransactionHistoryConfig,
+    'dune-gas-price': DuneGasPriceConfig,
+    'dune-protocol-tvl': DuneProtocolTVLConfig,
   };
   return schemaMap[type];
 }

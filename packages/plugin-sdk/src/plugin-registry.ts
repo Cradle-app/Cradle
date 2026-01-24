@@ -146,6 +146,16 @@ export function getDefaultRegistry(): PluginRegistry {
       'superposition-utility-mining',
       'superposition-faucet',
       'superposition-meow-domains',
+      // Dune Analytics
+      'dune-execute-sql',
+      'dune-token-price',
+      'dune-wallet-balances',
+      'dune-dex-volume',
+      'dune-nft-floor',
+      'dune-address-labels',
+      'dune-transaction-history',
+      'dune-gas-price',
+      'dune-protocol-tvl',
     ]);
   }
   return defaultRegistry;

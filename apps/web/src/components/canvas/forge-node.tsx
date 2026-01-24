@@ -5,7 +5,8 @@ import { Handle, Position, type NodeProps } from 'reactflow';
 import {
   Box, CreditCard, Bot, Layout, ShieldCheck, Trash2,
   Lock, Key, Wallet, Globe, ArrowLeftRight, Database,
-  HardDrive, Layers, TrendingUp, Zap, Sparkles, Search
+  HardDrive, Layers, TrendingUp, Zap, Sparkles, Search,
+  DollarSign, Fuel
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useBlueprintStore } from '@/store/blueprint';
@@ -33,6 +34,16 @@ const iconMap: Record<string, typeof Box> = {
   'aixbt-signals': Zap,
   'aixbt-indigo': Sparkles,
   'aixbt-observer': Search,
+  // Dune Analytics
+  'dune-execute-sql': Database,
+  'dune-token-price': DollarSign,
+  'dune-wallet-balances': Wallet,
+  'dune-dex-volume': TrendingUp,
+  'dune-nft-floor': Sparkles,
+  'dune-address-labels': Key,
+  'dune-transaction-history': Database,
+  'dune-gas-price': Fuel,
+  'dune-protocol-tvl': Lock,
 };
 
 const colorMap: Record<string, {
@@ -90,6 +101,22 @@ const colorMap: Record<string, {
     text: 'text-purple-400',
     glow: 'shadow-[0_0_30_px_-5px] shadow-purple-500/30',
     accent: 'bg-purple-500',
+  },
+  'accent-purple': {
+    bg: 'from-violet-500/15 via-violet-500/5 to-transparent',
+    border: 'border-violet-500/20',
+    borderSelected: 'border-violet-400/60',
+    text: 'text-violet-400',
+    glow: 'shadow-[0_0_30px_-5px] shadow-violet-500/30',
+    accent: 'bg-violet-500',
+  },
+  'accent-cyan': {
+    bg: 'from-cyan-500/15 via-cyan-500/5 to-transparent',
+    border: 'border-cyan-500/20',
+    borderSelected: 'border-cyan-400/60',
+    text: 'text-cyan-400',
+    glow: 'shadow-[0_0_30px_-5px] shadow-cyan-500/30',
+    accent: 'bg-cyan-500',
   },
 };
 

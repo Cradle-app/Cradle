@@ -75,6 +75,16 @@ export function nodeTypeToLabel(type: string): string {
     'superposition-utility-mining': 'Utility Mining',
     'superposition-faucet': 'Testnet Faucet',
     'superposition-meow-domains': 'Meow Domains',
+    // Dune Analytics
+    'dune-execute-sql': 'Dune Execute SQL',
+    'dune-token-price': 'Dune Token Price',
+    'dune-wallet-balances': 'Dune Wallet Balances',
+    'dune-dex-volume': 'Dune DEX Volume',
+    'dune-nft-floor': 'Dune NFT Floor Price',
+    'dune-address-labels': 'Dune Address Labels',
+    'dune-transaction-history': 'Dune Transaction History',
+    'dune-gas-price': 'Dune Gas Price',
+    'dune-protocol-tvl': 'Dune Protocol TVL',
   };
   return labels[type] || type;
 }
@@ -128,6 +138,16 @@ export function nodeTypeToColor(type: string): string {
     'erc20-stylus': 'node-contracts',
     'erc721-stylus': 'node-contracts',
     'erc1155-stylus': 'node-contracts',
+    // Dune Analytics
+    'dune-execute-sql': 'accent-purple',
+    'dune-token-price': 'accent-purple',
+    'dune-wallet-balances': 'accent-purple',
+    'dune-dex-volume': 'accent-purple',
+    'dune-nft-floor': 'accent-purple',
+    'dune-address-labels': 'accent-purple',
+    'dune-transaction-history': 'accent-purple',
+    'dune-gas-price': 'accent-purple',
+    'dune-protocol-tvl': 'accent-purple',
     // Telegram nodes
   };
   return colors[type] || 'node-contracts';

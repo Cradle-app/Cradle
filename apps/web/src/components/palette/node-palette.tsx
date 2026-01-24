@@ -366,6 +366,77 @@ const NODE_CATEGORIES: NodeCategory[] = [
       },
     ],
   },
+  {
+    id: 'analytics',
+    name: 'Analytics',
+    icon: Database,
+    color: 'accent-purple',
+    nodes: [
+      {
+        id: 'dune-execute-sql',
+        name: 'Execute SQL',
+        description: 'Custom SQL queries on Dune blockchain data',
+        icon: Database,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-token-price',
+        name: 'Token Price',
+        description: 'Fetch latest token prices across blockchains',
+        icon: TrendingUp,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-wallet-balances',
+        name: 'Wallet Balances',
+        description: 'Token balances with USD valuations',
+        icon: Wallet,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-dex-volume',
+        name: 'DEX Volume',
+        description: 'Trading volume and DEX statistics',
+        icon: TrendingUp,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-nft-floor',
+        name: 'NFT Floor Price',
+        description: 'Collection floor prices and stats',
+        icon: Sparkles,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-address-labels',
+        name: 'Address Labels',
+        description: 'Human-readable names for addresses',
+        icon: Key,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-transaction-history',
+        name: 'Transaction History',
+        description: 'Wallet transaction history',
+        icon: Database,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-gas-price',
+        name: 'Gas Price',
+        description: 'Gas price analytics and stats',
+        icon: Zap,
+        color: 'accent-purple',
+      },
+      {
+        id: 'dune-protocol-tvl',
+        name: 'Protocol TVL',
+        description: 'Total Value Locked for DeFi protocols',
+        icon: Lock,
+        color: 'accent-purple',
+      },
+    ],
+  },
 ];
 
 export function NodePalette() {
