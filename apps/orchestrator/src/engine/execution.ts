@@ -1,8 +1,6 @@
 import { Volume, createFsFromVolume } from 'memfs';
 import * as realFs from 'fs';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import type {
   Blueprint,
   BlueprintNode,
@@ -231,8 +229,12 @@ export class ExecutionEngine {
     pathContext: PathContext,
     pathMappings?: Record<string, PathCategory>
   ): void {
-    const currentFileDir = dirname(fileURLToPath(import.meta.url));
-    const projectRoot = path.resolve(currentFileDir, '../../../../');
+    const projectRoot = this.findProjectRoot();
+    if (!projectRoot) {
+      console.warn('Could not find project root (no pnpm-workspace.yaml found)');
+      return;
+    }
+
     const sourcePath = path.join(projectRoot, componentPath);
 
     if (!realFs.existsSync(sourcePath)) {
@@ -367,6 +369,35 @@ export class ExecutionEngine {
 
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
+  }
+
+  /**
+   * Find the monorepo root by walking up directories from cwd
+   * Looks for pnpm-workspace.yaml as a marker file
+   */
+  private findProjectRoot(): string | null {
+    let currentDir = process.cwd();
+    const maxDepth = 10;
+
+    for (let i = 0; i < maxDepth; i++) {
+      const markerPath = path.join(currentDir, 'pnpm-workspace.yaml');
+      if (realFs.existsSync(markerPath)) {
+        return currentDir;
+      }
+
+      const componentsPath = path.join(currentDir, 'packages', 'components');
+      if (realFs.existsSync(componentsPath)) {
+        return currentDir;
+      }
+
+      const parentDir = path.dirname(currentDir);
+      if (parentDir === currentDir) {
+        break;
+      }
+      currentDir = parentDir;
+    }
+
+    return null;
   }
 
   /**
