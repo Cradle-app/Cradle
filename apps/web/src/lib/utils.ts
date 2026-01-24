@@ -61,6 +61,10 @@ export function nodeTypeToLabel(type: string): string {
     'aixbt-indigo': 'AIXBT Indigo',
     'aixbt-observer': 'AIXBT Market Observer',
     // Legacy
+    // ERC-20/ERC-721/ERC-1155 Stylus nodes
+    'erc20-stylus': 'ERC-20 Stylus Token',
+    'erc721-stylus': 'ERC-721 Stylus NFT',
+    'erc1155-stylus': 'ERC-1155 Stylus Multi-Token',
     'maxxit': 'Maxxit Lazy Trader',
   };
   return labels[type] || type;
@@ -102,6 +106,11 @@ export function nodeTypeToColor(type: string): string {
     'aixbt-observer': 'node-intelligence',
     // Legacy
     'maxxit': 'node-agents',
+    // ERC-20/ERC-721/ERC-1155 Stylus nodes
+    'erc20-stylus': 'node-contracts',
+    'erc721-stylus': 'node-contracts',
+    'erc1155-stylus': 'node-contracts',
+    // Telegram nodes
   };
   return colors[type] || 'node-contracts';
 }

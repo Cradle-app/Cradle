@@ -128,6 +128,10 @@ export function getDefaultRegistry(): PluginRegistry {
       'telegram-wallet-link',
       'telegram-ai-agent',
       'ostium-trading',
+      // ERC-20/ERC-721 Stylus plugins
+      'erc20-stylus',
+      'erc721-stylus',
+      'erc1155-stylus',
       'maxxit',
       'onchain-activity',
       "aixbt-momentum",

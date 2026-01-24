@@ -22,6 +22,7 @@ import {
   X,
   TrendingUp,
   Zap,
+  Coins,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +49,27 @@ const NODE_CATEGORIES: NodeCategory[] = [
     icon: Box,
     color: 'node-contracts',
     nodes: [
+      {
+        id: 'erc20-stylus',
+        name: 'ERC-20 Token',
+        description: 'Deploy ERC-20 token on Arbitrum Stylus',
+        icon: Coins,
+        color: 'node-contracts',
+      },
+      {
+        id: 'erc721-stylus',
+        name: 'ERC-721 NFT',
+        description: 'Deploy NFT collection on Arbitrum Stylus',
+        icon: Sparkles,
+        color: 'node-contracts',
+      },
+      {
+        id: 'erc1155-stylus',
+        name: 'ERC-1155 Multi-Token',
+        description: 'Deploy multi-token contract on Arbitrum Stylus',
+        icon: Layers,
+        color: 'node-contracts',
+      },
       {
         id: 'stylus-contract',
         name: 'Stylus Contract',
