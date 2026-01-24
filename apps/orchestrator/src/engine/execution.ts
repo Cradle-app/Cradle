@@ -10,7 +10,8 @@ import type {
   ExecutionContext,
 } from '@dapp-forge/blueprint-schema';
 import { topologicalSort } from '@dapp-forge/blueprint-schema';
-import { getDefaultRegistry, buildPathContext, rewriteOutputPaths, type NodePlugin, type PathContext } from '@dapp-forge/plugin-sdk';
+import { getDefaultRegistry, buildPathContext, rewriteOutputPaths, resolveOutputPath, type NodePlugin, type PathContext } from '@dapp-forge/plugin-sdk';
+import type { PathCategory } from '@dapp-forge/blueprint-schema';
 import { RunStore } from '../store/runs';
 import { createExecutionLogger } from '../utils/logger';
 import { applyCodegenOutput, formatAndLint, createManifest } from './filesystem';
@@ -133,7 +134,8 @@ export class ExecutionEngine {
             '/output',
             plugin.componentPath,
             plugin.componentPackage || 'component',
-            pathContext
+            pathContext,
+            plugin.componentPathMappings
           );
         }
 
@@ -219,17 +221,42 @@ export class ExecutionEngine {
 
   /**
    * Copy a component package from the source repo to the output
-   * If wallet-auth and frontend-scaffold are both present, merge into apps/web/src/
+   * Uses path mappings for intelligent file routing when available
    */
   private copyComponentToOutput(
     memFs: ReturnType<typeof createFsFromVolume>,
     outputPath: string,
     componentPath: string,
     packageName: string,
-    pathContext: PathContext
+    pathContext: PathContext,
+    pathMappings?: Record<string, PathCategory>
   ): void {
     const currentFileDir = dirname(fileURLToPath(import.meta.url));
-    const projectRoot = path.resolve(currentFileDir, '../../../../');
+
+    // Robust project root detection
+    // 1. Check for environment variable
+    // 2. Look for workspace marker (pnpm-workspace.yaml) in parent directories
+    // 3. Fallback to rigid relative path
+    let projectRoot = process.env.PROJECT_ROOT;
+
+    if (!projectRoot) {
+      let currentDir = currentFileDir;
+      const rootMarker = 'pnpm-workspace.yaml';
+      while (currentDir !== path.parse(currentDir).root) {
+        if (realFs.existsSync(path.join(currentDir, rootMarker))) {
+          projectRoot = currentDir;
+          break;
+        }
+        currentDir = path.dirname(currentDir);
+      }
+    }
+
+    if (!projectRoot) {
+      // Fallback: This handles both src (../../../../) and dist (../../../)
+      // but the recursive search above is much more reliable
+      projectRoot = path.resolve(currentFileDir, currentFileDir.includes('dist') ? '../../../' : '../../../../');
+    }
+
     const sourcePath = path.join(projectRoot, componentPath);
 
     if (!realFs.existsSync(sourcePath)) {
@@ -239,8 +266,14 @@ export class ExecutionEngine {
 
     console.log(`Copying component from: ${sourcePath}`);
 
-    // Special case: If wallet-auth and frontend-scaffold are both present,
-    // merge wallet-auth files into apps/web/src/ instead of packages/
+    // If path mappings are provided and we have a frontend scaffold, use intelligent routing
+    if (pathMappings && pathContext.hasFrontend) {
+      console.log(`Using path mappings for ${packageName}`);
+      this.copyWithPathMappings(realFs, memFs, sourcePath, outputPath, pathMappings, pathContext);
+      return;
+    }
+
+    // Legacy: Special case for wallet-auth without path mappings
     if (packageName === '@cradle/wallet-auth' && pathContext.hasFrontend) {
       console.log('Merging wallet-auth into apps/web/src/ (frontend-scaffold detected)');
       this.copyWalletAuthMerged(realFs, memFs, sourcePath, outputPath);
@@ -255,7 +288,109 @@ export class ExecutionEngine {
     const targetPath = `${outputPath}/packages/${dirName}`;
 
     this.copyDirectoryToMemfs(realFs, memFs, sourcePath, targetPath);
+  }
 
+  /**
+   * Copy component files using path mappings for intelligent routing
+   */
+  private copyWithPathMappings(
+    sourceFs: typeof realFs,
+    targetFs: ReturnType<typeof createFsFromVolume>,
+    sourcePath: string,
+    outputPath: string,
+    pathMappings: Record<string, PathCategory>,
+    pathContext: PathContext
+  ): void {
+    this.copyDirectoryWithMappings(sourceFs, targetFs, sourcePath, outputPath, '', pathMappings, pathContext);
+  }
+
+  /**
+   * Recursively copy directory with path mapping resolution
+   */
+  private copyDirectoryWithMappings(
+    sourceFs: typeof realFs,
+    targetFs: ReturnType<typeof createFsFromVolume>,
+    sourcePath: string,
+    outputPath: string,
+    relativePath: string,
+    pathMappings: Record<string, PathCategory>,
+    pathContext: PathContext
+  ): void {
+    const currentPath = relativePath ? path.join(sourcePath, relativePath) : sourcePath;
+    const items = sourceFs.readdirSync(currentPath);
+
+    for (const item of items) {
+      if (item === 'node_modules' || item === 'dist' || item.startsWith('.')) {
+        continue;
+      }
+
+      const sourceItem = path.join(currentPath, item);
+      const relativeItem = relativePath ? `${relativePath}/${item}` : item;
+      const stat = sourceFs.statSync(sourceItem);
+
+      if (stat.isDirectory()) {
+        this.copyDirectoryWithMappings(
+          sourceFs, targetFs, sourcePath, outputPath,
+          relativeItem, pathMappings, pathContext
+        );
+      } else {
+        const category = this.findPathCategory(relativeItem, pathMappings);
+
+        if (category) {
+          const resolvedPath = resolveOutputPath(item, category, pathContext);
+          const targetPath = `${outputPath}/${resolvedPath}`;
+          const targetDir = path.dirname(targetPath);
+
+          targetFs.mkdirSync(targetDir, { recursive: true });
+          const content = sourceFs.readFileSync(sourceItem);
+          targetFs.writeFileSync(targetPath, content);
+          console.log(`  ${relativeItem} -> ${resolvedPath} (${category})`);
+        } else {
+          if (item === 'README.md' || item.endsWith('.md')) {
+            const docsPath = `${outputPath}/docs`;
+            targetFs.mkdirSync(docsPath, { recursive: true });
+            const content = sourceFs.readFileSync(sourceItem);
+            targetFs.writeFileSync(`${docsPath}/${item}`, content);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Find the path category for a file based on path mappings
+   * Supports glob-like patterns: ** for any path, * for any filename
+   */
+  private findPathCategory(
+    filePath: string,
+    pathMappings: Record<string, PathCategory>
+  ): PathCategory | undefined {
+    // Normalize path separators
+    const normalizedPath = filePath.replace(/\\/g, '/');
+
+    for (const [pattern, category] of Object.entries(pathMappings)) {
+      if (this.matchPattern(normalizedPath, pattern)) {
+        return category;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Simple glob pattern matching
+   * Supports: ** (any path), * (any filename without /)
+   */
+  private matchPattern(filePath: string, pattern: string): boolean {
+    // Escape regex special chars except * 
+    let regexPattern = pattern
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*\*/g, '<<<DOUBLE>>>') // Placeholder for **
+      .replace(/\*/g, '[^/]*')          // * matches anything except /
+      .replace(/<<<DOUBLE>>>/g, '.*');  // ** matches anything including /
+
+    const regex = new RegExp(`^${regexPattern}$`);
+    return regex.test(filePath);
   }
 
   /**

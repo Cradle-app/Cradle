@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Zap, CheckCircle2, Shield, Wallet, ArrowRight, Info, Loader2, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Import from the Ostium component package
 import {
     useDelegation,
     useUsdcApproval,
@@ -19,8 +18,6 @@ import {
     DEFAULT_APPROVAL_AMOUNT,
     type SupportedNetwork,
 } from '@cradle/ostium-onect';
-
-// Viem and wagmi for wallet connection
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { WalletDependencyNotice } from '@/components/config/wallet-dependency-notice';
 
@@ -38,13 +35,31 @@ export function OstiumTradingForm({ nodeId, config }: Props) {
 
     const network = (config.network as SupportedNetwork) ?? 'arbitrum';
 
-    // Wallet connection
+    const { blueprint } = useBlueprintStore();
+    const connectedMaxxitNode = useMemo(() => {
+        const incomingEdge = blueprint.edges.find((e) => e.target === nodeId);
+        if (incomingEdge) {
+            const sourceNode = blueprint.nodes.find((n) => n.id === incomingEdge.source && n.type === 'maxxit');
+            if (sourceNode) return sourceNode;
+        }
+        const outgoingEdge = blueprint.edges.find((e) => e.source === nodeId);
+        if (outgoingEdge) {
+            const targetNode = blueprint.nodes.find((n) => n.id === outgoingEdge.target && n.type === 'maxxit');
+            if (targetNode) return targetNode;
+        }
+        return null;
+    }, [blueprint.edges, blueprint.nodes, nodeId]);
+
+    const maxxitAgentAddress = connectedMaxxitNode?.config?.ostiumAgentAddress as string | undefined;
+    const isAddressFromMaxxit = !!maxxitAgentAddress;
+
     const { address: userAddress, isConnected } = useAccount();
     const publicClient = usePublicClient({ chainId: CHAIN_IDS[network] });
     const { data: walletClient } = useWalletClient({ chainId: CHAIN_IDS[network] });
 
-    // Delegate address from config (user can input their own)
-    const configuredDelegateAddress = config.delegateAddress as string | undefined;
+    const configuredDelegateAddress = isAddressFromMaxxit
+        ? maxxitAgentAddress
+        : (config.delegateAddress as string | undefined);
     const isValidDelegateAddress = configuredDelegateAddress && isAddress(configuredDelegateAddress);
     const delegateAddress = isValidDelegateAddress ? (configuredDelegateAddress as Address) : undefined;
 
@@ -184,16 +199,24 @@ export function OstiumTradingForm({ nodeId, config }: Props) {
                             Delegate signatures to enable gasless transactions.
                         </p>
 
-                        {/* Delegate Address Input */}
                         {!delegation.status?.isDelegated && (
                             <div className="mb-3">
-                                <label className="text-[10px] text-forge-muted mb-1 block">Delegate Address</label>
+                                <label className="text-[10px] text-forge-muted mb-1 block">
+                                    Delegate Address
+                                    {isAddressFromMaxxit && (
+                                        <span className="ml-2 text-cyan-400">(from Lazy Trader)</span>
+                                    )}
+                                </label>
                                 <Input
                                     type="text"
                                     placeholder="0x..."
                                     value={configuredDelegateAddress ?? ''}
-                                    onChange={(e) => updateConfig('delegateAddress', e.target.value)}
-                                    className="text-xs h-8 font-mono"
+                                    onChange={(e) => !isAddressFromMaxxit && updateConfig('delegateAddress', e.target.value)}
+                                    readOnly={isAddressFromMaxxit}
+                                    className={cn(
+                                        "text-xs h-8 font-mono",
+                                        isAddressFromMaxxit && "bg-forge-bg/50 cursor-not-allowed opacity-80"
+                                    )}
                                 />
                                 {configuredDelegateAddress && !isValidDelegateAddress && (
                                     <p className="text-[10px] text-yellow-400 mt-1">

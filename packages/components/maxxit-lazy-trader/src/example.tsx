@@ -1,137 +1,245 @@
 'use client';
 
-/**
- * Example: Maxxit Lazy Trader Integration
- * 
- * This example shows how to use the useMaxxitLazyTrader hook
- * to fetch agent details and send messages.
- * 
- * Prerequisites:
- * - Get your API key from https://maxxit.ai/dashboard
- * - Set up Next.js API routes (see README)
- */
+import { useLazyTraderSetup, type TradingPreferences } from './index';
 
-import { useState } from 'react';
-import { useMaxxitLazyTrader } from './hooks';
+interface ExampleLazyTraderSetupProps {
+  userWallet: string | undefined;
+  onSetupComplete?: () => void;
+}
 
-/**
- * Example component showing how to integrate Maxxit Lazy Trader.
- * 
- * Usage:
- * 1. Get your API key from maxxit.ai/dashboard
- * 2. Import and use this component
- * 
- * @example
- * ```tsx
- * import { MaxxitLazyTraderExample } from '@cradle/maxxit-lazy-trader/example';
- * 
- * function App() {
- *   return <MaxxitLazyTraderExample />;
- * }
- * ```
- */
-export function MaxxitLazyTraderExample() {
-  const [apiKey, setApiKey] = useState('');
-  const [message, setMessage] = useState('');
+export function ExampleLazyTraderSetup({ userWallet, onSetupComplete }: ExampleLazyTraderSetupProps) {
+  const setup = useLazyTraderSetup({
+    userWallet,
+    onComplete: (result) => {
+      console.log('Setup complete!', result);
+      onSetupComplete?.();
+    },
+  });
 
-  const {
-    details,
-    isLoading,
-    error,
-    fetchDetails,
-    sendMessage,
-    isSending,
-    sendError,
-    sendSuccess,
-  } = useMaxxitLazyTrader(apiKey);
+  if (setup.isCheckingSetup) {
+    return (
+      <div style={{ padding: '1rem', textAlign: 'center' }}>
+        <p>Checking setup status...</p>
+      </div>
+    );
+  }
 
-  const handleFetchDetails = async () => {
-    await fetchDetails();
-  };
+  if (setup.error) {
+    return (
+      <div style={{ padding: '1rem', color: 'red' }}>
+        <p>Error: {setup.error}</p>
+        <button onClick={setup.clearError}>Dismiss</button>
+      </div>
+    );
+  }
 
-  const handleSendMessage = async () => {
-    await sendMessage(message);
-    if (!sendError) {
-      setMessage(''); // Clear on success
-    }
-  };
-
-  return (
-    <div className="maxxit-lazy-trader">
-      <h2>Maxxit Lazy Trader Integration</h2>
-
-      {/* API Key Input */}
-      <section>
-        <h3>Step 1: Enter API Key</h3>
-        <p>
-          Get your API key from{' '}
-          <a href="https://maxxit.ai/dashboard" target="_blank" rel="noopener noreferrer">
-            maxxit.ai/dashboard
-          </a>
-        </p>
-        <input
-          type="password"
-          placeholder="Enter your Maxxit API key"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-        />
-      </section>
-
-      {/* Fetch Details */}
-      <section>
-        <h3>Step 2: Fetch Agent Details</h3>
-        <button onClick={handleFetchDetails} disabled={isLoading || !apiKey}>
-          {isLoading ? 'Fetching...' : 'Fetch Lazy Trader Details'}
-        </button>
-        {error && <p className="error">{error}</p>}
-        {details && (
-          <div className="details">
-            <p><strong>Agent Name:</strong> {details.agent?.name || 'N/A'}</p>
-            <p><strong>Status:</strong> {details.agent?.status || 'N/A'}</p>
-            <p><strong>Venue:</strong> {details.agent?.venue || 'N/A'}</p>
-            <p><strong>Wallet:</strong> {details.user_wallet || 'N/A'}</p>
-            {details.deployment && (
-              <p><strong>Deployment:</strong> {details.deployment.status || 'N/A'}</p>
-            )}
-            {details.telegram_user && (
-              <p>
-                <strong>Telegram:</strong>{' '}
-                {details.telegram_user.first_name} {details.telegram_user.last_name} (
-                @{details.telegram_user.telegram_username})
-              </p>
-            )}
+  const isComplete = setup.agentResult !== null;
+  if (isComplete) {
+    return (
+      <div style={{ padding: '1rem' }}>
+        <h2>✅ Setup Complete!</h2>
+        {setup.agentResult && (
+          <div>
+            <p><strong>Agent:</strong> {setup.agentResult.agent?.name}</p>
+            <p><strong>Status:</strong> {setup.agentResult.deployment?.status}</p>
+            <p><strong>Address:</strong> {setup.agentResult.ostiumAgentAddress}</p>
           </div>
         )}
-      </section>
-
-      {/* Send Message */}
-      <section>
-        <h3>Step 3: Send Message to Agent</h3>
-        <textarea
-          placeholder="Enter your message (e.g., 'Buy BTC')"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={4}
-        />
-        <button onClick={handleSendMessage} disabled={isSending || !apiKey || !message.trim()}>
-          {isSending ? 'Sending...' : 'Send Message'}
+        <button onClick={setup.reset} style={{ marginTop: '1rem' }}>
+          Reset Setup
         </button>
-        {sendError && <p className="error">{sendError}</p>}
-        {sendSuccess && <p className="success">{sendSuccess}</p>}
-      </section>
+      </div>
+    );
+  }
 
-      {/* Info */}
-      <section>
-        <h3>How It Works</h3>
-        <ol>
-          <li>Enter your Maxxit API key from the dashboard</li>
-          <li>Fetch your Lazy Trader agent details to verify connection</li>
-          <li>Send messages to your agent for trading signals</li>
-        </ol>
-        <p>
-          The component uses Next.js API routes to proxy requests and avoid CORS issues.
-        </p>
-      </section>
+  return (
+    <div style={{ padding: '1rem' }}>
+      <h2>Lazy Trader Setup</h2>
+
+      <StepCard
+        number={1}
+        title="Generate Agent"
+        description="Create an Ostium agent address for your wallet"
+        isComplete={!!setup.agentAddress}
+        isLoading={setup.isGeneratingAgent}
+      >
+        {setup.agentAddress ? (
+          <p style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+            {setup.agentAddress}
+          </p>
+        ) : (
+          <button onClick={setup.generateAgent} disabled={setup.isGeneratingAgent}>
+            {setup.isGeneratingAgent ? 'Generating...' : 'Generate Agent'}
+          </button>
+        )}
+      </StepCard>
+
+      <StepCard
+        number={2}
+        title="Link Telegram"
+        description="Connect your Telegram account"
+        isComplete={setup.alreadyLinked || !!setup.telegramUser}
+        isLoading={setup.isGeneratingLink}
+        disabled={!setup.agentAddress}
+      >
+        {setup.alreadyLinked || setup.telegramUser ? (
+          <p>✅ Telegram connected: @{setup.telegramUser?.telegram_username}</p>
+        ) : setup.deepLink ? (
+          <a
+            href={setup.deepLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setup.startPolling()}
+            style={{
+              display: 'inline-block',
+              padding: '0.5rem 1rem',
+              backgroundColor: '#0088cc',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '4px',
+            }}
+          >
+            Open in Telegram
+          </a>
+        ) : (
+          <button onClick={setup.generateLink} disabled={setup.isGeneratingLink || !setup.agentAddress}>
+            {setup.isGeneratingLink ? 'Generating...' : 'Get Telegram Link'}
+          </button>
+        )}
+      </StepCard>
+
+      <StepCard
+        number={3}
+        title="Telegram Connection"
+        description="Waiting for you to connect via Telegram"
+        isComplete={!!setup.telegramUser}
+        isLoading={setup.isPolling}
+        disabled={!setup.linkCode}
+      >
+        {setup.telegramUser ? (
+          <p>✅ Connected as @{setup.telegramUser.telegram_username}</p>
+        ) : setup.isPolling ? (
+          <p>Waiting for connection...</p>
+        ) : (
+          <p style={{ color: '#888' }}>Click the Telegram link above to connect</p>
+        )}
+      </StepCard>
+
+      <StepCard
+        number={4}
+        title="Configure & Create"
+        description="Set your trading preferences and create the agent"
+        isComplete={setup.agentResult !== null}
+        isLoading={setup.isCreatingAgent}
+        disabled={!setup.telegramUser}
+      >
+        {setup.telegramUser && (
+          <div>
+            <PreferenceSlider
+              label="Risk Tolerance"
+              value={setup.tradingPreferences.risk_tolerance}
+              onChange={(v) => setup.setTradingPreferences({
+                ...setup.tradingPreferences,
+                risk_tolerance: v,
+              })}
+            />
+            <PreferenceSlider
+              label="Trade Frequency"
+              value={setup.tradingPreferences.trade_frequency}
+              onChange={(v) => setup.setTradingPreferences({
+                ...setup.tradingPreferences,
+                trade_frequency: v,
+              })}
+            />
+            <button
+              onClick={setup.createAgent}
+              disabled={setup.isCreatingAgent}
+              style={{ marginTop: '1rem' }}
+            >
+              {setup.isCreatingAgent ? 'Creating...' : 'Create Agent'}
+            </button>
+          </div>
+        )}
+      </StepCard>
     </div>
   );
 }
+
+function StepCard({
+  number,
+  title,
+  description,
+  isComplete,
+  isLoading,
+  disabled,
+  children,
+}: {
+  number: number;
+  title: string;
+  description: string;
+  isComplete: boolean;
+  isLoading: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        padding: '1rem',
+        marginBottom: '1rem',
+        border: '1px solid',
+        borderColor: isComplete ? '#22c55e' : disabled ? '#444' : '#666',
+        borderRadius: '8px',
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        <span style={{
+          width: '24px',
+          height: '24px',
+          borderRadius: '50%',
+          backgroundColor: isComplete ? '#22c55e' : '#444',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '0.75rem',
+        }}>
+          {isComplete ? '✓' : number}
+        </span>
+        <strong>{title}</strong>
+        {isLoading && <span>⏳</span>}
+      </div>
+      <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.5rem' }}>{description}</p>
+      {children}
+    </div>
+  );
+}
+
+function PreferenceSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div style={{ marginBottom: '0.5rem' }}>
+      <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+        <span>{label}</span>
+        <span>{value}</span>
+      </label>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={{ width: '100%' }}
+      />
+    </div>
+  );
+}
+
+export default ExampleLazyTraderSetup;

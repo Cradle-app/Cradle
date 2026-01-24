@@ -1,20 +1,23 @@
 /**
  * @cradle/maxxit-lazy-trader
  *
- * Maxxit Lazy Trader API Integration
- * Connect and message your Lazy Trader agent via API
+ * Maxxit Lazy Trader Integration
+ * 4-step wallet-based setup flow for Telegram-connected trading
  *
  * @example
  * ```tsx
- * import { useMaxxitLazyTrader } from '@cradle/maxxit-lazy-trader';
+ * import { useLazyTraderSetup } from '@cradle/maxxit-lazy-trader';
  *
- * function LazyTraderDashboard() {
- *   const { details, fetchDetails, sendMessage } = useMaxxitLazyTrader(apiKey);
+ * function LazyTraderSetup() {
+ *   const { address } = useAccount();
+ *   const setup = useLazyTraderSetup({ userWallet: address });
  *
  *   return (
  *     <div>
- *       <button onClick={fetchDetails}>Fetch Agent Details</button>
- *       <button onClick={() => sendMessage('Buy BTC')}>Send Message</button>
+ *       <button onClick={setup.generateAgent}>Step 1: Generate Agent</button>
+ *       <button onClick={setup.generateLink}>Step 2: Get Telegram Link</button>
+ *       <button onClick={setup.startPolling}>Step 3: Wait for Connection</button>
+ *       <button onClick={setup.createAgent}>Step 4: Create Agent</button>
  *     </div>
  *   );
  * }
@@ -23,21 +26,29 @@
 
 // Types
 export type {
-  ClubDetailsResponse,
-  SendMessageResponse,
-  MaxxitApiOptions,
-  FetchState,
-  SendState,
+  TradingPreferences,
+  GenerateAgentResponse,
+  GenerateTelegramLinkResponse,
+  CheckTelegramStatusResponse,
+  CreateAgentResponse,
+  CheckSetupResponse,
+  TelegramUser,
+  LazyTraderApiOptions,
+  SetupStep,
+  AsyncState,
 } from './types';
 
 // API Functions
 export {
-  fetchClubDetails,
-  sendMessageToAgent,
+  generateOstiumAgent,
+  generateTelegramLink,
+  checkTelegramStatus,
+  createLazyTraderAgent,
+  checkSetup,
 } from './api';
 
 // React Hooks
 export {
-  useMaxxitLazyTrader,
-  type UseMaxxitLazyTraderReturn,
+  useLazyTraderSetup,
+  type UseLazyTraderSetupReturn,
 } from './hooks';

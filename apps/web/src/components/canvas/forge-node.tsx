@@ -256,9 +256,13 @@ function ForgeNodeComponent({ id, data, selected }: NodeProps) {
             <span className={cn(
               'text-[10px] px-2 py-1 rounded-md font-mono uppercase tracking-wide',
               'bg-forge-bg/60 border border-white/5',
-              colors.text
+              data.setupComplete || data.linkedStatus === 'LINKED'
+                ? 'text-green-400'
+                : colors.text
             )}>
-              {data.agentStatus || 'NOT LINKED'}
+              {data.setupComplete || data.linkedStatus === 'LINKED'
+                ? 'LINKED'
+                : data.linkedStatus || 'NOT LINKED'}
             </span>
           )}
 

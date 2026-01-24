@@ -1,2 +1,1 @@
-export { useMaxxitLazyTrader } from './useMaxxitLazyTrader';
-export type { UseMaxxitLazyTraderReturn } from './useMaxxitLazyTrader';
+export { useLazyTraderSetup, type UseLazyTraderSetupReturn } from './useLazyTraderSetup';

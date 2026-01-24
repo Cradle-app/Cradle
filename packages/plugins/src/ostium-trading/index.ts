@@ -37,6 +37,19 @@ export class OstiumTradingPlugin extends BasePlugin<z.infer<typeof OstiumTrading
      */
     readonly componentPackage = '@cradle/ostium-onect';
 
+    /**
+     * Path mappings for component files to enable intelligent routing
+     */
+    readonly componentPathMappings = {
+        'src/hooks/**': 'frontend-hooks' as const,
+        'src/types.ts': 'frontend-types' as const,
+        'src/constants.ts': 'frontend-lib' as const,
+        'src/approval.ts': 'frontend-lib' as const,
+        'src/delegation.ts': 'frontend-lib' as const,
+        'src/index.ts': 'frontend-lib' as const,
+        'src/example.tsx': 'frontend-components' as const,
+    };
+
     readonly ports: PluginPort[] = [
         {
             id: 'wallet-in',

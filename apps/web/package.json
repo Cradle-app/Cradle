@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@cradle/erc8004-agent": "workspace:*",
+    "@cradle/maxxit-lazy-trader": "workspace:*",
     "@cradle/onchain-activity": "workspace:*",
     "@cradle/ostium-onect": "workspace:*",
     "@dapp-forge/blueprint-schema": "workspace:*",

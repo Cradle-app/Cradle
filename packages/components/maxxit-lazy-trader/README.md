@@ -1,203 +1,197 @@
 # Maxxit Lazy Trader Component
 
-Pre-built component for integrating with Maxxit Lazy Trader agent APIs.
+Pre-built component for integrating with Maxxit Lazy Trader via wallet-based Telegram connection.
 
 ## Overview
 
-This component provides:
+This component provides a 4-step wallet-based setup flow for Lazy Trading:
 
-1. **API Client**: Fetch Lazy Trader agent details and send messages
-2. **React Hooks**: Easy-to-use hooks for managing API state
-3. **Next.js API Routes**: Server-side proxies to avoid CORS issues
-4. **TypeScript Types**: Full type safety for API responses
+1. **Generate Agent** - Create an Ostium agent address for your wallet
+2. **Link Telegram** - Generate a deep link to connect Telegram
+3. **Wait for Connection** - Poll for Telegram connection status
+4. **Create Agent** - Configure trading preferences and deploy
 
 ## Installation
 
-This package is included in your generated project. No additional installation required.
+```bash
+pnpm add @cradle/maxxit-lazy-trader
+```
 
-## Usage
-
-### Basic Usage with Hooks
+## Quick Start
 
 ```tsx
-import { useMaxxitLazyTrader } from '@cradle/maxxit-lazy-trader';
+import { useLazyTraderSetup } from '@cradle/maxxit-lazy-trader';
+import { useAccount } from 'wagmi';
 
-function LazyTraderDashboard() {
-  const apiKey = 'your-maxxit-api-key';
+function LazyTraderSetup() {
+  const { address } = useAccount();
   
-  const {
-    details,
-    isLoading,
-    error,
-    fetchDetails,
-    sendMessage,
-    isSending,
-    sendError,
-    sendSuccess
-  } = useMaxxitLazyTrader(apiKey);
+  const setup = useLazyTraderSetup({
+    userWallet: address,
+    onComplete: (result) => {
+      console.log('Agent created:', result.agent);
+    },
+  });
+
+  // Auto-checks if already set up on mount
+  if (setup.isCheckingSetup) {
+    return <div>Checking setup status...</div>;
+  }
+
+  // Already complete
+  if (setup.currentStep === 'complete') {
+    return <div>Setup complete! Agent: {setup.agentResult?.agent?.name}</div>;
+  }
 
   return (
     <div>
-      <button onClick={fetchDetails}>
-        Fetch Agent Details
+      {/* Step 1: Generate Agent */}
+      <button onClick={setup.generateAgent} disabled={setup.isGeneratingAgent}>
+        {setup.isGeneratingAgent ? 'Generating...' : 'Generate Agent'}
       </button>
-      
-      {details && (
-        <div>
-          <p>Agent: {details.agent?.name}</p>
-          <p>Status: {details.agent?.status}</p>
-          <p>Wallet: {details.user_wallet}</p>
-        </div>
+
+      {/* Step 2: Link Telegram */}
+      {setup.agentAddress && (
+        <button onClick={setup.generateLink} disabled={setup.isGeneratingLink}>
+          Get Telegram Link
+        </button>
       )}
-      
-      <input
-        type="text"
-        onChange={(e) => {
-          // Store message in state
-        }}
-      />
-      <button onClick={() => sendMessage('Your message here')}>
-        Send Message
-      </button>
+
+      {/* Step 3: Connect via Telegram */}
+      {setup.deepLink && (
+        <a href={setup.deepLink} target="_blank" onClick={setup.startPolling}>
+          Connect Telegram
+        </a>
+      )}
+
+      {/* Step 4: Create Agent */}
+      {setup.telegramUser && (
+        <button onClick={setup.createAgent} disabled={setup.isCreatingAgent}>
+          Create Agent
+        </button>
+      )}
     </div>
   );
 }
 ```
 
-### Using API Functions Directly
-
-```tsx
-import { 
-  fetchClubDetails, 
-  sendMessageToAgent 
-} from '@cradle/maxxit-lazy-trader';
-
-// Fetch agent details
-const details = await fetchClubDetails('your-api-key');
-console.log(details.agent?.name);
-
-// Send a message
-const result = await sendMessageToAgent('your-api-key', 'Buy BTC');
-console.log(result.success);
-```
-
-## Next.js API Routes
-
-For Next.js projects, include the server-side API routes to avoid CORS issues:
-
-```tsx
-// app/api/maxxit/club-details/route.ts
-import { clubDetailsHandler } from '@cradle/maxxit-lazy-trader/server';
-export { clubDetailsHandler as GET };
-
-// app/api/maxxit/send-message/route.ts
-import { sendMessageHandler } from '@cradle/maxxit-lazy-trader/server';
-export { sendMessageHandler as POST };
-```
-
-These routes are automatically included in your generated project.
-
 ## API Reference
 
-### Hooks
+### `useLazyTraderSetup(options)`
 
-#### `useMaxxitLazyTrader(apiKey: string)`
+Main hook for managing the setup flow.
 
-Manages Lazy Trader agent state and API calls.
-
-**Parameters:**
-- `apiKey` - Your Maxxit API key
+**Options:**
+- `userWallet: string | undefined` - Connected wallet address
+- `onComplete?: (response: CreateAgentResponse) => void` - Callback when setup completes
 
 **Returns:**
-- `details` - Fetched agent details (or null)
-- `isLoading` - Loading state for fetch
-- `error` - Error message for fetch
-- `fetchDetails()` - Function to fetch agent details
-- `sendMessage(message: string)` - Function to send a message
-- `isSending` - Loading state for send
-- `sendError` - Error message for send
-- `sendSuccess` - Success message for send
 
-### Functions
+| Property | Type | Description |
+|----------|------|-------------|
+| `currentStep` | `SetupStep` | Current step: `'idle'` \| `'agent'` \| `'telegram-link'` \| `'telegram-connect'` \| `'create-agent'` \| `'complete'` |
+| `isCheckingSetup` | `boolean` | True while checking if already set up |
+| `agentAddress` | `string \| null` | Generated Ostium agent address |
+| `isGeneratingAgent` | `boolean` | Loading state for step 1 |
+| `generateAgent` | `() => Promise<void>` | Trigger step 1 |
+| `linkCode` | `string \| null` | Generated Telegram link code |
+| `deepLink` | `string \| null` | Telegram deep link URL |
+| `isGeneratingLink` | `boolean` | Loading state for step 2 |
+| `generateLink` | `() => Promise<void>` | Trigger step 2 |
+| `telegramUser` | `TelegramUser \| null` | Connected Telegram user info |
+| `isPolling` | `boolean` | True while polling for connection |
+| `startPolling` | `() => void` | Start polling for Telegram connection |
+| `stopPolling` | `() => void` | Stop polling |
+| `tradingPreferences` | `TradingPreferences` | Current trading preferences |
+| `setTradingPreferences` | `(prefs: TradingPreferences) => void` | Update preferences |
+| `isCreatingAgent` | `boolean` | Loading state for step 4 |
+| `createAgent` | `() => Promise<void>` | Trigger step 4 |
+| `agentResult` | `CreateAgentResponse \| null` | Final agent creation result |
+| `error` | `string \| null` | Error message |
+| `reset` | `() => void` | Reset all state |
 
-#### `fetchClubDetails(apiKey: string): Promise<ClubDetailsResponse>`
+### API Functions
 
-Fetches Lazy Trader agent details from Maxxit API.
+```tsx
+import {
+  generateOstiumAgent,
+  generateTelegramLink,
+  checkTelegramStatus,
+  createLazyTraderAgent,
+  checkSetup,
+} from '@cradle/maxxit-lazy-trader';
 
-#### `sendMessageToAgent(apiKey: string, message: string): Promise<SendMessageResponse>`
+// Step 1
+const agent = await generateOstiumAgent(walletAddress);
 
-Sends a message to your Lazy Trader agent.
+// Step 2
+const link = await generateTelegramLink(walletAddress);
 
-## Environment Variables
+// Step 3 (poll this)
+const status = await checkTelegramStatus(walletAddress, linkCode);
 
-If using the server-side API routes:
+// Step 4
+const result = await createLazyTraderAgent(walletAddress, telegramUserId, preferences);
+
+// Check if already set up
+const setupStatus = await checkSetup(walletAddress);
+```
+
+## Types
+
+```typescript
+interface TradingPreferences {
+  risk_tolerance: number;        // 0-100
+  trade_frequency: number;       // 0-100
+  social_sentiment_weight: number; // 0-100
+  price_momentum_focus: number;  // 0-100
+  market_rank_priority: number;  // 0-100
+}
+
+interface TelegramUser {
+  id: string;
+  telegram_user_id: string;
+  telegram_username: string;
+}
+
+interface CreateAgentResponse {
+  success: boolean;
+  agent?: { id: string; name: string; venue: string };
+  deployment?: { id: string; status: string };
+  ostiumAgentAddress?: string;
+}
+```
+
+## Configuration
+
+Set the API base URL when using this component:
+
+```tsx
+import { useLazyTraderSetup } from '@cradle/maxxit-lazy-trader';
+
+// The component uses '/api/maxxit' by default
+// For production, use the Cradle API:
+const API_BASE_URL = 'https://cradle-web-eight.vercel.app/api/maxxit';
+```
+
+Or configure via environment variable:
 
 ```bash
-# Optional: Override the Maxxit API base URL
-MAXXIT_API_BASE_URL=http://localhost:5000
+# .env.local
+NEXT_PUBLIC_MAXXIT_API_URL=https://cradle-web-eight.vercel.app/api/maxxit
 ```
 
-## TypeScript Types
+## API Endpoints
 
-### `ClubDetailsResponse`
+The following endpoints are available at `https://cradle-web-eight.vercel.app/api/maxxit`:
 
-```typescript
-interface ClubDetailsResponse {
-  success?: boolean;
-  user_wallet?: string;
-  agent?: {
-    id?: string | number;
-    name?: string;
-    venue?: string;
-    status?: string;
-  };
-  telegram_user?: {
-    telegram_username?: string;
-    first_name?: string;
-    last_name?: string;
-  } | null;
-  deployment?: {
-    status?: string;
-    enabled_venues?: string[];
-  } | null;
-  trading_preferences?: {
-    risk_tolerance?: string | number;
-    trade_frequency?: string | number;
-  } | null;
-  ostium_agent_address?: string | null;
-}
-```
-
-### `SendMessageResponse`
-
-```typescript
-interface SendMessageResponse {
-  success?: boolean;
-  message_id?: string;
-  post_id?: string | number;
-}
-```
-
-## Files
-
-- `src/index.ts` - Main exports
-- `src/api.ts` - API client functions
-- `src/types.ts` - TypeScript types
-- `src/hooks/` - React hooks
-- `src/server/` - Next.js API route handlers
-- `src/example.tsx` - Example usage component
-
-## Getting Your API Key
-
-1. Visit [maxxit.ai/dashboard](https://maxxit.ai/dashboard)
-2. Navigate to API Keys section
-3. Generate a new API key
-4. Copy and use it in your application
-
-## Support
-
-For issues with the Maxxit API, contact Maxxit support.
-For issues with this component, open an issue in the Cradle repository.
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/generate-agent` | POST | Generate Ostium agent |
+| `/generate-telegram-link` | POST | Generate Telegram link |
+| `/check-telegram-status` | GET | Check Telegram connection |
+| `/create-agent` | POST | Create lazy trader agent |
+| `/check-setup` | GET | Check if setup complete |
 
 ---
 
