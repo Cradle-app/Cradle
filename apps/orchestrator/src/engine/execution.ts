@@ -1,6 +1,8 @@
 import { Volume, createFsFromVolume } from 'memfs';
 import * as realFs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import type {
   Blueprint,
   BlueprintNode,
@@ -229,10 +231,30 @@ export class ExecutionEngine {
     pathContext: PathContext,
     pathMappings?: Record<string, PathCategory>
   ): void {
-    const projectRoot = this.findProjectRoot();
+    const currentFileDir = dirname(fileURLToPath(import.meta.url));
+
+    // Robust project root detection
+    // 1. Check for environment variable
+    // 2. Look for workspace marker (pnpm-workspace.yaml) in parent directories
+    // 3. Fallback to rigid relative path
+    let projectRoot = process.env.PROJECT_ROOT;
+
     if (!projectRoot) {
-      console.warn('Could not find project root (no pnpm-workspace.yaml found)');
-      return;
+      let currentDir = currentFileDir;
+      const rootMarker = 'pnpm-workspace.yaml';
+      while (currentDir !== path.parse(currentDir).root) {
+        if (realFs.existsSync(path.join(currentDir, rootMarker))) {
+          projectRoot = currentDir;
+          break;
+        }
+        currentDir = path.dirname(currentDir);
+      }
+    }
+
+    if (!projectRoot) {
+      // Fallback: This handles both src (../../../../) and dist (../../../)
+      // but the recursive search above is much more reliable
+      projectRoot = path.resolve(currentFileDir, currentFileDir.includes('dist') ? '../../../' : '../../../../');
     }
 
     const sourcePath = path.join(projectRoot, componentPath);
@@ -369,35 +391,6 @@ export class ExecutionEngine {
 
     const regex = new RegExp(`^${regexPattern}$`);
     return regex.test(filePath);
-  }
-
-  /**
-   * Find the monorepo root by walking up directories from cwd
-   * Looks for pnpm-workspace.yaml as a marker file
-   */
-  private findProjectRoot(): string | null {
-    let currentDir = process.cwd();
-    const maxDepth = 10;
-
-    for (let i = 0; i < maxDepth; i++) {
-      const markerPath = path.join(currentDir, 'pnpm-workspace.yaml');
-      if (realFs.existsSync(markerPath)) {
-        return currentDir;
-      }
-
-      const componentsPath = path.join(currentDir, 'packages', 'components');
-      if (realFs.existsSync(componentsPath)) {
-        return currentDir;
-      }
-
-      const parentDir = path.dirname(currentDir);
-      if (parentDir === currentDir) {
-        break;
-      }
-      currentDir = parentDir;
-    }
-
-    return null;
   }
 
   /**
