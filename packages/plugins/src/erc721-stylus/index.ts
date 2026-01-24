@@ -20,9 +20,9 @@ export class ERC721StylusPlugin extends BasePlugin<z.infer<typeof ERC721StylusCo
     id: 'erc721-stylus',
     name: 'ERC-721 Stylus NFT',
     version: '0.1.0',
-    description: 'Generate and interact with ERC-721 NFTs on Arbitrum Stylus',
+    description: 'Deploy and interact with ERC-721 NFTs on Arbitrum Stylus',
     category: 'contracts',
-    tags: ['erc721', 'nft', 'arbitrum', 'stylus', 'contract'],
+    tags: ['erc721', 'nft', 'arbitrum', 'stylus', 'deployment'],
   };
 
   readonly configSchema = ERC721StylusConfig as unknown as z.ZodType<z.infer<typeof ERC721StylusConfig>>;
@@ -71,29 +71,10 @@ export class ERC721StylusPlugin extends BasePlugin<z.infer<typeof ERC721StylusCo
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    // Generate Stylus contract files
-    this.addFile(
-      output,
-      'contracts/erc721-stylus/Cargo.toml',
-      generateCargoToml(config)
-    );
-
-    this.addFile(
-      output,
-      'contracts/erc721-stylus/src/lib.rs',
-      generateContractCode(config)
-    );
-
-    this.addFile(
-      output,
-      'contracts/erc721-stylus/README.md',
-      generateContractReadme(config)
-    );
-
     // Generate deployment script
     this.addFile(
       output,
-      'scripts/deploy-erc721.sh',
+      'scripts/deploy-erc721.ts',
       generateDeployScript(config)
     );
 
@@ -120,11 +101,14 @@ export class ERC721StylusPlugin extends BasePlugin<z.infer<typeof ERC721StylusCo
       required: true,
       secret: true,
     });
+    this.addEnvVar(output, 'ERC721_DEPLOYMENT_API_URL', 'URL of the ERC721 deployment API', {
+      required: false,
+      defaultValue: 'http://localhost:4001',
+    });
 
     // Add scripts
-    this.addScript(output, 'build:erc721', 'cd contracts/erc721-stylus && cargo build --release --target wasm32-unknown-unknown', 'Build ERC721 Stylus contract');
-    this.addScript(output, 'deploy:erc721', 'bash scripts/deploy-erc721.sh', 'Deploy ERC721 collection');
-    this.addScript(output, 'check:erc721', 'cd contracts/erc721-stylus && cargo stylus check', 'Check ERC721 contract');
+    this.addScript(output, 'deploy:erc721', 'ts-node scripts/deploy-erc721.ts', 'Deploy ERC721 collection');
+    this.addScript(output, 'nft:info', 'ts-node scripts/nft-info.ts', 'Get NFT collection information');
 
     // Add documentation
     this.addDoc(
@@ -146,172 +130,47 @@ export class ERC721StylusPlugin extends BasePlugin<z.infer<typeof ERC721StylusCo
   }
 }
 
-function generateCargoToml(config: z.infer<typeof ERC721StylusConfig>): string {
-  const features = config.features || ['ownable', 'mintable', 'burnable', 'pausable', 'enumerable'];
-  const defaultFeatures = features.map(f => `"${f}"`).join(', ');
-  
-  return `[package]
-name = "${config.collectionSymbol.toLowerCase()}-nft"
-version = "0.1.0"
-edition = "2021"
-license = "MIT OR Apache-2.0"
-description = "${config.collectionName} - ERC-721 NFT for Arbitrum Stylus"
-
-[dependencies]
-alloy-primitives = "0.7.6"
-alloy-sol-types = "0.7.6"
-stylus-sdk = "0.6.0"
-mini-alloc = "0.4.2"
-
-[dev-dependencies]
-tokio = { version = "1.12.0", features = ["full"] }
-ethers = "2.0"
-eyre = "0.6.8"
-
-[features]
-default = [${defaultFeatures}]
-ownable = []
-mintable = []
-burnable = []
-pausable = []
-enumerable = []
-export-abi = ["stylus-sdk/export-abi"]
-
-[lib]
-crate-type = ["lib", "cdylib"]
-
-[profile.release]
-codegen-units = 1
-strip = true
-lto = true
-panic = "abort"
-opt-level = "s"
-`;
-}
-
-function generateContractCode(config: z.infer<typeof ERC721StylusConfig>): string {
-  // This would be a simplified version - in practice, you'd use the full contract from the template
-  // For now, we'll generate a reference to use the contract from the component package
-  return `// Copyright 2024 Cradle - Generated Contract
-// SPDX-License-Identifier: MIT OR Apache-2.0
-
-//! # ${config.collectionName} (${config.collectionSymbol})
-//!
-//! ERC-721 NFT Implementation for Arbitrum Stylus
-//! 
-//! Enabled features: ${config.features?.join(', ') || 'all'}
-
-// Note: This is a generated contract file.
-// The full contract implementation is available in @cradle/erc721-stylus/contract
-// Copy the contract code from packages/components/erc721-stylus/contract/src/lib.rs
-// and customize it based on your selected features.
-
-// Features enabled: ${JSON.stringify(config.features || [])}
-`;
-}
-
-function generateContractReadme(config: z.infer<typeof ERC721StylusConfig>): string {
-  const features = config.features || ['ownable', 'mintable', 'burnable', 'pausable', 'enumerable'];
-  
-  return `# ${config.collectionName} (${config.collectionSymbol})
-
-ERC-721 NFT for Arbitrum Stylus.
-
-## Collection Details
-
-- **Name:** ${config.collectionName}
-- **Symbol:** ${config.collectionSymbol}
-- **Base URI:** ${config.baseUri}
-- **Network:** ${config.network}
-- **Features:** ${features.join(', ')}
-
-## Prerequisites
-
-\`\`\`bash
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Install wasm32 target
-rustup target add wasm32-unknown-unknown
-
-# Install cargo-stylus
-cargo install cargo-stylus
-\`\`\`
-
-## Build
-
-\`\`\`bash
-cargo build --release --target wasm32-unknown-unknown
-\`\`\`
-
-## Deploy
-
-\`\`\`bash
-# Check contract validity
-cargo stylus check
-
-# Deploy
-cargo stylus deploy \\
-  --private-key $PRIVATE_KEY \\
-  --endpoint https://sepolia-rollup.arbitrum.io/rpc
-\`\`\`
-
-## Initialize
-
-After deployment, initialize the contract:
-
-\`\`\`bash
-cast send <CONTRACT_ADDRESS> \\
-  "initialize(string,string,string,address)" \\
-  "${config.collectionName}" "${config.collectionSymbol}" "${config.baseUri}" <OWNER_ADDRESS> \\
-  --private-key $PRIVATE_KEY \\
-  --rpc-url https://sepolia-rollup.arbitrum.io/rpc
-\`\`\`
-
-## Features
-
-${features.map(f => `- **${f}**: Enabled`).join('\n')}
-`;
-}
-
 function generateDeployScript(config: z.infer<typeof ERC721StylusConfig>): string {
-  return `#!/bin/bash
-# ERC-721 NFT Deployment Script
-# Usage: bash scripts/deploy-erc721.sh
+  return `/**
+ * ERC-721 NFT Deployment Script
+ * 
+ * Usage: ts-node scripts/deploy-erc721.ts
+ */
 
-set -e
+import { deployERC721CollectionViaAPI } from '@cradle/erc721-stylus';
 
-echo "Building ERC-721 contract..."
-cd contracts/erc721-stylus
-cargo build --release --target wasm32-unknown-unknown
+async function main() {
+  const privateKey = process.env.PRIVATE_KEY;
+  const apiUrl = process.env.ERC721_DEPLOYMENT_API_URL || 'http://localhost:4001';
+  const rpcEndpoint = process.env.RPC_ENDPOINT || 'https://sepolia-rollup.arbitrum.io/rpc';
 
-echo "Checking contract..."
-cargo stylus check
+  if (!privateKey) {
+    throw new Error('PRIVATE_KEY environment variable is required');
+  }
 
-if [ -z "$PRIVATE_KEY" ]; then
-  echo "Error: PRIVATE_KEY environment variable is not set"
-  exit 1
-fi
+  console.log('Deploying ERC-721 NFT collection...');
+  console.log('Name:', '${config.collectionName}');
+  console.log('Symbol:', '${config.collectionSymbol}');
+  console.log('Base URI:', '${config.baseUri}');
+  console.log('Network:', '${config.network}');
 
-RPC_ENDPOINT=\${RPC_ENDPOINT:-"https://sepolia-rollup.arbitrum.io/rpc"}
+  const result = await deployERC721CollectionViaAPI({
+    name: '${config.collectionName}',
+    symbol: '${config.collectionSymbol}',
+    baseUri: '${config.baseUri}',
+    privateKey,
+    rpcEndpoint,
+    deploymentApiUrl: apiUrl,
+  });
 
-echo "Deploying to $RPC_ENDPOINT..."
-cargo stylus deploy \\
-  --private-key $PRIVATE_KEY \\
-  --endpoint $RPC_ENDPOINT
+  console.log('\\n✅ NFT collection deployed successfully!');
+  console.log('Contract Address:', result.collectionAddress);
+  console.log('Transaction Hash:', result.txHash);
+  console.log('\\nAdd this to your .env file:');
+  console.log(\`NEXT_PUBLIC_NFT_ADDRESS=\${result.collectionAddress}\`);
+}
 
-echo ""
-echo "Deployment complete!"
-echo ""
-echo "Next steps:"
-echo "1. Copy the contract address from the output above"
-echo "2. Initialize the contract with:"
-echo ""
-echo "cast send <CONTRACT_ADDRESS> \\\\"
-echo "  'initialize(string,string,string,address)' \\\\"
-echo "  '${config.collectionName}' '${config.collectionSymbol}' '${config.baseUri}' <OWNER_ADDRESS> \\\\"
-echo "  --private-key \\$PRIVATE_KEY \\\\"
-echo "  --rpc-url $RPC_ENDPOINT"
+main().catch(console.error);
 `;
 }
 
@@ -425,7 +284,7 @@ export function ERC721NFTPanel() {
     return (
       <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
         <p className="text-sm text-yellow-400">
-          NFT collection not deployed yet. Deploy using <code>cargo stylus deploy</code> in the contracts/erc721-stylus folder.
+          NFT collection not deployed yet. Run <code>pnpm deploy:erc721</code> to deploy.
         </p>
       </div>
     );
@@ -500,38 +359,11 @@ An ERC-721 NFT collection for ${config.network === 'arbitrum' ? 'Arbitrum One' :
 
 ## Deployment
 
-### Prerequisites
-
 \`\`\`bash
-# Install cargo-stylus
-cargo install cargo-stylus
-
-# Add wasm target
-rustup target add wasm32-unknown-unknown
-\`\`\`
-
-### Deploy
-
-\`\`\`bash
-# Set your private key
-export PRIVATE_KEY="0x..."
-
-# Build and deploy
-pnpm build:erc721
 pnpm deploy:erc721
 \`\`\`
 
-### Initialize
-
-After deployment, initialize the contract:
-
-\`\`\`bash
-cast send <CONTRACT_ADDRESS> \\
-  "initialize(string,string,string,address)" \\
-  "${config.collectionName}" "${config.collectionSymbol}" "${config.baseUri}" <OWNER_ADDRESS> \\
-  --private-key $PRIVATE_KEY \\
-  --rpc-url ${config.network === 'arbitrum' ? 'https://arb1.arbitrum.io/rpc' : 'https://sepolia-rollup.arbitrum.io/rpc'}
-\`\`\`
+This will deploy the NFT collection and output the contract address.
 
 ## Usage
 
