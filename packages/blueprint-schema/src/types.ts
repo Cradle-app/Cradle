@@ -44,12 +44,25 @@ export type {
 };
 
 /**
+ * Path categories for organizing generated files
+ */
+export type PathCategory =
+  | 'frontend-app' | 'frontend-components' | 'frontend-hooks'
+  | 'frontend-lib' | 'frontend-types' | 'frontend-styles' | 'frontend-public'
+  | 'backend-routes' | 'backend-services' | 'backend-middleware'
+  | 'backend-lib' | 'backend-types'
+  | 'contract' | 'contract-test' | 'contract-source'
+  | 'docs' | 'root' | 'shared-types';
+
+/**
  * Codegen output from a plugin
  */
 export interface CodegenFile {
   path: string;
   content: string;
   encoding?: 'utf-8' | 'base64';
+  /** Category for intelligent path routing (optional for backward compatibility) */
+  category?: PathCategory;
 }
 
 /**

@@ -173,8 +173,11 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     notificationTypes: ['transaction', 'price-alert'],
   },
   'telegram-commands': {
-    commands: ['/start', '/help', '/balance'],
-    webhookEnabled: true,
+    commands: ['start', 'help', 'balance'],
+    framework: 'grammy',
+    deliveryMethod: 'webhook',
+    rateLimitEnabled: true,
+    chatFlowEnabled: false,
   },
   'telegram-ai-agent': {
     modelProvider: 'openai',

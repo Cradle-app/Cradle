@@ -65,22 +65,21 @@ export class SuperpositionNetworkPlugin extends BasePlugin<z.infer<typeof Superp
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const configDir = 'src/config';
-    const hooksDir = 'src/hooks';
-
     // Generate chain configuration
     if (config.generateChainConfig) {
       this.addFile(
         output,
-        `${configDir}/chains.ts`,
-        generateChainConfig(config)
+        'chains.ts',
+        generateChainConfig(config),
+        'frontend-lib'
       );
 
       // Generate wagmi config helper
       this.addFile(
         output,
-        `${configDir}/wagmi-superposition.ts`,
-        generateWagmiConfig(config)
+        'wagmi-superposition.ts',
+        generateWagmiConfig(config),
+        'frontend-lib'
       );
     }
 
@@ -88,8 +87,9 @@ export class SuperpositionNetworkPlugin extends BasePlugin<z.infer<typeof Superp
     if (config.generateConstants) {
       this.addFile(
         output,
-        `${configDir}/superposition-constants.ts`,
-        generateConstants(config)
+        'superposition-constants.ts',
+        generateConstants(config),
+        'frontend-lib'
       );
     }
 
@@ -97,16 +97,18 @@ export class SuperpositionNetworkPlugin extends BasePlugin<z.infer<typeof Superp
     if (config.generateNetworkSwitcher) {
       this.addFile(
         output,
-        `${hooksDir}/useSuperpositionNetwork.ts`,
-        generateNetworkSwitcherHook(config)
+        'useSuperpositionNetwork.ts',
+        generateNetworkSwitcherHook(config),
+        'frontend-hooks'
       );
     }
 
     // Generate index file for easy imports
     this.addFile(
       output,
-      `${configDir}/superposition.ts`,
-      generateIndexFile(config)
+      'superposition.ts',
+      generateIndexFile(config),
+      'frontend-lib'
     );
 
     // Add environment variables

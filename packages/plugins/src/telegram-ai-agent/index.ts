@@ -1,76 +1,72 @@
 import { z } from 'zod';
 import {
-    BasePlugin,
-    type PluginMetadata,
-    type PluginPort,
-    type CodegenOutput,
-    type BlueprintNode,
-    type ExecutionContext,
-    dedent,
+  BasePlugin,
+  type PluginMetadata,
+  type PluginPort,
+  type CodegenOutput,
+  type BlueprintNode,
+  type ExecutionContext,
+  dedent,
 } from '@dapp-forge/plugin-sdk';
 import { TelegramAIAgentConfig } from '@dapp-forge/blueprint-schema';
 
 type Config = z.infer<typeof TelegramAIAgentConfig>;
 
 export class TelegramAIAgentPlugin extends BasePlugin<Config> {
-    readonly metadata: PluginMetadata = {
-        id: 'telegram-ai-agent',
-        name: 'Telegram AI Agent',
-        version: '0.1.0',
-        description: 'Conversational AI capabilities for Telegram via LLMs',
-        category: 'telegram',
-        tags: ['telegram', 'ai', 'agent', 'openai', 'anthropic'],
-    };
+  readonly metadata: PluginMetadata = {
+    id: 'telegram-ai-agent',
+    name: 'Telegram AI Agent',
+    version: '0.1.0',
+    description: 'Conversational AI capabilities for Telegram via LLMs',
+    category: 'telegram',
+    tags: ['telegram', 'ai', 'agent', 'openai', 'anthropic'],
+  };
 
-    readonly configSchema = TelegramAIAgentConfig as unknown as z.ZodType<Config>;
+  readonly configSchema = TelegramAIAgentConfig as unknown as z.ZodType<Config>;
 
-    readonly ports: PluginPort[] = [
-        {
-            id: 'ai-out',
-            name: 'AI Response',
-            type: 'output',
-            dataType: 'any',
-        },
-    ];
+  readonly ports: PluginPort[] = [
+    {
+      id: 'ai-out',
+      name: 'AI Response',
+      type: 'output',
+      dataType: 'any',
+    },
+  ];
 
-    async generate(
-        node: BlueprintNode,
-        context: ExecutionContext
-    ): Promise<CodegenOutput> {
-        const config = this.configSchema.parse(node.config);
-        const output = this.createEmptyOutput();
+  async generate(
+    node: BlueprintNode,
+    context: ExecutionContext
+  ): Promise<CodegenOutput> {
+    const config = this.configSchema.parse(node.config);
+    const output = this.createEmptyOutput();
 
-        const libDir = 'src/lib/telegram';
-        const composerDir = 'src/lib/telegram/composers';
-        const apiDir = 'src/api/telegram';
+    // Core Bot Client (shared gateway)
+    this.addFile(output, 'bot-client.ts', this.generateBotClient(config), 'backend-lib');
 
-        // Core Bot Client (shared gateway)
-        this.addFile(output, `${libDir}/bot-client.ts`, this.generateBotClient(config));
+    // AI Service - handles LLM provider logic
+    this.addFile(output, 'ai-service.ts', this.generateAIService(config), 'backend-lib');
 
-        // AI Service - handles LLM provider logic
-        this.addFile(output, `${libDir}/ai-service.ts`, this.generateAIService(config));
+    // AI Composer - grammY middleware
+    this.addFile(output, 'ai-agent-composer.ts', this.generateAIComposer(config), 'backend-lib');
 
-        // AI Composer - grammY middleware
-        this.addFile(output, `${composerDir}/ai-agent.ts`, this.generateAIComposer(config));
+    // Default Webhook Handler (if no commands node is present)
+    this.addFile(output, 'telegram-webhook-route.ts', this.generateWebhookHandler(), 'backend-routes');
 
-        // Default Webhook Handler (if no commands node is present)
-        this.addFile(output, `${apiDir}/webhook/route.ts`, this.generateWebhookHandler());
+    // Env Vars
+    this.addEnvVar(output, 'TELEGRAM_BOT_TOKEN', 'Bot token from @BotFather', { required: true, secret: true });
 
-        // Env Vars
-        this.addEnvVar(output, 'TELEGRAM_BOT_TOKEN', 'Bot token from @BotFather', { required: true, secret: true });
-
-        // Add necessary dependencies (assumed to be handled by the user or an app-level plugin)
-        if (config.provider === 'openai') {
-            this.addEnvVar(output, 'OPENAI_API_KEY', 'API key for OpenAI', { secret: true });
-        } else if (config.provider === 'anthropic') {
-            this.addEnvVar(output, 'ANTHROPIC_API_KEY', 'API key for Anthropic', { secret: true });
-        }
-
-        return output;
+    // Add necessary dependencies (assumed to be handled by the user or an app-level plugin)
+    if (config.provider === 'openai') {
+      this.addEnvVar(output, 'OPENAI_API_KEY', 'API key for OpenAI', { secret: true });
+    } else if (config.provider === 'anthropic') {
+      this.addEnvVar(output, 'ANTHROPIC_API_KEY', 'API key for Anthropic', { secret: true });
     }
 
-    private generateAIService(config: Config): string {
-        return dedent(`
+    return output;
+  }
+
+  private generateAIService(config: Config): string {
+    return dedent(`
       import OpenAI from 'openai';
 
       export class AIAgentService {
@@ -99,10 +95,10 @@ export class TelegramAIAgentPlugin extends BasePlugin<Config> {
 
       export const aiAgentService = new AIAgentService();
     `);
-    }
+  }
 
-    private generateAIComposer(config: Config): string {
-        return dedent(`
+  private generateAIComposer(config: Config): string {
+    return dedent(`
       import { Composer } from 'grammy';
       import { aiAgentService } from '../ai-service';
 
@@ -123,10 +119,10 @@ export class TelegramAIAgentPlugin extends BasePlugin<Config> {
         }
       });
     `);
-    }
+  }
 
-    private generateBotClient(config: Config): string {
-        return dedent(`
+  private generateBotClient(config: Config): string {
+    return dedent(`
       import { Bot } from 'grammy';
       /* @ts-ignore - Composer might not exist yet */
       import { commandsComposer } from './composers/commands';
@@ -147,10 +143,10 @@ export class TelegramAIAgentPlugin extends BasePlugin<Config> {
         telegramBot.use(aiComposer);
       } catch (e) {}
     `);
-    }
+  }
 
-    private generateWebhookHandler(): string {
-        return dedent(`
+  private generateWebhookHandler(): string {
+    return dedent(`
       import { NextRequest, NextResponse } from 'next/server';
       import { webhookCallback } from 'grammy';
       import { telegramBot } from '@/lib/telegram/bot-client';
@@ -166,5 +162,5 @@ export class TelegramAIAgentPlugin extends BasePlugin<Config> {
         }
       }
     `);
-    }
+  }
 }

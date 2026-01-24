@@ -67,23 +67,21 @@ export class SuperpositionBridgePlugin extends BasePlugin<z.infer<typeof Superpo
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const typesDir = 'src/types';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/bridge';
-
     // Generate types
     this.addFile(
       output,
-      `${typesDir}/bridge.ts`,
-      generateBridgeTypes(config)
+      'bridge.ts',
+      generateBridgeTypes(config),
+      'frontend-types'
     );
 
     // Generate hooks
     if (config.generateHooks) {
       this.addFile(
         output,
-        `${hooksDir}/useSuperpositionBridge.ts`,
-        generateBridgeHook(config)
+        'useSuperpositionBridge.ts',
+        generateBridgeHook(config),
+        'frontend-hooks'
       );
 
       if (config.enableWithdraw) {
@@ -91,8 +89,9 @@ export class SuperpositionBridgePlugin extends BasePlugin<z.infer<typeof Superpo
         if (withdrawHook) {
           this.addFile(
             output,
-            `${hooksDir}/useSuperpositionWithdraw.ts`,
-            withdrawHook
+            'useSuperpositionWithdraw.ts',
+            withdrawHook,
+            'frontend-hooks'
           );
         }
       }
@@ -104,8 +103,9 @@ export class SuperpositionBridgePlugin extends BasePlugin<z.infer<typeof Superpo
       if (bridgeUI) {
         this.addFile(
           output,
-          `${componentsDir}/SuperpositionBridge.tsx`,
-          bridgeUI
+          'SuperpositionBridge.tsx',
+          bridgeUI,
+          'frontend-components'
         );
       }
     }
@@ -113,8 +113,9 @@ export class SuperpositionBridgePlugin extends BasePlugin<z.infer<typeof Superpo
     // Generate index file
     this.addFile(
       output,
-      `${hooksDir}/superposition-bridge.ts`,
-      generateIndexFile(config)
+      'superposition-bridge.ts',
+      generateIndexFile(config),
+      'frontend-lib'
     );
 
     // Add dependencies note

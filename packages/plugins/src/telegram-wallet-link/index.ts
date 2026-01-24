@@ -1,64 +1,60 @@
 import { z } from 'zod';
 import {
-    BasePlugin,
-    type PluginMetadata,
-    type PluginPort,
-    type CodegenOutput,
-    type BlueprintNode,
-    type ExecutionContext,
-    dedent,
+  BasePlugin,
+  type PluginMetadata,
+  type PluginPort,
+  type CodegenOutput,
+  type BlueprintNode,
+  type ExecutionContext,
+  dedent,
 } from '@dapp-forge/plugin-sdk';
 import { TelegramWalletLinkConfig } from '@dapp-forge/blueprint-schema';
 
 type Config = z.infer<typeof TelegramWalletLinkConfig>;
 
 export class TelegramWalletLinkPlugin extends BasePlugin<Config> {
-    readonly metadata: PluginMetadata = {
-        id: 'telegram-wallet-link',
-        name: 'Telegram Wallet Link',
-        version: '0.1.0',
-        description: 'Bind Telegram profiles with Web3 wallets via signatures',
-        category: 'telegram',
-        tags: ['telegram', 'web3', 'identity', 'auth'],
-    };
+  readonly metadata: PluginMetadata = {
+    id: 'telegram-wallet-link',
+    name: 'Telegram Wallet Link',
+    version: '0.1.0',
+    description: 'Bind Telegram profiles with Web3 wallets via signatures',
+    category: 'telegram',
+    tags: ['telegram', 'web3', 'identity', 'auth'],
+  };
 
-    readonly configSchema = TelegramWalletLinkConfig as unknown as z.ZodType<Config>;
+  readonly configSchema = TelegramWalletLinkConfig as unknown as z.ZodType<Config>;
 
-    readonly ports: PluginPort[] = [
-        {
-            id: 'wallet-link-out',
-            name: 'Wallet Link',
-            type: 'output',
-            dataType: 'config',
-        },
-    ];
+  readonly ports: PluginPort[] = [
+    {
+      id: 'wallet-link-out',
+      name: 'Wallet Link',
+      type: 'output',
+      dataType: 'config',
+    },
+  ];
 
-    async generate(
-        node: BlueprintNode,
-        context: ExecutionContext
-    ): Promise<CodegenOutput> {
-        const config = this.configSchema.parse(node.config);
-        const output = this.createEmptyOutput();
+  async generate(
+    node: BlueprintNode,
+    context: ExecutionContext
+  ): Promise<CodegenOutput> {
+    const config = this.configSchema.parse(node.config);
+    const output = this.createEmptyOutput();
 
-        const libDir = 'src/lib/telegram';
-        const componentsDir = 'src/components/telegram';
-        const hooksDir = 'src/hooks';
+    // Verification Logic (Server-side)
+    this.addFile(output, 'link-service.ts', this.generateLinkService(config), 'backend-lib');
 
-        // Verification Logic (Server-side)
-        this.addFile(output, `${libDir}/link-service.ts`, this.generateLinkService(config));
+    // UI Components & Hooks
+    this.addFile(output, 'TelegramLinkButton.tsx', this.generateLinkButton(), 'frontend-components');
+    this.addFile(output, 'useTelegramLink.ts', this.generateLinkHook(), 'frontend-hooks');
 
-        // UI Components & Hooks
-        this.addFile(output, `${componentsDir}/TelegramLinkButton.tsx`, this.generateLinkButton());
-        this.addFile(output, `${hooksDir}/useTelegramLink.ts`, this.generateLinkHook());
+    // Env Vars
+    this.addEnvVar(output, 'NEXT_PUBLIC_TELEGRAM_BOT_USERNAME', 'Your bot username (without @)', { required: true });
 
-        // Env Vars
-        this.addEnvVar(output, 'NEXT_PUBLIC_TELEGRAM_BOT_USERNAME', 'Your bot username (without @)', { required: true });
+    return output;
+  }
 
-        return output;
-    }
-
-    private generateLinkService(config: Config): string {
-        return dedent(`
+  private generateLinkService(config: Config): string {
+    return dedent(`
       import { verifyMessage } from 'viem';
       // Import your DB client (Prisma/Drizzle) based on ${config.persistenceType}
 
@@ -87,10 +83,10 @@ export class TelegramWalletLinkPlugin extends BasePlugin<Config> {
         return { success: true };
       }
     `);
-    }
+  }
 
-    private generateLinkButton(): string {
-        return dedent(`
+  private generateLinkButton(): string {
+    return dedent(`
       'use client';
 
       import { useTelegramLink } from '@/hooks/useTelegramLink';
@@ -110,10 +106,10 @@ export class TelegramWalletLinkPlugin extends BasePlugin<Config> {
         );
       }
     `);
-    }
+  }
 
-    private generateLinkHook(): string {
-        return dedent(`
+  private generateLinkHook(): string {
+    return dedent(`
       import { useState } from 'react';
       import { useAccount, useSignMessage } from 'wagmi';
 
@@ -156,5 +152,5 @@ export class TelegramWalletLinkPlugin extends BasePlugin<Config> {
         return { link, isLoading, isLinked };
       }
     `);
-    }
+  }
 }

@@ -12,6 +12,7 @@ import { StylusZKContractForm } from './forms/stylus-zk-contract-form';
 import { X402PaywallForm } from './forms/x402-paywall-form';
 import { ERC8004AgentForm } from './forms/erc8004-agent-form';
 import { QualityGatesForm } from './forms/quality-gates-form';
+import { FrontendScaffoldForm } from './forms/frontend-scaffold-form';
 
 // New Arbitrum-focused forms
 import { EIP7702Form } from './forms/eip7702-form';
@@ -167,6 +168,9 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'repo-quality-gates' && (
             <QualityGatesForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'frontend-scaffold' && (
+            <FrontendScaffoldForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
 
           {/* New Arbitrum-focused nodes */}

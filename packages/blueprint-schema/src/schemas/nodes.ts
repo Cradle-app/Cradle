@@ -186,15 +186,46 @@ export type RepoQualityGatesConfig = z.infer<typeof RepoQualityGatesConfig>;
 
 /**
  * Frontend scaffold configuration
+ * Comprehensive Next.js Web3 application scaffold with wallet integration
  */
 export const FrontendScaffoldConfig = BaseNodeConfig.extend({
+  // Framework Selection (Next.js is primary, others coming soon)
   framework: z.enum(['nextjs', 'vite-react', 'remix']).default('nextjs'),
-  styling: z.enum(['tailwind', 'css-modules', 'styled-components']).default('tailwind'),
-  web3Provider: z.enum(['wagmi', 'ethers', 'viem']).default('wagmi'),
+
+  // Styling Options
+  styling: z.enum(['tailwind', 'css-modules', 'styled-components', 'vanilla']).default('tailwind'),
+  darkModeSupport: z.boolean().default(true),
+
+  // Web3 Configuration
+  // Note: 'wagmi' is accepted as alias for 'wagmi-viem' for backward compatibility
+  web3Provider: z.enum(['wagmi-viem', 'wagmi', 'ethers-v6']).transform(v => v === 'wagmi' ? 'wagmi-viem' : v).default('wagmi-viem'),
   walletConnect: z.boolean().default(true),
   rainbowKit: z.boolean().default(true),
+  siweAuth: z.boolean().default(false),
+
+  // Smart Contract Integration
+  includeContracts: z.boolean().default(true),
+  contractsPath: z.string().default('contracts'),
+  generateContractHooks: z.boolean().default(true),
+
+  // Project Structure
+  projectStructure: z.enum(['app-router', 'pages-router']).default('app-router'),
+  srcDirectory: z.boolean().default(true),
+
+  // State Management & Features
+  stateManagement: z.enum(['tanstack-query', 'zustand', 'none']).default('tanstack-query'),
+  ssrEnabled: z.boolean().default(true),
+  pwaSupport: z.boolean().default(false),
+
+  // TypeScript Configuration
+  strictMode: z.boolean().default(true),
+
+  // Output Configuration
+  appName: z.string().min(1).max(100).default('My DApp'),
+  appDescription: z.string().max(500).optional(),
 });
 export type FrontendScaffoldConfig = z.infer<typeof FrontendScaffoldConfig>;
+
 
 /**
  * SDK generator configuration

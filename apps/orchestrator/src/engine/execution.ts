@@ -10,7 +10,7 @@ import type {
   ExecutionContext,
 } from '@dapp-forge/blueprint-schema';
 import { topologicalSort } from '@dapp-forge/blueprint-schema';
-import { getDefaultRegistry, type NodePlugin } from '@dapp-forge/plugin-sdk';
+import { getDefaultRegistry, buildPathContext, rewriteOutputPaths, type NodePlugin, type PathContext } from '@dapp-forge/plugin-sdk';
 import { RunStore } from '../store/runs';
 import { createExecutionLogger } from '../utils/logger';
 import { applyCodegenOutput, formatAndLint, createManifest } from './filesystem';
@@ -70,6 +70,14 @@ export class ExecutionEngine {
 
       logger.info(`Executing ${sortedNodes.length} nodes in topological order`);
 
+      // Build path context for intelligent file routing
+      const pathContext = buildPathContext(sortedNodes);
+      logger.info('Path context built', {
+        hasFrontend: pathContext.hasFrontend,
+        hasBackend: pathContext.hasBackend,
+        hasContracts: pathContext.hasContracts,
+      });
+
       // Track outputs from each node
       const nodeOutputs = new Map<string, CodegenOutput>();
       const allEnvVars: CodegenOutput['envVars'] = [];
@@ -108,6 +116,10 @@ export class ExecutionEngine {
 
         // Generate code
         const output = await plugin.generate(node, context);
+
+        // Rewrite file paths based on path context (intelligent routing)
+        output.files = rewriteOutputPaths(output.files, pathContext);
+
         nodeOutputs.set(node.id, output);
 
         // Apply output to filesystem
@@ -120,7 +132,8 @@ export class ExecutionEngine {
             fs,
             '/output',
             plugin.componentPath,
-            plugin.componentPackage || 'component'
+            plugin.componentPackage || 'component',
+            pathContext
           );
         }
 
@@ -206,12 +219,14 @@ export class ExecutionEngine {
 
   /**
    * Copy a component package from the source repo to the output
+   * If wallet-auth and frontend-scaffold are both present, merge into apps/web/src/
    */
   private copyComponentToOutput(
     memFs: ReturnType<typeof createFsFromVolume>,
     outputPath: string,
     componentPath: string,
-    packageName: string
+    packageName: string,
+    pathContext: PathContext
   ): void {
     const currentFileDir = dirname(fileURLToPath(import.meta.url));
     const projectRoot = path.resolve(currentFileDir, '../../../../');
@@ -224,6 +239,15 @@ export class ExecutionEngine {
 
     console.log(`Copying component from: ${sourcePath}`);
 
+    // Special case: If wallet-auth and frontend-scaffold are both present,
+    // merge wallet-auth files into apps/web/src/ instead of packages/
+    if (packageName === '@cradle/wallet-auth' && pathContext.hasFrontend) {
+      console.log('Merging wallet-auth into apps/web/src/ (frontend-scaffold detected)');
+      this.copyWalletAuthMerged(realFs, memFs, sourcePath, outputPath);
+      return;
+    }
+
+    // Default: Copy as separate package
     const dirName = packageName.includes('/')
       ? packageName.split('/').pop()!
       : packageName;
@@ -232,6 +256,54 @@ export class ExecutionEngine {
 
     this.copyDirectoryToMemfs(realFs, memFs, sourcePath, targetPath);
 
+  }
+
+  /**
+   * Copy wallet-auth files merged into apps/web/src/ structure
+   */
+  private copyWalletAuthMerged(
+    sourceFs: typeof realFs,
+    targetFs: ReturnType<typeof createFsFromVolume>,
+    sourcePath: string,
+    outputPath: string
+  ): void {
+    const srcPath = path.join(sourcePath, 'src');
+    if (!sourceFs.existsSync(srcPath)) {
+      console.warn(`wallet-auth src/ not found: ${srcPath}`);
+      return;
+    }
+
+    // Mapping: wallet-auth/src/X -> apps/web/src/X
+    const webSrcPath = `${outputPath}/apps/web/src`;
+
+    const items = sourceFs.readdirSync(srcPath);
+    for (const item of items) {
+      if (item === 'node_modules' || item.startsWith('.')) continue;
+
+      const sourceItem = path.join(srcPath, item);
+      const stat = sourceFs.statSync(sourceItem);
+
+      if (stat.isDirectory()) {
+        // Copy directories like hooks/, preserving folder structure
+        const targetDir = `${webSrcPath}/${item}`;
+        this.copyDirectoryToMemfs(sourceFs, targetFs, sourceItem, targetDir);
+      } else {
+        // Copy individual files to lib/ (config.ts, constants.ts, types.ts, etc)
+        const targetDir = `${webSrcPath}/lib`;
+        targetFs.mkdirSync(targetDir, { recursive: true });
+        const content = sourceFs.readFileSync(sourceItem);
+        targetFs.writeFileSync(`${targetDir}/${item}`, content);
+      }
+    }
+
+    // Also copy README.md to docs/wallet-auth/
+    const readmePath = path.join(sourcePath, 'README.md');
+    if (sourceFs.existsSync(readmePath)) {
+      const docsPath = `${outputPath}/docs/wallet-auth`;
+      targetFs.mkdirSync(docsPath, { recursive: true });
+      const content = sourceFs.readFileSync(readmePath);
+      targetFs.writeFileSync(`${docsPath}/README.md`, content);
+    }
   }
 
   /**
@@ -384,6 +456,7 @@ target/
   const pnpmWorkspace = `packages:
   - "src/*"
   - "contracts/*"
+  - "packages/*"
 `;
   fs.writeFileSync(`${basePath}/pnpm-workspace.yaml`, pnpmWorkspace);
 }
