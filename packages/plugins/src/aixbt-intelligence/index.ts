@@ -33,7 +33,7 @@ export class AIXBTMomentumPlugin extends BasePlugin<z.infer<typeof AIXBTMomentum
     ];
     async generate(node: BlueprintNode, context: ExecutionContext): Promise<CodegenOutput> {
         const output = this.createEmptyOutput();
-        this.addFile(output, 'src/intelligence/aixbt-client.ts', templates.generateAIXBTClient());
+        this.addFile(output, 'aixbt-client.ts', templates.generateAIXBTClient(), 'frontend-lib');
         this.addEnvVar(output, 'AIXBT_API_KEY', 'AIXBT API Key for market intelligence', { required: true, secret: true });
         this.addDoc(output, 'docs/intelligence/aixbt.md', 'AIXBT Integration', templates.generateDocs());
         return output;
@@ -58,7 +58,7 @@ export class AIXBTSignalsPlugin extends BasePlugin<z.infer<typeof AIXBTSignalsCo
     ];
     async generate(node: BlueprintNode, context: ExecutionContext): Promise<CodegenOutput> {
         const output = this.createEmptyOutput();
-        this.addFile(output, 'src/intelligence/aixbt-client.ts', templates.generateAIXBTClient());
+        this.addFile(output, 'aixbt-client.ts', templates.generateAIXBTClient(), 'frontend-lib');
         this.addEnvVar(output, 'AIXBT_API_KEY', 'AIXBT API Key for market intelligence', { required: true });
         return output;
     }
@@ -83,7 +83,7 @@ export class AIXBTIndigoPlugin extends BasePlugin<z.infer<typeof AIXBTIndigoConf
     async generate(node: BlueprintNode, context: ExecutionContext): Promise<CodegenOutput> {
         const config = this.configSchema.parse(node.config);
         const output = this.createEmptyOutput();
-        this.addFile(output, 'src/intelligence/indigo.ts', templates.generateIndigoIntegration(config));
+        this.addFile(output, 'indigo.ts', templates.generateIndigoIntegration(config), 'frontend-lib');
         this.addEnvVar(output, 'AIXBT_API_KEY', 'AIXBT API Key for market intelligence', { required: true });
         return output;
     }
@@ -108,8 +108,8 @@ export class AIXBTObserverPlugin extends BasePlugin<z.infer<typeof AIXBTObserver
     async generate(node: BlueprintNode, context: ExecutionContext): Promise<CodegenOutput> {
         const config = this.configSchema.parse(node.config);
         const output = this.createEmptyOutput();
-        this.addFile(output, 'src/intelligence/observer.ts', templates.generateObserverLogic(config));
-        this.addFile(output, 'src/intelligence/aixbt-client.ts', templates.generateAIXBTClient());
+        this.addFile(output, 'observer.ts', templates.generateObserverLogic(config), 'frontend-lib');
+        this.addFile(output, 'aixbt-client.ts', templates.generateAIXBTClient(), 'frontend-lib');
         this.addEnvVar(output, 'AIXBT_API_KEY', 'AIXBT API Key for market intelligence', { required: true });
         return output;
     }

@@ -56,29 +56,17 @@ export class StylusContractPlugin extends BasePlugin<z.infer<typeof StylusContra
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const contractDir = `contracts/${config.contractName.toLowerCase()}`;
+    const contractName = config.contractName.toLowerCase();
 
-    // Generate Cargo.toml
-    this.addFile(
-      output,
-      `${contractDir}/Cargo.toml`,
-      generateCargoToml(config)
-    );
+    // Generate Cargo.toml - contract-source will place in contracts/
+    this.addFile(output, `${contractName}/Cargo.toml`, generateCargoToml(config), 'contract-source');
 
     // Generate main contract file
-    this.addFile(
-      output,
-      `${contractDir}/src/lib.rs`,
-      generateContractCode(config)
-    );
+    this.addFile(output, `${contractName}/src/lib.rs`, generateContractCode(config), 'contract-source');
 
     // Generate test file if enabled
     if (config.testCoverage) {
-      this.addFile(
-        output,
-        `${contractDir}/tests/integration.rs`,
-        generateTestFile(config)
-      );
+      this.addFile(output, `${contractName}/tests/integration.rs`, generateTestFile(config), 'contract-source');
     }
 
     // Add environment variables
@@ -92,6 +80,7 @@ export class StylusContractPlugin extends BasePlugin<z.infer<typeof StylusContra
     });
 
     // Add scripts
+    const contractDir = `contracts/${contractName}`;
     this.addScript(output, 'build:contract', `cd ${contractDir} && cargo build --release --target wasm32-unknown-unknown`);
     this.addScript(output, 'test:contract', `cd ${contractDir} && cargo test`);
     this.addScript(output, 'deploy:contract', `cargo stylus deploy --private-key $DEPLOYER_PRIVATE_KEY`);

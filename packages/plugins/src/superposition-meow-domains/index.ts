@@ -67,24 +67,20 @@ export class SuperpositionMeowDomainsPlugin extends BasePlugin<z.infer<typeof Su
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const typesDir = 'src/types';
-    const configDir = 'src/config';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components';
-
     // Generate types
-    this.addFile(output, `${typesDir}/meow-domains.ts`, generateMeowDomainsTypes());
+    this.addFile(output, 'meow-domains.ts', generateMeowDomainsTypes(), 'frontend-types');
 
     // Generate constants and ABIs
-    this.addFile(output, `${configDir}/meow-domains-constants.ts`, generateMeowDomainsConstants());
-    this.addFile(output, `${configDir}/meow-domains-abi.ts`, generateMeowDomainsABIs());
+    this.addFile(output, 'meow-domains-constants.ts', generateMeowDomainsConstants(), 'frontend-lib');
+    this.addFile(output, 'meow-domains-abi.ts', generateMeowDomainsABIs(), 'frontend-lib');
 
     // Generate resolver hook
     if (config.generateResolverHook || config.features.includes('resolve')) {
       this.addFile(
         output,
-        `${hooksDir}/useMeowDomain.ts`,
-        generateResolverHook(config)
+        'useMeowDomain.ts',
+        generateResolverHook(config),
+        'frontend-hooks'
       );
     }
 
@@ -92,8 +88,9 @@ export class SuperpositionMeowDomainsPlugin extends BasePlugin<z.infer<typeof Su
     if (config.generateRegistrationHook || config.features.includes('register')) {
       this.addFile(
         output,
-        `${hooksDir}/useRegisterMeowDomain.ts`,
-        generateRegistrationHook()
+        'useRegisterMeowDomain.ts',
+        generateRegistrationHook(),
+        'frontend-hooks'
       );
     }
 
@@ -101,8 +98,9 @@ export class SuperpositionMeowDomainsPlugin extends BasePlugin<z.infer<typeof Su
     if (config.features.includes('reverse-lookup')) {
       this.addFile(
         output,
-        `${hooksDir}/useMeowReverseLookup.ts`,
-        generateReverseLookupHook()
+        'useMeowReverseLookup.ts',
+        generateReverseLookupHook(),
+        'frontend-hooks'
       );
     }
 
@@ -110,16 +108,18 @@ export class SuperpositionMeowDomainsPlugin extends BasePlugin<z.infer<typeof Su
     if (config.generateDomainDisplay) {
       this.addFile(
         output,
-        `${componentsDir}/MeowDomainDisplay.tsx`,
-        generateDomainDisplay()
+        'MeowDomainDisplay.tsx',
+        generateDomainDisplay(),
+        'frontend-components'
       );
     }
 
     // Generate index file
     this.addFile(
       output,
-      `${configDir}/meow-domains-index.ts`,
-      generateIndexFile(config)
+      'meow-domains-index.ts',
+      generateIndexFile(config),
+      'frontend-lib'
     );
 
     // Add documentation

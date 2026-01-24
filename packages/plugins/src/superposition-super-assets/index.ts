@@ -79,53 +79,27 @@ export class SuperpositionSuperAssetsPlugin extends BasePlugin<z.infer<typeof Su
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const typesDir = 'src/types';
-    const abiDir = 'src/abi';
-    const hooksDir = 'src/hooks';
-    const configDir = 'src/config';
-    const componentsDir = 'src/components/super-assets';
-
     // Generate types
-    this.addFile(
-      output,
-      `${typesDir}/super-assets.ts`,
-      generateSuperAssetsTypes(config)
-    );
+    this.addFile(output, 'super-assets.ts', generateSuperAssetsTypes(config), 'frontend-types');
 
     // Generate ABIs
-    this.addFile(
-      output,
-      `${abiDir}/super-assets.ts`,
-      generateSuperAssetsABIs()
-    );
+    this.addFile(output, 'super-assets-abi.ts', generateSuperAssetsABIs(), 'frontend-lib');
 
     // Generate config
-    this.addFile(
-      output,
-      `${configDir}/super-assets-config.ts`,
-      generateSuperAssetsConfig(config)
-    );
+    this.addFile(output, 'super-assets-config.ts', generateSuperAssetsConfig(config), 'frontend-lib');
 
     // Generate hooks
     if (config.generateHooks) {
       // Main Super Asset hook (wrap/unwrap)
       if (config.generateWrapUnwrap) {
-        this.addFile(
-          output,
-          `${hooksDir}/useSuperAsset.ts`,
-          generateSuperAssetHook(config)
-        );
+        this.addFile(output, 'useSuperAsset.ts', generateSuperAssetHook(config), 'frontend-hooks');
       }
 
       // Yield tracking hook
       if (config.generateYieldTracking) {
         const yieldHook = generateYieldTrackingHook(config);
         if (yieldHook) {
-          this.addFile(
-            output,
-            `${hooksDir}/useSuperAssetYield.ts`,
-            yieldHook
-          );
+          this.addFile(output, 'useSuperAssetYield.ts', yieldHook, 'frontend-hooks');
         }
       }
 
@@ -133,11 +107,7 @@ export class SuperpositionSuperAssetsPlugin extends BasePlugin<z.infer<typeof Su
       if (config.generateBalanceDisplay) {
         const balanceHook = generateBalanceHook(config);
         if (balanceHook) {
-          this.addFile(
-            output,
-            `${hooksDir}/useSuperAssetBalance.ts`,
-            balanceHook
-          );
+          this.addFile(output, 'useSuperAssetBalance.ts', balanceHook, 'frontend-hooks');
         }
       }
     }
@@ -146,20 +116,12 @@ export class SuperpositionSuperAssetsPlugin extends BasePlugin<z.infer<typeof Su
     if (config.generateBalanceDisplay) {
       const balanceUI = generateBalanceUI(config);
       if (balanceUI) {
-        this.addFile(
-          output,
-          `${componentsDir}/SuperAssetBalanceDisplay.tsx`,
-          balanceUI
-        );
+        this.addFile(output, 'SuperAssetBalanceDisplay.tsx', balanceUI, 'frontend-components');
       }
     }
 
     // Generate index file
-    this.addFile(
-      output,
-      `${hooksDir}/super-assets.ts`,
-      generateIndexFile(config)
-    );
+    this.addFile(output, 'super-assets-index.ts', generateIndexFile(config), 'frontend-lib');
 
     // Add documentation
     this.addDoc(

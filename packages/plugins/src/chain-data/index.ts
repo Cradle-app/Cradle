@@ -56,24 +56,20 @@ export class ChainDataPlugin extends BasePlugin<z.infer<typeof ChainDataConfig>>
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const libDir = 'src/lib/data';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/data';
-
     // Generate data client
-    this.addFile(output, `${libDir}/data-client.ts`, generateDataClient(config));
+    this.addFile(output, 'data-client.ts', generateDataClient(config), 'frontend-lib');
 
     // Generate React hooks
-    this.addFile(output, `${hooksDir}/useChainData.ts`, generateDataHooks(config));
+    this.addFile(output, 'useChainData.ts', generateDataHooks(config), 'frontend-hooks');
 
     // Generate token components if enabled
     if (config.features.includes('token-balances')) {
-      this.addFile(output, `${componentsDir}/TokenList.tsx`, generateTokenComponents(config));
+      this.addFile(output, 'TokenList.tsx', generateTokenComponents(config), 'frontend-components');
     }
 
     // Generate NFT components if enabled
     if (config.features.includes('nft-data')) {
-      this.addFile(output, `${componentsDir}/NFTGallery.tsx`, generateNFTComponents(config));
+      this.addFile(output, 'NFTGallery.tsx', generateNFTComponents(config), 'frontend-components');
     }
 
     // Add environment variables

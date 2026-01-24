@@ -8,9 +8,9 @@ import {
   type ExecutionContext,
 } from '@dapp-forge/plugin-sdk';
 import { X402PaywallConfig } from '@dapp-forge/blueprint-schema';
-import { 
-  generateServerCode, 
-  generatePaymentMiddleware, 
+import {
+  generateServerCode,
+  generatePaymentMiddleware,
   generateOpenAPISpec,
   generatePaymentTypes,
 } from './templates';
@@ -65,22 +65,20 @@ export class X402PaywallPlugin extends BasePlugin<z.infer<typeof X402PaywallConf
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const apiDir = 'src/api/payments';
-
     // Generate payment types
-    this.addFile(output, `${apiDir}/types.ts`, generatePaymentTypes(config));
+    this.addFile(output, 'payment-types.ts', generatePaymentTypes(config), 'backend-types');
 
     // Generate payment middleware
-    this.addFile(output, `${apiDir}/middleware.ts`, generatePaymentMiddleware(config));
+    this.addFile(output, 'payment-middleware.ts', generatePaymentMiddleware(config), 'backend-middleware');
 
     // Generate API server code
-    this.addFile(output, `${apiDir}/server.ts`, generateServerCode(config, context.config));
+    this.addFile(output, 'payment-server.ts', generateServerCode(config, context.config), 'backend-routes');
 
     // Generate OpenAPI spec if enabled
     if (config.openApiSpec) {
       const openApiContent = generateOpenAPISpec(config, context.config);
-      this.addFile(output, 'openapi/x402-payment.yaml', openApiContent);
-      
+      this.addFile(output, 'x402-payment.yaml', openApiContent, 'docs');
+
       output.interfaces.push({
         name: 'X402PaymentAPI',
         type: 'openapi',

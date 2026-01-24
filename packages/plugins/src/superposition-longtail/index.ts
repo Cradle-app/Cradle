@@ -78,45 +78,24 @@ export class SuperpositionLongtailPlugin extends BasePlugin<z.infer<typeof Super
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const typesDir = 'src/types';
-    const abiDir = 'src/abi';
-    const hooksDir = 'src/hooks';
-    const componentsDir = 'src/components/longtail';
-
     // Generate types
-    this.addFile(
-      output,
-      `${typesDir}/longtail.ts`,
-      generateLongtailTypes(config)
-    );
+    this.addFile(output, 'longtail.ts', generateLongtailTypes(config), 'frontend-types');
 
     // Generate ABIs
-    this.addFile(
-      output,
-      `${abiDir}/longtail.ts`,
-      generateLongtailABIs()
-    );
+    this.addFile(output, 'longtail-abi.ts', generateLongtailABIs(), 'frontend-lib');
 
     // Generate hooks
     if (config.generateHooks) {
       // Swap hook (always included if swap feature enabled)
       if (config.features.includes('swap')) {
-        this.addFile(
-          output,
-          `${hooksDir}/useLongtailSwap.ts`,
-          generateSwapHook(config)
-        );
+        this.addFile(output, 'useLongtailSwap.ts', generateSwapHook(config), 'frontend-hooks');
       }
 
       // Pool queries hook
       if (config.features.includes('pool-queries')) {
         const poolHook = generatePoolHook(config);
         if (poolHook) {
-          this.addFile(
-            output,
-            `${hooksDir}/useLongtailPool.ts`,
-            poolHook
-          );
+          this.addFile(output, 'useLongtailPool.ts', poolHook, 'frontend-hooks');
         }
       }
 
@@ -124,11 +103,7 @@ export class SuperpositionLongtailPlugin extends BasePlugin<z.infer<typeof Super
       if (config.features.includes('liquidity')) {
         const liquidityHook = generateLiquidityHook(config);
         if (liquidityHook) {
-          this.addFile(
-            output,
-            `${hooksDir}/useLongtailLiquidity.ts`,
-            liquidityHook
-          );
+          this.addFile(output, 'useLongtailLiquidity.ts', liquidityHook, 'frontend-hooks');
         }
       }
     }
@@ -137,20 +112,12 @@ export class SuperpositionLongtailPlugin extends BasePlugin<z.infer<typeof Super
     if (config.generateSwapUI) {
       const swapUI = generateSwapUI(config);
       if (swapUI) {
-        this.addFile(
-          output,
-          `${componentsDir}/LongtailSwap.tsx`,
-          swapUI
-        );
+        this.addFile(output, 'LongtailSwap.tsx', swapUI, 'frontend-components');
       }
     }
 
     // Generate index file
-    this.addFile(
-      output,
-      `${hooksDir}/longtail.ts`,
-      generateIndexFile(config)
-    );
+    this.addFile(output, 'longtail-index.ts', generateIndexFile(config), 'frontend-lib');
 
     // Add documentation
     this.addDoc(
