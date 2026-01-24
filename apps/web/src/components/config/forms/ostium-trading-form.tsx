@@ -22,7 +22,7 @@ import {
 
 // Viem and wagmi for wallet connection
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { WalletDependencyNotice } from '@/components/config/wallet-dependency-notice';
 
 interface Props {
     nodeId: string;
@@ -96,28 +96,8 @@ export function OstiumTradingForm({ nodeId, config }: Props) {
 
     return (
         <div className="space-y-4">
-            {/* Wallet Connection Status */}
-            {!isConnected && (
-                <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Wallet className="w-4 h-4 text-yellow-400" />
-                        <span className="text-sm font-medium text-yellow-400">Wallet Not Connected</span>
-                    </div>
-                    <p className="text-xs text-forge-muted mb-3">
-                        Connect your wallet to enable one-click trading setup.
-                    </p>
-                    <ConnectButton.Custom>
-                        {({ openConnectModal }) => (
-                            <button
-                                onClick={openConnectModal}
-                                className="w-full px-3 py-2 text-xs font-medium rounded bg-accent-cyan/20 text-accent-cyan hover:bg-accent-cyan/30 transition-colors"
-                            >
-                                Connect Wallet
-                            </button>
-                        )}
-                    </ConnectButton.Custom>
-                </div>
-            )}
+            {/* Wallet Dependency Notice */}
+            <WalletDependencyNotice nodeId={nodeId} />
 
             {/* Status Overview */}
             <div className={cn(

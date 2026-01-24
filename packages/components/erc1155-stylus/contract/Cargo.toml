@@ -1,0 +1,29 @@
+[package]
+name = "erc1155-stylus"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "ERC-1155 Multi-Token Standard implementation for Arbitrum Stylus"
+
+[dependencies]
+stylus-sdk = "0.6.0"
+alloy-primitives = "0.7.7"
+alloy-sol-types = "0.7.7"
+
+[features]
+default = []
+export-abi = ["stylus-sdk/export-abi"]
+
+[[bin]]
+name = "erc1155-stylus"
+path = "src/lib.rs"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[profile.release]
+codegen-units = 1
+strip = true
+lto = true
+panic = "abort"
+opt-level = "s"

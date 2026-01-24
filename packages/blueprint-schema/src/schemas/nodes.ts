@@ -24,6 +24,9 @@ export const NodeType = z.enum([
   'stylus-zk-contract',
   'eip7702-smart-eoa',
   'zk-primitives',
+  'erc20-stylus',
+  'erc721-stylus',
+  'erc1155-stylus',
 
   // Payments
   'x402-paywall-api',
@@ -139,7 +142,7 @@ export const ERC8004AgentConfig = BaseNodeConfig.extend({
   ])).min(1),
   registryIntegration: z.boolean().default(true),
   stakeAmount: z.string().regex(/^\d+$/).optional(),
-  modelProvider: z.enum(['openai', 'anthropic', 'local', 'custom']).default('openai'),
+  selectedModel: z.string().default('openai/gpt-4o'),
   rateLimit: z.object({
     requestsPerMinute: z.number().int().min(1).max(1000).default(60),
     tokensPerMinute: z.number().int().min(1000).max(1000000).default(100000),
@@ -223,8 +226,7 @@ export type EIP7702SmartEOAConfig = z.infer<typeof EIP7702SmartEOAConfig>;
  * Wallet Authentication configuration
  */
 export const WalletAuthConfig = BaseNodeConfig.extend({
-  provider: z.enum(['rainbowkit', 'web3modal', 'custom']).default('rainbowkit'),
-  walletConnectEnabled: z.boolean().default(true),
+  provider: z.enum(['rainbowkit', 'privy', 'custom']).default('rainbowkit'),
   siweEnabled: z.boolean().default(true),
   socialLogins: z.array(z.enum(['google', 'twitter', 'discord', 'github'])).default([]),
   sessionPersistence: z.boolean().default(true),
@@ -388,7 +390,72 @@ export const MaxxitLazyTradingConfig = BaseNodeConfig.extend({
 export type MaxxitLazyTradingConfig = z.infer<typeof MaxxitLazyTradingConfig>;
 
 /**
- * Onchain Activity configuration
+ * ERC20 Stylus Token configuration
+ */
+export const ERC20StylusConfig = BaseNodeConfig.extend({
+  tokenName: z.string().min(1).max(64).default('My Token'),
+  tokenSymbol: z.string().min(1).max(10).default('MTK'),
+  initialSupply: z.string().regex(/^\d+$/).default('1000000'),
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum-sepolia'),
+  features: z.array(z.enum([
+    'mintable',
+    'burnable',
+    'pausable',
+    'ownable',
+  ])).default(['ownable', 'mintable', 'burnable', 'pausable']),
+  // Deployment state
+  isDeployed: z.boolean().default(false),
+  contractAddress: z.string().optional(),
+  factoryAddress: z.string().optional(),
+});
+export type ERC20StylusConfig = z.infer<typeof ERC20StylusConfig>;
+
+/**
+ * ERC721 Stylus NFT configuration
+ */
+export const ERC721StylusConfig = BaseNodeConfig.extend({
+  collectionName: z.string().min(1).max(64).default('My NFT Collection'),
+  collectionSymbol: z.string().min(1).max(10).default('MNFT'),
+  baseUri: z.string().min(1).default('https://api.example.com/metadata/'),
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum-sepolia'),
+  features: z.array(z.enum([
+    'mintable',
+    'burnable',
+    'pausable',
+    'ownable',
+    'enumerable',
+  ])).default(['ownable', 'mintable', 'burnable', 'pausable']),
+  // Deployment state
+  isDeployed: z.boolean().default(false),
+  contractAddress: z.string().optional(),
+  factoryAddress: z.string().optional(),
+});
+export type ERC721StylusConfig = z.infer<typeof ERC721StylusConfig>;
+
+/**
+ * ERC1155 Stylus Multi-Token configuration
+ */
+export const ERC1155StylusConfig = BaseNodeConfig.extend({
+  collectionName: z.string().min(1).max(64).default('My Multi-Token Collection'),
+  baseUri: z.string().min(1).default('https://api.example.com/metadata/'),
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum-sepolia'),
+  features: z.array(z.enum([
+    'mintable',
+    'burnable',
+    'pausable',
+    'ownable',
+    'supply-tracking',
+    'batch-operations',
+  ])).default(['ownable', 'mintable', 'burnable', 'pausable', 'supply-tracking', 'batch-operations']),
+  // Deployment state
+  isDeployed: z.boolean().default(false),
+  contractAddress: z.string().optional(),
+  factoryAddress: z.string().optional(),
+});
+export type ERC1155StylusConfig = z.infer<typeof ERC1155StylusConfig>;
+
+ /**
+  Onchain Activity configuration
  */
 export const OnchainActivityConfig = BaseNodeConfig.extend({
   network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum'),
@@ -655,6 +722,9 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'stylus-zk-contract': 'contracts',
     'eip7702-smart-eoa': 'contracts',
     'zk-primitives': 'contracts',
+    'erc20-stylus': 'contracts',
+    'erc721-stylus': 'contracts',
+    'erc1155-stylus': 'contracts',
     'x402-paywall-api': 'payments',
     'erc8004-agent-runtime': 'agents',
     'ostium-trading': 'agents',
@@ -699,6 +769,9 @@ export function getConfigSchemaForType(type: NodeType) {
     'stylus-zk-contract': StylusZKContractConfig,
     'eip7702-smart-eoa': EIP7702SmartEOAConfig,
     'zk-primitives': ZKPrimitivesConfig,
+    'erc20-stylus': ERC20StylusConfig,
+    'erc721-stylus': ERC721StylusConfig,
+    'erc1155-stylus': ERC1155StylusConfig,
     'x402-paywall-api': X402PaywallConfig,
     'erc8004-agent-runtime': ERC8004AgentConfig,
     'repo-quality-gates': RepoQualityGatesConfig,

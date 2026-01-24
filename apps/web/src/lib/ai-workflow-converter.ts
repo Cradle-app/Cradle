@@ -142,7 +142,6 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
   },
   'wallet-auth': {
     provider: 'rainbowkit',
-    walletConnectEnabled: true,
     siweEnabled: true,
     socialLogins: [],
     sessionPersistence: true,

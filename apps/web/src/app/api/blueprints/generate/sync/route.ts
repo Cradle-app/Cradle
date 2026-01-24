@@ -109,8 +109,9 @@ export async function POST(request: NextRequest) {
       console.error('[DEBUG-E] generate/sync/route.ts:75 - Attempting orchestrator fetch', { orchestratorUrl });
       // #endregion
       
+      console.log("orchestratorUrl: ", orchestratorUrl);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 100000); // 100s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 100s timeout
       
       const response = await fetch(`${orchestratorUrl}/blueprints/generate/sync`, {
         method: 'POST',

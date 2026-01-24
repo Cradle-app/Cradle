@@ -303,7 +303,9 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   const hasZK = lowerQuery.includes('zk') || lowerQuery.includes('privacy') || lowerQuery.includes('private');
   const hasWallet = lowerQuery.includes('wallet') || lowerQuery.includes('login') || lowerQuery.includes('auth');
   const hasFrontend = lowerQuery.includes('frontend') || lowerQuery.includes('ui') || lowerQuery.includes('dashboard') || lowerQuery.includes('app');
-  const hasOstium = lowerQuery.includes('ostium') || lowerQuery.includes('perpetual') || lowerQuery.includes('leverage');
+  const hasOstium = lowerQuery.includes('ostium') || lowerQuery.includes('perpetual') || lowerQuery.includes('leverage') || lowerQuery.includes('1-click') || lowerQuery.includes('one-click') || lowerQuery.includes('1ct');
+  const hasMaxxit = lowerQuery.includes('maxxit') || lowerQuery.includes('lazy') || lowerQuery.includes('copy trad') || lowerQuery.includes('copy-trad') || lowerQuery.includes('social trading');
+  const hasERC8004 = lowerQuery.includes('erc8004') || lowerQuery.includes('erc-8004') || lowerQuery.includes('8004') || lowerQuery.includes('agent registry') || lowerQuery.includes('on-chain agent');
   const hasMarketplace = lowerQuery.includes('marketplace') || lowerQuery.includes('buy') || lowerQuery.includes('sell');
   const hasPaywall = lowerQuery.includes('paywall') || lowerQuery.includes('payment') || lowerQuery.includes('monetize') || lowerQuery.includes('premium');
   const hasAnalytics = lowerQuery.includes('analytics') || lowerQuery.includes('activity') || lowerQuery.includes('transaction') || lowerQuery.includes('history');
@@ -383,7 +385,16 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
     tools.push({
       id: getToolId(),
       type: 'ostium_trading',
-      name: 'Ostium Trading',
+      name: 'Ostium One-Click Trading',
+      next_tools: [],
+    });
+  }
+
+  if (hasMaxxit) {
+    tools.push({
+      id: getToolId(),
+      type: 'maxxit_lazy_trader',
+      name: 'Maxxit Lazy Trader',
       next_tools: [],
     });
   }
@@ -397,7 +408,7 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
     });
   }
 
-  if (hasDeFi && !hasOstium && !hasAnalytics) {
+  if (hasDeFi && !hasOstium && !hasMaxxit && !hasAnalytics) {
     tools.push({
       id: getToolId(),
       type: 'chain_data',
@@ -407,7 +418,15 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   }
 
   // AI/Agent features
-  if (hasAI) {
+  if (hasERC8004) {
+    // Explicitly requested ERC-8004 agent
+    tools.push({
+      id: getToolId(),
+      type: 'erc8004_agent',
+      name: 'ERC-8004 AI Agent',
+      next_tools: [],
+    });
+  } else if (hasAI) {
     if (hasTelegram) {
       tools.push({
         id: getToolId(),
@@ -501,6 +520,12 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
     const componentNames = tools.map(t => t.name).join(', ');
     if (hasNFT && hasMarketplace) {
       description = `NFT marketplace architecture with ${componentNames}. This setup enables minting, trading, and displaying NFTs with proper metadata storage.`;
+    } else if (hasOstium) {
+      description = `Ostium one-click trading architecture with ${componentNames}. This enables perpetual trading with streamlined delegation and approval flows.`;
+    } else if (hasMaxxit) {
+      description = `Maxxit lazy trading architecture with ${componentNames}. This enables copy trading and automated portfolio management via social trading strategies.`;
+    } else if (hasERC8004) {
+      description = `ERC-8004 AI agent architecture with ${componentNames}. This enables on-chain agent registration with verifiable capabilities and rate limiting.`;
     } else if (hasDeFi) {
       description = `DeFi application architecture with ${componentNames}. This enables trading, data analysis, and user interactions on Arbitrum.`;
     } else if (hasAI && hasTelegram) {

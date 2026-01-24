@@ -73,11 +73,7 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     agentVersion: '0.1.0',
     capabilities: ['text-generation'],
     registryIntegration: true,
-    modelProvider: 'openai',
-    rateLimit: {
-      requestsPerMinute: 60,
-      tokensPerMinute: 100000,
-    },
+    selectedModel: 'openai/gpt-4o',
   },
   'repo-quality-gates': {
     ciProvider: 'github-actions',
@@ -164,6 +160,12 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     tradingPair: 'ETH/USD',
     leverage: 10,
     enableOneClick: true,
+  },
+  'erc1155-stylus': {
+    collectionName: 'My Multi-Token Collection',
+    baseUri: 'https://api.example.com/metadata/',
+    network: 'arbitrum-sepolia',
+    features: ['ownable', 'mintable', 'burnable', 'pausable', 'supply-tracking', 'batch-operations'],
   },
   'maxxit': {},
   'telegram-notifications': {

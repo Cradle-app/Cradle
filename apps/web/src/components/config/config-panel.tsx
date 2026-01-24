@@ -42,6 +42,11 @@ import { SuperpositionFaucetForm } from './forms/superposition-faucet-form';
 import { SuperpositionMeowDomainsForm } from './forms/superposition-meow-domains-form';
 
 
+// ERC-20/ERC-721/ERC-1155 Stylus forms
+import { ERC20StylusForm } from './forms/erc20-stylus-form';
+import { ERC721StylusForm } from './forms/erc721-stylus-form';
+import { ERC1155StylusForm } from './forms/erc1155-stylus-form';
+
 export function ConfigPanel() {
   const { blueprint, selectedNodeId, selectNode } = useBlueprintStore();
 
@@ -200,6 +205,17 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'ostium-trading' && (
             <OstiumTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+
+          {/* ERC-20/ERC-721/ERC-1155 Stylus nodes */}
+          {selectedNode.type === 'erc20-stylus' && (
+            <ERC20StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'erc721-stylus' && (
+            <ERC721StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'erc1155-stylus' && (
+            <ERC1155StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
           {selectedNode.type === 'onchain-activity' && (
             <OnchainActivityForm nodeId={selectedNode.id} config={selectedNode.config} />

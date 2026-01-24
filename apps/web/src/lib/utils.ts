@@ -61,6 +61,10 @@ export function nodeTypeToLabel(type: string): string {
     'aixbt-indigo': 'AIXBT Indigo',
     'aixbt-observer': 'AIXBT Market Observer',
     // Legacy
+    // ERC-20/ERC-721/ERC-1155 Stylus nodes
+    'erc20-stylus': 'ERC-20 Stylus Token',
+    'erc721-stylus': 'ERC-721 Stylus NFT',
+    'erc1155-stylus': 'ERC-1155 Stylus Multi-Token',
     'maxxit': 'Maxxit Lazy Trader',
     // Superposition L3
     'superposition-network': 'Superposition Network',
@@ -120,6 +124,11 @@ export function nodeTypeToColor(type: string): string {
     'superposition-utility-mining': 'accent-cyan',
     'superposition-faucet': 'accent-cyan',
     'superposition-meow-domains': 'accent-cyan',
+    // ERC-20/ERC-721/ERC-1155 Stylus nodes
+    'erc20-stylus': 'node-contracts',
+    'erc721-stylus': 'node-contracts',
+    'erc1155-stylus': 'node-contracts',
+    // Telegram nodes
   };
   return colors[type] || 'node-contracts';
 }
