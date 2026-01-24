@@ -47,15 +47,15 @@ export class FrontendScaffoldPlugin extends BasePlugin<z.infer<typeof FrontendSc
 
     readonly configSchema = FrontendScaffoldConfig as unknown as z.ZodType<z.infer<typeof FrontendScaffoldConfig>>;
 
-    /**
-     * Path to the pre-built component package
-     */
-    readonly componentPath = 'packages/components/frontend-scaffold';
+    //   /**
+    //  * Path to the pre-built component package
+    //  */
+    // readonly componentPath = 'packages/components/frontend-scaffold';
 
-    /**
-     * Package name for the component
-     */
-    readonly componentPackage = '@cradle/frontend-scaffold';
+    //     /**
+    //  * Package name for the component
+    //  */
+    // readonly componentPackage = '@cradle/frontend-scaffold';
 
     readonly ports: PluginPort[] = [
         {
