@@ -1,6 +1,9 @@
 // Original plugins
 export { StylusContractPlugin } from './stylus-contract';
 export { StylusZKContractPlugin } from './stylus-zk-contract';
+export { StylusRustContractPlugin } from './stylus-rust-contract';
+export { SmartCacheCachingPlugin } from './smartcache-caching';
+export { AuditwareAnalyzingPlugin } from './auditware-analyzing';
 export { X402PaywallPlugin } from './x402-paywall-api';
 export { ERC8004AgentPlugin } from './erc8004-agent-runtime';
 export { RepoQualityGatesPlugin } from './repo-quality-gates';
@@ -45,6 +48,9 @@ export { ERC1155StylusPlugin } from './erc1155-stylus';
 
 import { StylusContractPlugin } from './stylus-contract';
 import { StylusZKContractPlugin } from './stylus-zk-contract';
+import { StylusRustContractPlugin } from './stylus-rust-contract';
+import { SmartCacheCachingPlugin } from './smartcache-caching';
+import { AuditwareAnalyzingPlugin } from './auditware-analyzing';
 import { X402PaywallPlugin } from './x402-paywall-api';
 import { ERC8004AgentPlugin } from './erc8004-agent-runtime';
 import { RepoQualityGatesPlugin } from './repo-quality-gates';
@@ -95,6 +101,9 @@ export function registerOfficialPlugins(registry?: PluginRegistry): void {
   // Original plugins
   targetRegistry.register(new StylusContractPlugin());
   targetRegistry.register(new StylusZKContractPlugin());
+  targetRegistry.register(new StylusRustContractPlugin());
+  targetRegistry.register(new SmartCacheCachingPlugin());
+  targetRegistry.register(new AuditwareAnalyzingPlugin());
   targetRegistry.register(new X402PaywallPlugin());
   targetRegistry.register(new ERC8004AgentPlugin());
   targetRegistry.register(new RepoQualityGatesPlugin());
@@ -145,6 +154,9 @@ export function getOfficialPlugins() {
     // Original plugins
     new StylusContractPlugin(),
     new StylusZKContractPlugin(),
+    new StylusRustContractPlugin(),
+    new SmartCacheCachingPlugin(),
+    new AuditwareAnalyzingPlugin(),
     new X402PaywallPlugin(),
     new ERC8004AgentPlugin(),
     new RepoQualityGatesPlugin(),
