@@ -31,6 +31,9 @@ export function nodeTypeToLabel(type: string): string {
     // Contracts
     'stylus-contract': 'Stylus Contract',
     'stylus-zk-contract': 'Stylus ZK Contract',
+    'stylus-rust-contract': 'Stylus Rust Contract',
+    'smartcache-caching': 'SmartCache Caching',
+    'auditware-analyzing': 'Auditware Analyzer',
     'eip7702-smart-eoa': 'EIP-7702 Smart EOA',
     'zk-primitives': 'ZK Primitives',
     // Payments
@@ -84,6 +87,9 @@ export function nodeTypeToColor(type: string): string {
     // Contracts
     'stylus-contract': 'node-contracts',
     'stylus-zk-contract': 'node-contracts',
+    'stylus-rust-contract': 'node-contracts',
+    'smartcache-caching': 'node-contracts',
+    'auditware-analyzing': 'node-contracts',
     'eip7702-smart-eoa': 'node-contracts',
     'zk-primitives': 'node-contracts',
     // Payments

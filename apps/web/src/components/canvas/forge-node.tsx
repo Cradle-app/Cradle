@@ -14,6 +14,9 @@ import { nodeTypeToLabel, nodeTypeToColor } from '@/lib/utils';
 const iconMap: Record<string, typeof Box> = {
   'stylus-contract': Box,
   'stylus-zk-contract': Lock,
+  'stylus-rust-contract': Box,
+  'smartcache-caching': Database,
+  'auditware-analyzing': ShieldCheck,
   'x402-paywall-api': CreditCard,
   'erc8004-agent-runtime': Bot,
   'repo-quality-gates': ShieldCheck,

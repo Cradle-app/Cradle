@@ -47,6 +47,11 @@ import { ERC20StylusForm } from './forms/erc20-stylus-form';
 import { ERC721StylusForm } from './forms/erc721-stylus-form';
 import { ERC1155StylusForm } from './forms/erc1155-stylus-form';
 
+// Stylus workflow forms
+import { StylusRustContractForm } from './forms/stylus-rust-contract-form';
+import { SmartCacheCachingForm } from './forms/smartcache-caching-form';
+import { AuditwareAnalyzingForm } from './forms/auditware-analyzing-form';
+
 export function ConfigPanel() {
   const { blueprint, selectedNodeId, selectNode } = useBlueprintStore();
 
@@ -222,6 +227,17 @@ export function ConfigPanel() {
           )}
           {selectedNode.type === 'maxxit' && (
             <MaxxitLazyTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+
+          {/* Stylus workflow nodes */}
+          {selectedNode.type === 'stylus-rust-contract' && (
+            <StylusRustContractForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'smartcache-caching' && (
+            <SmartCacheCachingForm nodeId={selectedNode.id} config={selectedNode.config} />
+          )}
+          {selectedNode.type === 'auditware-analyzing' && (
+            <AuditwareAnalyzingForm nodeId={selectedNode.id} config={selectedNode.config} />
           )}
 
           {/* AIXBT nodes */}

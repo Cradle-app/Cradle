@@ -22,6 +22,9 @@ export const NodeType = z.enum([
   // Contracts
   'stylus-contract',
   'stylus-zk-contract',
+  'stylus-rust-contract',
+  'smartcache-caching',
+  'auditware-analyzing',
   'eip7702-smart-eoa',
   'zk-primitives',
   'erc20-stylus',
@@ -454,9 +457,9 @@ export const ERC1155StylusConfig = BaseNodeConfig.extend({
 });
 export type ERC1155StylusConfig = z.infer<typeof ERC1155StylusConfig>;
 
- /**
-  Onchain Activity configuration
- */
+/**
+ Onchain Activity configuration
+*/
 export const OnchainActivityConfig = BaseNodeConfig.extend({
   network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum'),
   transactionLimit: z.enum(['5', '10', '15', '20', 'custom']).default('10'),
@@ -464,6 +467,40 @@ export const OnchainActivityConfig = BaseNodeConfig.extend({
   categories: z.array(z.enum(['erc20', 'erc721', 'erc1155', 'external'])).default(['erc20']),
 });
 export type OnchainActivityConfig = z.infer<typeof OnchainActivityConfig>;
+
+/**
+ * Stylus Rust Contract configuration
+ * Guides users on creating Stylus Rust contracts
+ */
+export const StylusRustContractConfig = BaseNodeConfig.extend({
+  network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum-sepolia'),
+  exampleType: z.enum(['counter', 'storage', 'custom']).default('counter'),
+  contractName: z.string().min(1).max(64).default('MyContract'),
+  contractCode: z.string().optional(),
+});
+export type StylusRustContractConfig = z.infer<typeof StylusRustContractConfig>;
+
+/**
+ * SmartCache Caching configuration
+ * Enables contract caching with stylus-cache-sdk
+ */
+export const SmartCacheCachingConfig = BaseNodeConfig.extend({
+  crateVersion: z.string().default('latest'),
+  autoOptIn: z.boolean().default(true),
+  contractCode: z.string().optional(),
+});
+export type SmartCacheCachingConfig = z.infer<typeof SmartCacheCachingConfig>;
+
+/**
+ * Auditware Analyzing configuration
+ * Security analysis with Radar tool
+ */
+export const AuditwareAnalyzingConfig = BaseNodeConfig.extend({
+  outputFormat: z.enum(['console', 'json', 'both']).default('both'),
+  severityFilter: z.array(z.enum(['low', 'medium', 'high'])).default(['low', 'medium', 'high']),
+  projectPath: z.string().default('.'),
+});
+export type AuditwareAnalyzingConfig = z.infer<typeof AuditwareAnalyzingConfig>;
 
 /**
  * AIXBT Project Momentum configuration
@@ -720,6 +757,9 @@ export function getNodeCategory(type: NodeType): NodeCategory {
   const categoryMap: Record<NodeType, NodeCategory> = {
     'stylus-contract': 'contracts',
     'stylus-zk-contract': 'contracts',
+    'stylus-rust-contract': 'contracts',
+    'smartcache-caching': 'contracts',
+    'auditware-analyzing': 'contracts',
     'eip7702-smart-eoa': 'contracts',
     'zk-primitives': 'contracts',
     'erc20-stylus': 'contracts',
@@ -767,6 +807,9 @@ export function getConfigSchemaForType(type: NodeType) {
   const schemaMap = {
     'stylus-contract': StylusContractConfig,
     'stylus-zk-contract': StylusZKContractConfig,
+    'stylus-rust-contract': StylusRustContractConfig,
+    'smartcache-caching': SmartCacheCachingConfig,
+    'auditware-analyzing': AuditwareAnalyzingConfig,
     'eip7702-smart-eoa': EIP7702SmartEOAConfig,
     'zk-primitives': ZKPrimitivesConfig,
     'erc20-stylus': ERC20StylusConfig,

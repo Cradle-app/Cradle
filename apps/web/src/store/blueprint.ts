@@ -208,6 +208,22 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     alertOnMomentumDrop: true,
     alertOnNegativeSignal: true,
   },
+  // Stylus workflow nodes
+  'stylus-rust-contract': {
+    network: 'arbitrum-sepolia',
+    exampleType: 'counter',
+    contractName: 'MyContract',
+    contractCode: '',
+  },
+  'smartcache-caching': {
+    crateVersion: 'latest',
+    autoOptIn: true,
+  },
+  'auditware-analyzing': {
+    outputFormat: 'both',
+    severityFilter: ['low', 'medium', 'high'],
+    projectPath: '.',
+  },
 };
 
 const createInitialBlueprint = (): Blueprint => ({
