@@ -69,6 +69,7 @@ export interface CreateAgentResponse {
   deployment?: {
     id: string;
     status: string;
+    isTestnet: boolean;
   };
   ostiumAgentAddress?: string;
   error?: string;
@@ -88,6 +89,7 @@ export interface CheckSetupResponse {
   deployment?: {
     id: string;
     status: string;
+    isTestnet: boolean;
   };
   telegramUser?: TelegramUser;
   ostiumAgentAddress?: string;
