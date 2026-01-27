@@ -26,7 +26,7 @@ export async function generateOstiumAgent(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ userWallet }),
+    body: JSON.stringify({ userWallet, isTestnet: true }),
   });
 
   const data = await response.json();
@@ -49,7 +49,7 @@ export async function generateTelegramLink(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ userWallet }),
+    body: JSON.stringify({ userWallet, isTestnet: true }),
   });
 
   const data = await response.json();
@@ -102,6 +102,7 @@ export async function createLazyTraderAgent(
       userWallet,
       telegramAlphaUserId,
       tradingPreferences,
+      isTestnet: true,
     }),
   });
 

@@ -13,6 +13,7 @@ interface LazyTraderSetupStatus {
     deployment?: {
         id: string;
         status: string;
+        isTestnet: boolean;
     };
     telegramUser?: {
         id: string;
