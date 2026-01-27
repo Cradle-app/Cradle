@@ -148,7 +148,7 @@ export class ExecutionEngine {
       }
 
       // Generate root files
-      generateRootFiles(fs, '/output', blueprint, allEnvVars, allScripts);
+      generateRootFiles(fs, '/output', blueprint, allEnvVars, allScripts, pathContext);
 
       // Run format and lint
       logger.info('Running format and lint checks');
@@ -482,12 +482,17 @@ function generateRootFiles(
   basePath: string,
   blueprint: Blueprint,
   envVars: CodegenOutput['envVars'],
-  scripts: CodegenOutput['scripts']
+  scripts: CodegenOutput['scripts'],
+  pathContext?: PathContext
 ): void {
+  // Determine if we need monorepo structure
+  // Skip turbo/workspace files if we only have a standalone frontend app
+  const needsMonorepo = pathContext?.hasContracts || pathContext?.hasBackend || !pathContext?.hasFrontend;
   const { project } = blueprint.config;
 
   // Generate package.json
-  const packageJson = {
+  // Adjust scripts based on whether we need monorepo structure
+  const packageJson = needsMonorepo ? {
     name: project.name.toLowerCase().replace(/\s+/g, '-'),
     version: project.version,
     description: project.description,
@@ -508,6 +513,27 @@ function generateRootFiles(
     author: project.author,
     license: project.license,
     keywords: project.keywords,
+  } : {
+    // Standalone frontend - simpler package.json pointing to apps/web
+    name: project.name.toLowerCase().replace(/\s+/g, '-'),
+    version: project.version,
+    description: project.description,
+    private: true,
+    scripts: {
+      dev: 'next dev',
+      build: 'next build',
+      start: 'next start',
+      lint: 'next lint',
+      ...Object.fromEntries(scripts.map(s => [s.name, s.command])),
+    },
+    dependencies: {},
+    devDependencies: {
+      turbo: '^2.0.0',
+      typescript: '^5.3.0',
+    },
+    packageManager: 'pnpm@9.0.0',
+    license: project.license,
+    keywords: project.keywords,
   };
 
   fs.writeFileSync(
@@ -516,13 +542,17 @@ function generateRootFiles(
   );
 
   // Generate .env.example
+  // Put in apps/web for standalone frontend, root for monorepo
   const envExampleHeader = '# Environment Variables\n# Copy this file to .env and fill in the values\n\n';
   const envVarsContent = envVars
     .map(v => `# ${v.description}${v.required ? ' (required)' : ''}${v.secret ? ' [secret]' : ''}\n${v.key}=${v.defaultValue || ''}`)
     .join('\n\n');
   const envExample = envExampleHeader + (envVarsContent || '# No environment variables required\n');
 
-  fs.writeFileSync(`${basePath}/.env.example`, envExample);
+  const envPath = pathContext?.hasFrontend && !needsMonorepo
+    ? `${basePath}/apps/web/.env.example`
+    : `${basePath}/.env.example`;
+  fs.writeFileSync(envPath, envExample);
 
   // Generate README.md
   const readme = generateReadme(project, scripts, envVars);
@@ -567,33 +597,36 @@ target/
 `;
   fs.writeFileSync(`${basePath}/.gitignore`, gitignore);
 
-  // Generate turbo.json
-  const turboConfig = {
-    $schema: 'https://turbo.build/schema.json',
-    tasks: {
-      build: {
-        dependsOn: ['^build'],
-        outputs: ['dist/**', '.next/**'],
+  // Generate turbo.json and pnpm-workspace.yaml only for monorepo structure
+  if (needsMonorepo) {
+    // Generate turbo.json
+    const turboConfig = {
+      $schema: 'https://turbo.build/schema.json',
+      tasks: {
+        build: {
+          dependsOn: ['^build'],
+          outputs: ['dist/**', '.next/**'],
+        },
+        dev: {
+          cache: false,
+          persistent: true,
+        },
+        test: {
+          dependsOn: ['^build'],
+        },
+        lint: {},
       },
-      dev: {
-        cache: false,
-        persistent: true,
-      },
-      test: {
-        dependsOn: ['^build'],
-      },
-      lint: {},
-    },
-  };
-  fs.writeFileSync(`${basePath}/turbo.json`, JSON.stringify(turboConfig, null, 2));
+    };
+    fs.writeFileSync(`${basePath}/turbo.json`, JSON.stringify(turboConfig, null, 2));
 
-  // Generate pnpm-workspace.yaml
-  const pnpmWorkspace = `packages:
+    // Generate pnpm-workspace.yaml
+    const pnpmWorkspace = `packages:
   - "src/*"
   - "contracts/*"
   - "packages/*"
 `;
-  fs.writeFileSync(`${basePath}/pnpm-workspace.yaml`, pnpmWorkspace);
+    fs.writeFileSync(`${basePath}/pnpm-workspace.yaml`, pnpmWorkspace);
+  }
 }
 
 function generateReadme(

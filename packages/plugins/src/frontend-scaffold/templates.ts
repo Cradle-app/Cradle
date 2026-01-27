@@ -9,73 +9,73 @@ type Config = z.infer<typeof FrontendScaffoldConfig>;
  * Generate package.json for the Next.js app
  */
 export function generatePackageJson(config: Config): string {
-    const appName = config.appName.toLowerCase().replace(/\s+/g, '-');
+  const appName = config.appName.toLowerCase().replace(/\s+/g, '-');
 
-    const dependencies: Record<string, string> = {
-        'next': '^14.2.0',
-        'react': '^18.3.0',
-        'react-dom': '^18.3.0',
-    };
+  const dependencies: Record<string, string> = {
+    'next': '^14.2.0',
+    'react': '^18.3.0',
+    'react-dom': '^18.3.0',
+  };
 
-    const devDependencies: Record<string, string> = {
-        '@types/node': '^20.0.0',
-        '@types/react': '^18.3.0',
-        '@types/react-dom': '^18.3.0',
-        'typescript': '^5.4.0',
-        'eslint': '^8.57.0',
-        'eslint-config-next': '^14.2.0',
-    };
+  const devDependencies: Record<string, string> = {
+    '@types/node': '^20.0.0',
+    '@types/react': '^18.3.0',
+    '@types/react-dom': '^18.3.0',
+    'typescript': '^5.4.0',
+    'eslint': '^8.57.0',
+    'eslint-config-next': '^14.2.0',
+  };
 
-    // Web3 dependencies
-    if (config.web3Provider === 'wagmi-viem') {
-        dependencies['wagmi'] = '^2.12.0';
-        dependencies['viem'] = '^2.21.0';
-        dependencies['@tanstack/react-query'] = '^5.51.0';
-    }
+  // Web3 dependencies
+  if (config.web3Provider === 'wagmi-viem') {
+    dependencies['wagmi'] = '^2.12.0';
+    dependencies['viem'] = '^2.21.0';
+    dependencies['@tanstack/react-query'] = '^5.51.0';
+  }
 
-    if (config.rainbowKit) {
-        dependencies['@rainbow-me/rainbowkit'] = '^2.1.0';
-    }
+  if (config.rainbowKit) {
+    dependencies['@rainbow-me/rainbowkit'] = '^2.1.0';
+  }
 
-    if (config.siweAuth) {
-        dependencies['siwe'] = '^2.3.0';
-        dependencies['next-auth'] = '^4.24.0';
-    }
+  if (config.siweAuth) {
+    dependencies['siwe'] = '^2.3.0';
+    dependencies['next-auth'] = '^4.24.0';
+  }
 
-    // Styling dependencies
-    if (config.styling === 'tailwind') {
-        devDependencies['tailwindcss'] = '^3.4.0';
-        devDependencies['postcss'] = '^8.4.0';
-        devDependencies['autoprefixer'] = '^10.4.0';
-    }
+  // Styling dependencies
+  if (config.styling === 'tailwind') {
+    devDependencies['tailwindcss'] = '^3.4.0';
+    devDependencies['postcss'] = '^8.4.0';
+    devDependencies['autoprefixer'] = '^10.4.0';
+  }
 
-    // State management
-    if (config.stateManagement === 'zustand') {
-        dependencies['zustand'] = '^4.5.0';
-    }
+  // State management
+  if (config.stateManagement === 'zustand') {
+    dependencies['zustand'] = '^4.5.0';
+  }
 
-    const packageJson = {
-        name: appName,
-        version: '0.1.0',
-        private: true,
-        scripts: {
-            dev: 'next dev',
-            build: 'next build',
-            start: 'next start',
-            lint: 'next lint',
-        },
-        dependencies,
-        devDependencies,
-    };
+  const packageJson = {
+    name: appName,
+    version: '0.1.0',
+    private: true,
+    scripts: {
+      dev: 'next dev',
+      build: 'next build',
+      start: 'next start',
+      lint: 'next lint',
+    },
+    dependencies,
+    devDependencies,
+  };
 
-    return JSON.stringify(packageJson, null, 2);
+  return JSON.stringify(packageJson, null, 2);
 }
 
 /**
  * Generate next.config.js
  */
 export function generateNextConfig(config: Config): string {
-    return dedent(`
+  return dedent(`
     /** @type {import('next').NextConfig} */
     const nextConfig = {
       reactStrictMode: ${config.strictMode},
@@ -95,45 +95,45 @@ export function generateNextConfig(config: Config): string {
  * Generate tsconfig.json
  */
 export function generateTsConfig(config: Config): string {
-    const tsConfig = {
-        compilerOptions: {
-            target: 'ES2020',
-            lib: ['dom', 'dom.iterable', 'ES2020'],
-            allowJs: true,
-            skipLibCheck: true,
-            strict: config.strictMode,
-            noEmit: true,
-            esModuleInterop: true,
-            module: 'esnext',
-            moduleResolution: 'bundler',
-            resolveJsonModule: true,
-            isolatedModules: true,
-            jsx: 'preserve',
-            incremental: true,
-            plugins: [{ name: 'next' }],
-            paths: {
-                '@/*': [config.srcDirectory ? './src/*' : './*'],
-            },
-        },
-        include: ['next-env.d.ts', '**/*.ts', '**/*.tsx', '.next/types/**/*.ts'],
-        exclude: ['node_modules'],
-    };
+  const tsConfig = {
+    compilerOptions: {
+      target: 'ES2020',
+      lib: ['dom', 'dom.iterable', 'ES2020'],
+      allowJs: true,
+      skipLibCheck: true,
+      strict: config.strictMode,
+      noEmit: true,
+      esModuleInterop: true,
+      module: 'esnext',
+      moduleResolution: 'bundler',
+      resolveJsonModule: true,
+      isolatedModules: true,
+      jsx: 'preserve',
+      incremental: true,
+      plugins: [{ name: 'next' }],
+      paths: {
+        '@/*': [config.srcDirectory ? './src/*' : './*'],
+      },
+    },
+    include: ['next-env.d.ts', '**/*.ts', '**/*.tsx', '.next/types/**/*.ts'],
+    exclude: ['node_modules'],
+  };
 
-    return JSON.stringify(tsConfig, null, 2);
+  return JSON.stringify(tsConfig, null, 2);
 }
 
 /**
  * Generate app/layout.tsx - Root layout with providers
  */
 export function generateAppLayout(config: Config): string {
-    const imports = [
-        `import type { Metadata } from 'next';`,
-        `import { Inter } from 'next/font/google';`,
-        `import './globals.css';`,
-        `import { Providers } from './providers';`,
-    ];
+  const imports = [
+    `import type { Metadata } from 'next';`,
+    `import { Inter } from 'next/font/google';`,
+    `import './globals.css';`,
+    `import { Providers } from './providers';`,
+  ];
 
-    return dedent(`
+  return dedent(`
     ${imports.join('\n')}
 
     const inter = Inter({ subsets: ['latin'] });
@@ -165,28 +165,28 @@ export function generateAppLayout(config: Config): string {
  * Generate app/providers.tsx - Web3 providers wrapper
  */
 export function generateProviders(config: Config): string {
-    const imports: string[] = [
-        `'use client';`,
-        ``,
-        `import { useState } from 'react';`,
-    ];
+  const imports: string[] = [
+    `'use client';`,
+    ``,
+    `import { useState } from 'react';`,
+  ];
 
-    // Add Web3 imports
-    if (config.web3Provider === 'wagmi-viem') {
-        imports.push(`import { WagmiProvider } from 'wagmi';`);
-        imports.push(`import { QueryClient, QueryClientProvider } from '@tanstack/react-query';`);
-        imports.push(`import { wagmiConfig } from '@/lib/wagmi';`);
-    }
+  // Add Web3 imports
+  if (config.web3Provider === 'wagmi-viem') {
+    imports.push(`import { WagmiProvider } from 'wagmi';`);
+    imports.push(`import { QueryClient, QueryClientProvider } from '@tanstack/react-query';`);
+    imports.push(`import { wagmiConfig } from '@/lib/wagmi';`);
+  }
 
-    if (config.rainbowKit) {
-        imports.push(`import { RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowkit';`);
-        imports.push(`import '@rainbow-me/rainbowkit/styles.css';`);
-    }
+  if (config.rainbowKit) {
+    imports.push(`import { RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowkit';`);
+    imports.push(`import '@rainbow-me/rainbowkit/styles.css';`);
+  }
 
-    let providerNesting = 'children';
+  let providerNesting = '{children}';
 
-    if (config.rainbowKit) {
-        providerNesting = `
+  if (config.rainbowKit) {
+    providerNesting = `
         <RainbowKitProvider
           theme={{
             lightMode: lightTheme(),
@@ -195,18 +195,18 @@ export function generateProviders(config: Config): string {
         >
           ${providerNesting}
         </RainbowKitProvider>`;
-    }
+  }
 
-    if (config.web3Provider === 'wagmi-viem') {
-        providerNesting = `
+  if (config.web3Provider === 'wagmi-viem') {
+    providerNesting = `
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           ${providerNesting}
         </QueryClientProvider>
       </WagmiProvider>`;
-    }
+  }
 
-    return dedent(`
+  return dedent(`
     ${imports.join('\n')}
 
     export function Providers({ children }: { children: React.ReactNode }) {
@@ -223,9 +223,9 @@ export function generateProviders(config: Config): string {
  * Generate lib/wagmi.ts - wagmi configuration
  */
 export function generateWagmiConfig(config: Config, context: ExecutionContext): string {
-    const hasSuperposition = context.nodeOutputs?.has('superposition-network');
+  const hasSuperposition = context.nodeOutputs?.has('superposition-network');
 
-    return dedent(`
+  return dedent(`
     import { http, createConfig, cookieStorage, createStorage } from 'wagmi';
     ${config.rainbowKit ? `import { getDefaultConfig } from '@rainbow-me/rainbowkit';` : ''}
     import { chains } from './chains';
@@ -267,17 +267,17 @@ export function generateWagmiConfig(config: Config, context: ExecutionContext): 
  * Generate lib/chains.ts - Chain definitions
  */
 export function generateChainConfig(config: Config, context: ExecutionContext): string {
-    const imports = [`import { type Chain } from 'viem';`];
-    const chainExports: string[] = [];
+  const imports = [`import { type Chain } from 'viem';`];
+  const chainExports: string[] = [];
 
-    // Check for Superposition network integration
-    const hasSuperposition = context.nodeOutputs?.has('superposition-network');
+  // Check for Superposition network integration
+  const hasSuperposition = context.nodeOutputs?.has('superposition-network');
 
-    if (hasSuperposition) {
-        // Include Superposition chain definitions
-        imports.push(`import { arbitrum, arbitrumSepolia } from 'viem/chains';`);
+  if (hasSuperposition) {
+    // Include Superposition chain definitions
+    imports.push(`import { arbitrum, arbitrumSepolia } from 'viem/chains';`);
 
-        return dedent(`
+    return dedent(`
       ${imports.join('\n')}
 
       // Superposition L3 Chain
@@ -321,12 +321,12 @@ export function generateChainConfig(config: Config, context: ExecutionContext): 
 
       export const chains = [superposition, superpositionTestnet, arbitrum, arbitrumSepolia] as const;
     `);
-    }
+  }
 
-    // Default chain setup
-    imports.push(`import { mainnet, sepolia, arbitrum, arbitrumSepolia } from 'viem/chains';`);
+  // Default chain setup
+  imports.push(`import { mainnet, sepolia, arbitrum, arbitrumSepolia } from 'viem/chains';`);
 
-    return dedent(`
+  return dedent(`
     ${imports.join('\n')}
 
     // Default supported chains
@@ -338,7 +338,7 @@ export function generateChainConfig(config: Config, context: ExecutionContext): 
  * Generate app/page.tsx - Home page
  */
 export function generateHomePage(config: Config): string {
-    return dedent(`
+  return dedent(`
     import { WalletButton } from '@/components/wallet-button';
 
     export default function Home() {
@@ -366,8 +366,8 @@ export function generateHomePage(config: Config): string {
  * Generate components/wallet-button.tsx
  */
 export function generateWalletButton(config: Config): string {
-    if (config.rainbowKit) {
-        return dedent(`
+  if (config.rainbowKit) {
+    return dedent(`
       'use client';
 
       import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -382,10 +382,10 @@ export function generateWalletButton(config: Config): string {
         );
       }
     `);
-    }
+  }
 
-    // Custom wallet button without RainbowKit
-    return dedent(`
+  // Custom wallet button without RainbowKit
+  return dedent(`
     'use client';
 
     import { useAccount, useConnect, useDisconnect } from 'wagmi';
@@ -443,7 +443,7 @@ export function generateWalletButton(config: Config): string {
  * Generate tailwind.config.js
  */
 export function generateTailwindConfig(config: Config): string {
-    return dedent(`
+  return dedent(`
     /** @type {import('tailwindcss').Config} */
     module.exports = {
       content: [
@@ -478,8 +478,8 @@ export function generateTailwindConfig(config: Config): string {
  * Generate app/globals.css
  */
 export function generateGlobalStyles(config: Config): string {
-    if (config.styling === 'tailwind') {
-        return dedent(`
+  if (config.styling === 'tailwind') {
+    return dedent(`
       @tailwind base;
       @tailwind components;
       @tailwind utilities;
@@ -516,10 +516,10 @@ export function generateGlobalStyles(config: Config): string {
           rgb(var(--background-start-rgb));
       }
     `);
-    }
+  }
 
-    // Vanilla CSS
-    return dedent(`
+  // Vanilla CSS
+  return dedent(`
     * {
       box-sizing: border-box;
       padding: 0;
@@ -548,7 +548,7 @@ export function generateGlobalStyles(config: Config): string {
  * Generate types/env.d.ts for type-safe environment variables
  */
 export function generateEnvTypes(config: Config): string {
-    return dedent(`
+  return dedent(`
     declare namespace NodeJS {
       interface ProcessEnv {
         ${config.walletConnect ? `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: string;` : ''}

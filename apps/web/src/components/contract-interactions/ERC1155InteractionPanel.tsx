@@ -2,63 +2,58 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
-import { 
-  Layers, 
-  Send, 
-  Shield, 
-  Flame, 
-  RefreshCw, 
+import {
+  Layers,
+  Send,
+  Shield,
+  RefreshCw,
   Check,
   Wallet,
   Package,
   AlertCircle,
   ExternalLink,
   Loader2,
-  BarChart3,
   CheckCircle2,
-  Sparkles,
-  ArrowRightLeft
+  ArrowRightLeft,
+  ChevronDown,
+  ChevronUp,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
 
-// ERC1155 ABI for OpenZeppelin Stylus contracts
-// const ERC1155_ABI = [
-//   "function balanceOf(address account, uint256 id) view returns (uint256)",
-//   "function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])",
-//   "function setApprovalForAll(address operator, bool approved)",
-//   "function isApprovedForAll(address account, address operator) view returns (bool)",
-//   "function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes data)",
-//   "function safeBatchTransferFrom(address from, address to, uint256[] ids, uint256[] values, bytes data)",
-//   "function burn(address account, uint256 tokenId, uint256 value)",
-//   "function burnBatch(address account, uint256[] tokenIds, uint256[] values)",
-//   "function totalSupply(uint256 id) view returns (uint256)",
-//   "function totalSupply() view returns (uint256)",
-//   "function exists(uint256 id) view returns (bool)",
-//   "function supportsInterface(bytes4 interfaceId) view returns (bool)",
-//   // StylusToken Specific Functions (from lib.rs)
-//   "function mint(uint256 id, uint256 value)",
-//   "function mintTo(address to, uint256 id, uint256 value)",
-// ];
-
+// ERC1155 ABI matching the deployed Stylus contract (My1155 from lib.rs)
 const ERC1155_ABI = [
   "function balanceOf(address account, uint256 id) external view returns (uint256)",
-
   "function balanceOfBatch(address[] memory accounts, uint256[] memory ids) external view returns (uint256[] memory)",
-
-  "function setApprovalForAll(address operator, bool approved) external;",
-
-  "function isApprovedForAll(address account, address operator) external view returns (bool);",
-
-  "function safeTransferFrom(address from, address to, uint256 id, uint256 value, uint8[] memory data) external;",
-
-  "function safeBatchTransferFrom(address from, address to, uint256[] memory ids, uint256[] memory values, uint8[] memory data) external;",
+  "function setApprovalForAll(address operator, bool approved) external",
+  "function isApprovedForAll(address account, address operator) external view returns (bool)",
+  "function safeTransferFrom(address from, address to, uint256 id, uint256 value, uint8[] memory data) external",
+  "function safeBatchTransferFrom(address from, address to, uint256[] memory ids, uint256[] memory values, uint8[] memory data) external",
 ];
+
+// Default deployed contract address
+const DEFAULT_CONTRACT_ADDRESS = '0xF5DfA3CC48b885fe7154e9877E6f2A805F723f29';
+
+// Network configurations
+const NETWORKS = {
+  'arbitrum-sepolia': {
+    name: 'Arbitrum Sepolia',
+    rpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
+    explorerUrl: 'https://sepolia.arbiscan.io',
+    chainId: arbitrumSepolia.id,
+  },
+  'arbitrum': {
+    name: 'Arbitrum One',
+    rpcUrl: 'https://arb1.arbitrum.io/rpc',
+    explorerUrl: 'https://arbiscan.io',
+    chainId: arbitrum.id,
+  },
+};
 
 interface ERC1155InteractionPanelProps {
   contractAddress?: string;
-  rpcUrl?: string;
   network?: 'arbitrum' | 'arbitrum-sepolia';
 }
 
@@ -69,22 +64,25 @@ interface TxStatus {
 }
 
 export function ERC1155InteractionPanel({
-  contractAddress: initialAddress = "0xf5dfa3cc48b885fe7154e9877e6f2a805f723f29",
-  rpcUrl: initialRpcUrl = '',
-  network = 'arbitrum-sepolia',
+  contractAddress: initialAddress = DEFAULT_CONTRACT_ADDRESS,
+  network: initialNetwork = 'arbitrum-sepolia',
 }: ERC1155InteractionPanelProps) {
+  const [selectedNetwork, setSelectedNetwork] = useState<'arbitrum' | 'arbitrum-sepolia'>(initialNetwork);
   const [contractAddress, setContractAddress] = useState(initialAddress);
-  const [rpcUrl, setRpcUrl] = useState(initialRpcUrl || (network === 'arbitrum' ? 'https://arb1.arbitrum.io/rpc' : 'https://sepolia-rollup.arbitrum.io/rpc'));
+  const [showCustomContract, setShowCustomContract] = useState(false);
+  const [customAddress, setCustomAddress] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+
+  const networkConfig = NETWORKS[selectedNetwork];
+  const rpcUrl = networkConfig.rpcUrl;
+  const explorerUrl = networkConfig.explorerUrl;
 
   // Wagmi hooks for wallet connection
   const { address: userAddress, isConnected: walletConnected } = useAccount();
-  const chainId = network === 'arbitrum' ? arbitrum.id : arbitrumSepolia.id;
-  const publicClient = usePublicClient({ chainId });
-  const { data: walletClient } = useWalletClient({ chainId });
+  const publicClient = usePublicClient({ chainId: networkConfig.chainId });
+  const { data: walletClient } = useWalletClient({ chainId: networkConfig.chainId });
 
   // Token info
-  const [totalSupplyAll, setTotalSupplyAll] = useState<string | null>(null);
   const [userBalances, setUserBalances] = useState<Map<string, string>>(new Map());
 
   // Form inputs - Single Transfer
@@ -92,7 +90,7 @@ export function ERC1155InteractionPanel({
   const [transferTo, setTransferTo] = useState('');
   const [transferTokenId, setTransferTokenId] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  
+
   // Form inputs - Batch Transfer
   const [batchTransferFrom, setBatchTransferFrom] = useState('');
   const [batchTransferTo, setBatchTransferTo] = useState('');
@@ -103,28 +101,10 @@ export function ERC1155InteractionPanel({
   const [operatorAddress, setOperatorAddress] = useState('');
   const [operatorApproved, setOperatorApproved] = useState(true);
 
-  // Form inputs - Burn
-  const [burnAccount, setBurnAccount] = useState('');
-  const [burnTokenId, setBurnTokenId] = useState('');
-  const [burnAmount, setBurnAmount] = useState('');
-
-  // Form inputs - Mint
-  const [mintTokenId, setMintTokenId] = useState('');
-  const [mintAmount, setMintAmount] = useState('');
-  const [mintToAddress, setMintToAddress] = useState('');
-  const [mintToTokenId, setMintToTokenId] = useState('');
-  const [mintToAmount, setMintToAmount] = useState('');
-
   // Read operations
   const [balanceCheckAddress, setBalanceCheckAddress] = useState('');
   const [balanceCheckTokenId, setBalanceCheckTokenId] = useState('');
   const [balanceCheckResult, setBalanceCheckResult] = useState<string | null>(null);
-  
-  const [totalSupplyTokenId, setTotalSupplyTokenId] = useState('');
-  const [totalSupplyResult, setTotalSupplyResult] = useState<string | null>(null);
-  
-  const [existsTokenId, setExistsTokenId] = useState('');
-  const [existsResult, setExistsResult] = useState<boolean | null>(null);
 
   const [approvalCheckOwner, setApprovalCheckOwner] = useState('');
   const [approvalCheckOperator, setApprovalCheckOperator] = useState('');
@@ -132,14 +112,62 @@ export function ERC1155InteractionPanel({
 
   // Transaction status
   const [txStatus, setTxStatus] = useState<TxStatus>({ status: 'idle', message: '' });
+  const [customAddressError, setCustomAddressError] = useState<string | null>(null);
+  const [isValidatingContract, setIsValidatingContract] = useState(false);
+  const [contractError, setContractError] = useState<string | null>(null);
 
-  const explorerUrl = network === 'arbitrum' ? 'https://arbiscan.io' : 'https://sepolia.arbiscan.io';
+  // Use Arb Sepolia explorer for default contract, otherwise use selected network's explorer
+  const isUsingDefaultContract = contractAddress === DEFAULT_CONTRACT_ADDRESS;
+  const displayExplorerUrl = isUsingDefaultContract
+    ? 'https://sepolia.arbiscan.io'
+    : explorerUrl;
+
+  // Validate if an address is a contract
+  const validateContract = async (address: string): Promise<boolean> => {
+    try {
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const code = await provider.getCode(address);
+      return code !== '0x' && code.length > 2;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Update contract address when using custom
+  const handleUseCustomContract = async () => {
+    if (!customAddress || !ethers.isAddress(customAddress)) {
+      setCustomAddressError('Invalid address format');
+      return;
+    }
+
+    setIsValidatingContract(true);
+    setCustomAddressError(null);
+
+    const isContract = await validateContract(customAddress);
+    if (!isContract) {
+      setCustomAddressError('Address is not a contract');
+      setIsValidatingContract(false);
+      return;
+    }
+
+    setContractAddress(customAddress);
+    setIsValidatingContract(false);
+  };
+
+  // Reset to default contract
+  const handleUseDefaultContract = () => {
+    setContractAddress(DEFAULT_CONTRACT_ADDRESS);
+    setCustomAddress('');
+    setCustomAddressError(null);
+    setShowCustomContract(false);
+  };
 
   const getReadContract = useCallback(() => {
     if (!contractAddress || !rpcUrl) return null;
+    // Create a fresh provider with the current RPC URL
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     return new ethers.Contract(contractAddress, ERC1155_ABI, provider);
-  }, [contractAddress, rpcUrl]);
+  }, [contractAddress, rpcUrl, selectedNetwork]);
 
   const getWriteContract = useCallback(async () => {
     if (!contractAddress || !walletClient) return null;
@@ -148,40 +176,67 @@ export function ERC1155InteractionPanel({
     return new ethers.Contract(contractAddress, ERC1155_ABI, signer);
   }, [contractAddress, walletClient]);
 
+  // Helper to parse RPC/contract errors into user-friendly messages
+  const parseContractError = useCallback((error: any): string => {
+    const errorMessage = error?.message || error?.reason || String(error);
+
+    if (errorMessage.includes('BAD_DATA') || errorMessage.includes('could not decode result data')) {
+      return `Contract not found or not deployed on ${networkConfig.name}. The contract may only exist on a different network.`;
+    }
+    if (errorMessage.includes('call revert exception')) {
+      return `Contract call failed. The contract may not support this function or is not properly deployed on ${networkConfig.name}.`;
+    }
+    if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+      return `Network connection error. Please check your connection and try again.`;
+    }
+    if (errorMessage.includes('execution reverted')) {
+      return `Transaction reverted: ${error?.reason || 'Unknown reason'}`;
+    }
+
+    return `Error: ${error?.reason || error?.shortMessage || errorMessage.slice(0, 100)}`;
+  }, [networkConfig.name]);
+
   const fetchTokenInfo = useCallback(async () => {
     const contract = getReadContract();
     if (!contract) return;
 
+    setContractError(null);
+
     try {
-      try {
-        const supply = await contract['totalSupply()']();
-        setTotalSupplyAll(supply.toString());
-      } catch {
-        setTotalSupplyAll('N/A');
-      }
-      
       // Fetch user balances for common token IDs (0-10)
       if (userAddress) {
         const balances = new Map<string, string>();
+        let hasError = false;
+
         for (let i = 0; i <= 10; i++) {
           try {
             const balance = await contract.balanceOf(userAddress, i);
             if (balance > 0n) {
               balances.set(i.toString(), balance.toString());
             }
-          } catch {
+          } catch (e: any) {
+            // Check if this is a contract-not-found error vs token-doesn't-exist
+            if (e?.message?.includes('BAD_DATA') || e?.message?.includes('could not decode result data')) {
+              setContractError(parseContractError(e));
+              hasError = true;
+              break;
+            }
             // Token ID might not exist, skip
           }
         }
-        setUserBalances(balances);
+
+        if (!hasError) {
+          setUserBalances(balances);
+        }
       }
-      
+
       setIsConnected(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      setContractError(parseContractError(error));
       setIsConnected(false);
     }
-  }, [getReadContract, userAddress]);
+  }, [getReadContract, userAddress, networkConfig.name, parseContractError]);
 
   useEffect(() => {
     if (contractAddress && rpcUrl) {
@@ -211,7 +266,7 @@ export function ERC1155InteractionPanel({
     const contract = await getWriteContract();
     if (!contract || !transferFrom || !transferTo || !transferTokenId || !transferAmount) return;
     handleTransaction(
-      () => contract.safeTransferFrom(transferFrom, transferTo, transferTokenId, transferAmount, '0x'),
+      () => contract.safeTransferFrom(transferFrom, transferTo, transferTokenId, transferAmount, []),
       `Transferred ${transferAmount} of ID #${transferTokenId}!`
     );
   };
@@ -222,7 +277,7 @@ export function ERC1155InteractionPanel({
     const ids = batchTokenIds.split(',').map(s => s.trim());
     const amounts = batchAmounts.split(',').map(s => s.trim());
     handleTransaction(
-      () => contract.safeBatchTransferFrom(batchTransferFrom, batchTransferTo, ids, amounts, '0x'),
+      () => contract.safeBatchTransferFrom(batchTransferFrom, batchTransferTo, ids, amounts, []),
       `Batch transfer completed!`
     );
   };
@@ -236,61 +291,12 @@ export function ERC1155InteractionPanel({
     );
   };
 
-  const handleBurn = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !burnAccount || !burnTokenId || !burnAmount) return;
-    handleTransaction(
-      () => contract.burn(burnAccount, burnTokenId, burnAmount),
-      `Burned ${burnAmount} of ID #${burnTokenId}!`
-    );
-  };
-
-  const handleMint = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !mintTokenId || !mintAmount) return;
-    handleTransaction(
-      () => contract.mint(mintTokenId, mintAmount),
-      `Minted ${mintAmount} of ID #${mintTokenId} to yourself!`
-    );
-  };
-
-  const handleMintTo = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !mintToAddress || !mintToTokenId || !mintToAmount) return;
-    handleTransaction(
-      () => contract.mintTo(mintToAddress, mintToTokenId, mintToAmount),
-      `Minted ${mintToAmount} of ID #${mintToTokenId}!`
-    );
-  };
-
   const checkBalance = async () => {
     const contract = getReadContract();
     if (!contract || !balanceCheckAddress || !balanceCheckTokenId) return;
     try {
       const balance = await contract.balanceOf(balanceCheckAddress, balanceCheckTokenId);
       setBalanceCheckResult(balance.toString());
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const checkTotalSupply = async () => {
-    const contract = getReadContract();
-    if (!contract || !totalSupplyTokenId) return;
-    try {
-      const supply = await contract['totalSupply(uint256)'](totalSupplyTokenId);
-      setTotalSupplyResult(supply.toString());
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const checkExists = async () => {
-    const contract = getReadContract();
-    if (!contract || !existsTokenId) return;
-    try {
-      const exists = await contract.exists(existsTokenId);
-      setExistsResult(exists);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -318,6 +324,37 @@ export function ERC1155InteractionPanel({
         <p className="text-[10px] text-forge-muted">Stylus Contract Interaction</p>
       </div>
 
+      {/* Network Selector */}
+      <div className="space-y-1.5">
+        <label className="text-xs text-forge-muted flex items-center gap-1.5">
+          <Globe className="w-3 h-3" /> Network
+        </label>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setSelectedNetwork('arbitrum-sepolia')}
+            className={cn(
+              'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+              selectedNetwork === 'arbitrum-sepolia'
+                ? 'bg-amber-600 border-amber-500 text-white'
+                : 'bg-forge-bg border-forge-border/50 text-forge-muted hover:text-white hover:border-amber-500/50'
+            )}
+          >
+            Arbitrum Sepolia
+          </button>
+          <button
+            onClick={() => setSelectedNetwork('arbitrum')}
+            className={cn(
+              'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+              selectedNetwork === 'arbitrum'
+                ? 'bg-amber-600 border-amber-500 text-white'
+                : 'bg-forge-bg border-forge-border/50 text-forge-muted hover:text-white hover:border-amber-500/50'
+            )}
+          >
+            Arbitrum One
+          </button>
+        </div>
+      </div>
+
       {/* Wallet Status */}
       <div className={cn(
         'p-2.5 rounded-lg border',
@@ -335,28 +372,79 @@ export function ERC1155InteractionPanel({
         </div>
       </div>
 
-      {/* Connection */}
-      <div className="space-y-2">
-        <label className="text-xs text-forge-muted mb-1 block">Contract Address</label>
-        <input
-          type="text"
-          value={contractAddress}
-          onChange={(e) => setContractAddress(e.target.value)}
-          placeholder="0x..."
-          className="w-full px-3 py-2 bg-forge-bg border border-forge-border/50 rounded-lg text-xs text-white placeholder-forge-muted focus:outline-none focus:border-amber-500/50"
-        />
+      {/* Contract Info */}
+      <div className="p-2.5 rounded-lg bg-forge-bg/50 border border-forge-border/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-forge-muted">Contract:</span>
+            {isUsingDefaultContract && (
+              <span className="text-[8px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded">Default</span>
+            )}
+          </div>
+          <a
+            href={`${displayExplorerUrl}/address/${contractAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] font-mono text-amber-400 hover:underline flex items-center gap-1"
+          >
+            {contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}
+            <ExternalLink className="w-2.5 h-2.5" />
+          </a>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-xs text-forge-muted mb-1 block">RPC URL</label>
-        <input
-          type="text"
-          value={rpcUrl}
-          onChange={(e) => setRpcUrl(e.target.value)}
-          placeholder="https://..."
-          className="w-full px-3 py-2 bg-forge-bg border border-forge-border/50 rounded-lg text-xs text-white placeholder-forge-muted focus:outline-none focus:border-amber-500/50"
-        />
-      </div>
+      {/* Custom Contract Toggle */}
+      <button
+        onClick={() => setShowCustomContract(!showCustomContract)}
+        className="w-full flex items-center justify-between px-3 py-2 bg-forge-bg/50 border border-forge-border/30 rounded-lg text-xs text-forge-muted hover:text-white transition-colors"
+      >
+        <span>Use Custom Contract</span>
+        {showCustomContract ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+      </button>
+
+      {showCustomContract && (
+        <div className="p-3 rounded-lg bg-forge-bg/30 border border-forge-border/30 space-y-2">
+          <input
+            type="text"
+            value={customAddress}
+            onChange={(e) => {
+              setCustomAddress(e.target.value);
+              setCustomAddressError(null);
+            }}
+            placeholder="0x..."
+            className={cn(
+              "w-full px-3 py-2 bg-forge-bg border rounded-lg text-xs text-white placeholder-forge-muted focus:outline-none",
+              customAddressError ? "border-red-500/50" : "border-forge-border/50 focus:border-amber-500/50"
+            )}
+          />
+          {customAddressError && (
+            <p className="text-[10px] text-red-400 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> {customAddressError}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={handleUseCustomContract}
+              disabled={!customAddress || isValidatingContract}
+              className="flex-1 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded text-[10px] font-medium disabled:opacity-50 flex items-center justify-center gap-1"
+            >
+              {isValidatingContract ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" /> Validating...
+                </>
+              ) : (
+                'Use Custom'
+              )}
+            </button>
+            <button
+              onClick={handleUseDefaultContract}
+              className="flex-1 py-1.5 bg-forge-border hover:bg-forge-muted/20 text-white rounded text-[10px] font-medium"
+            >
+              Reset to Default
+            </button>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={fetchTokenInfo}
@@ -364,6 +452,25 @@ export function ERC1155InteractionPanel({
       >
         <RefreshCw className="w-3.5 h-3.5" /> Refresh
       </button>
+
+      {/* Contract Error Banner */}
+      {contractError && (
+        <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs text-red-300 font-medium">Contract Error</p>
+              <p className="text-[10px] text-red-400/80 mt-1">{contractError}</p>
+            </div>
+            <button
+              onClick={() => setContractError(null)}
+              className="text-red-400/60 hover:text-red-400 text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Transaction Status */}
       {txStatus.status !== 'idle' && (
@@ -393,43 +500,21 @@ export function ERC1155InteractionPanel({
         </div>
       )}
 
-      {/* Token Stats */}
-      {isConnected && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between p-2.5 rounded-lg bg-forge-bg/50 border border-forge-border/30">
-            <div className="flex items-center gap-1.5">
-              <BarChart3 className="w-3 h-3 text-amber-400" />
-              <span className="text-[10px] text-forge-muted">Total Supply</span>
-            </div>
-            <span className="text-xs font-medium text-white">{totalSupplyAll || '—'}</span>
+      {/* Token Balances */}
+      {isConnected && walletConnected && userBalances.size > 0 && (
+        <div className="p-2.5 rounded-lg bg-forge-bg/50 border border-forge-border/30">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Package className="w-3 h-3 text-teal-400" />
+            <span className="text-[10px] text-forge-muted">Your Balances</span>
           </div>
-          {walletConnected && (
-            <>
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-forge-bg/50 border border-forge-border/30">
-                <div className="flex items-center gap-1.5">
-                  <Wallet className="w-3 h-3 text-rose-400" />
-                  <span className="text-[10px] text-forge-muted">Wallet</span>
-                </div>
-                <span className="text-[9px] font-mono text-white truncate max-w-[100px]">{userAddress ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}` : '—'}</span>
+          <div className="space-y-1">
+            {Array.from(userBalances.entries()).map(([tokenId, balance]) => (
+              <div key={tokenId} className="flex items-center justify-between text-[10px]">
+                <span className="text-forge-muted">Token #{tokenId}:</span>
+                <span className="text-white font-medium">{balance}</span>
               </div>
-              {userBalances.size > 0 && (
-                <div className="p-2.5 rounded-lg bg-forge-bg/50 border border-forge-border/30">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Package className="w-3 h-3 text-teal-400" />
-                    <span className="text-[10px] text-forge-muted">Your Balances</span>
-                  </div>
-                  <div className="space-y-1">
-                    {Array.from(userBalances.entries()).map(([tokenId, balance]) => (
-                      <div key={tokenId} className="flex items-center justify-between text-[10px]">
-                        <span className="text-forge-muted">Token #{tokenId}:</span>
-                        <span className="text-white font-medium">{balance}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+            ))}
+          </div>
         </div>
       )}
 
@@ -505,66 +590,6 @@ export function ERC1155InteractionPanel({
               {operatorApproved ? 'Grant' : 'Revoke'} Access
             </button>
           </div>
-
-          {/* Mint (to self) */}
-          <div className="p-3 rounded-lg bg-forge-bg/50 border border-forge-border/30 space-y-2">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-violet-400" />
-              <span className="text-[10px] font-medium text-violet-400">Mint (to yourself)</span>
-            </div>
-            <input type="number" value={mintTokenId} onChange={(e) => setMintTokenId(e.target.value)}
-              placeholder="Token ID"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <input type="number" value={mintAmount} onChange={(e) => setMintAmount(e.target.value)}
-              placeholder="Amount"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <button onClick={handleMint} disabled={txStatus.status === 'pending'}
-              className="w-full py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded text-[10px] font-medium disabled:opacity-50">
-              Mint
-            </button>
-          </div>
-
-          {/* Mint To */}
-          <div className="p-3 rounded-lg bg-forge-bg/50 border border-forge-border/30 space-y-2">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-fuchsia-400" />
-              <span className="text-[10px] font-medium text-fuchsia-400">Mint To Address</span>
-            </div>
-            <input type="text" value={mintToAddress} onChange={(e) => setMintToAddress(e.target.value)}
-              placeholder="To Address (0x...)"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <input type="number" value={mintToTokenId} onChange={(e) => setMintToTokenId(e.target.value)}
-              placeholder="Token ID"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <input type="number" value={mintToAmount} onChange={(e) => setMintToAmount(e.target.value)}
-              placeholder="Amount"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <button onClick={handleMintTo} disabled={txStatus.status === 'pending'}
-              className="w-full py-1.5 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded text-[10px] font-medium disabled:opacity-50">
-              Mint To
-            </button>
-          </div>
-
-          {/* Burn */}
-          <div className="p-3 rounded-lg bg-forge-bg/50 border border-forge-border/30 space-y-2">
-            <div className="flex items-center gap-1.5">
-              <Flame className="w-3 h-3 text-orange-400" />
-              <span className="text-[10px] font-medium text-orange-400">Burn Tokens</span>
-            </div>
-            <input type="text" value={burnAccount} onChange={(e) => setBurnAccount(e.target.value)}
-              placeholder="Account (0x...)"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <input type="number" value={burnTokenId} onChange={(e) => setBurnTokenId(e.target.value)}
-              placeholder="Token ID"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <input type="number" value={burnAmount} onChange={(e) => setBurnAmount(e.target.value)}
-              placeholder="Amount"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <button onClick={handleBurn} disabled={txStatus.status === 'pending'}
-              className="w-full py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded text-[10px] font-medium disabled:opacity-50">
-              Burn
-            </button>
-          </div>
         </div>
       )}
 
@@ -592,45 +617,6 @@ export function ERC1155InteractionPanel({
             {balanceCheckResult !== null && (
               <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded">
                 <p className="text-[10px] text-amber-300">Balance: <span className="font-medium text-white">{balanceCheckResult}</span></p>
-              </div>
-            )}
-          </div>
-
-          {/* Total Supply */}
-          <div className="p-3 rounded-lg bg-forge-bg/50 border border-forge-border/30 space-y-2">
-            <span className="text-[10px] font-medium text-rose-400">Total Supply</span>
-            <input type="number" value={totalSupplyTokenId} onChange={(e) => setTotalSupplyTokenId(e.target.value)}
-              placeholder="Token ID"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <button onClick={checkTotalSupply}
-              className="w-full py-1.5 bg-rose-600/50 hover:bg-rose-600 text-white rounded text-[10px] font-medium">
-              Check Supply
-            </button>
-            {totalSupplyResult !== null && (
-              <div className="p-2 bg-rose-500/10 border border-rose-500/30 rounded">
-                <p className="text-[10px] text-rose-300">Supply: <span className="font-medium text-white">{totalSupplyResult}</span></p>
-              </div>
-            )}
-          </div>
-
-          {/* Exists */}
-          <div className="p-3 rounded-lg bg-forge-bg/50 border border-forge-border/30 space-y-2">
-            <span className="text-[10px] font-medium text-cyan-400">Token Exists</span>
-            <input type="number" value={existsTokenId} onChange={(e) => setExistsTokenId(e.target.value)}
-              placeholder="Token ID"
-              className="w-full px-2.5 py-1.5 bg-forge-bg border border-forge-border/50 rounded text-xs text-white placeholder-forge-muted focus:outline-none" />
-            <button onClick={checkExists}
-              className="w-full py-1.5 bg-cyan-600/50 hover:bg-cyan-600 text-white rounded text-[10px] font-medium">
-              Check Exists
-            </button>
-            {existsResult !== null && (
-              <div className={cn(
-                'p-2 rounded border',
-                existsResult ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'
-              )}>
-                <p className={cn('text-[10px] font-medium', existsResult ? 'text-emerald-300' : 'text-red-300')}>
-                  {existsResult ? '✓ Token exists' : '✗ Token does not exist'}
-                </p>
               </div>
             )}
           </div>
