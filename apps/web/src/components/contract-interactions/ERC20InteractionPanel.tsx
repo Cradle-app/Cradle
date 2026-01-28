@@ -19,8 +19,42 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
-import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
+import { useAccount, useWalletClient, usePublicClient, useSwitchChain } from 'wagmi';
+import { arbitrum, arbitrumSepolia, type Chain } from 'wagmi/chains';
+
+// Define custom Superposition chains
+const superposition: Chain = {
+  id: 55244,
+  name: 'Superposition',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: { http: ['https://rpc.superposition.so'] },
+  },
+  blockExplorers: {
+    default: { name: 'Explorer', url: 'https://explorer.superposition.so' },
+  },
+};
+
+const superpositionTestnet: Chain = {
+  id: 98985,
+  name: 'Superposition Testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'SPN',
+    symbol: 'SPN',
+  },
+  rpcUrls: {
+    default: { http: ['https://testnet-rpc.superposition.so'] },
+  },
+  blockExplorers: {
+    default: { name: 'Explorer', url: 'https://testnet-explorer.superposition.so' },
+  },
+  testnet: true,
+};
 
 // ERC20 ABI for the deployed Stylus contract (IStylusToken)
 const ERC20_ABI = [
@@ -40,8 +74,13 @@ const ERC20_ABI = [
   "function burn(uint256 value)",
 ];
 
-// Default deployed contract address
-const DEFAULT_CONTRACT_ADDRESS = '0x5af02ab1d47cc700c1ec4578618df15b8c9c565e';
+// Network-specific default contract addresses (only for networks where contracts are deployed)
+const DEFAULT_CONTRACT_ADDRESSES: Record<string, string | undefined> = {
+  'arbitrum-sepolia': '0x5af02ab1d47cc700c1ec4578618df15b8c9c565e',
+  'arbitrum': undefined, // No default contract deployed on mainnet
+  'superposition': undefined, // No default contract deployed on mainnet
+  'superposition-testnet': '0x88be27d855cb563bfcb18fa466f67d32d62fd0af',
+};
 
 // Network configurations
 const NETWORKS = {
@@ -50,18 +89,34 @@ const NETWORKS = {
     rpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
     explorerUrl: 'https://sepolia.arbiscan.io',
     chainId: arbitrumSepolia.id,
+    chain: arbitrumSepolia,
   },
   'arbitrum': {
     name: 'Arbitrum One',
     rpcUrl: 'https://arb1.arbitrum.io/rpc',
     explorerUrl: 'https://arbiscan.io',
     chainId: arbitrum.id,
+    chain: arbitrum,
+  },
+  'superposition': {
+    name: 'Superposition',
+    rpcUrl: 'https://rpc.superposition.so',
+    explorerUrl: 'https://explorer.superposition.so',
+    chainId: 55244,
+    chain: superposition,
+  },
+  'superposition-testnet': {
+    name: 'Superposition Testnet',
+    rpcUrl: 'https://testnet-rpc.superposition.so',
+    explorerUrl: 'https://testnet-explorer.superposition.so',
+    chainId: 98985,
+    chain: superpositionTestnet,
   },
 };
 
 interface ERC20InteractionPanelProps {
   contractAddress?: string;
-  network?: 'arbitrum' | 'arbitrum-sepolia';
+  network?: 'arbitrum' | 'arbitrum-sepolia' | 'superposition' | 'superposition-testnet';
 }
 
 interface TxStatus {
@@ -71,11 +126,11 @@ interface TxStatus {
 }
 
 export function ERC20InteractionPanel({
-  contractAddress: initialAddress = DEFAULT_CONTRACT_ADDRESS,
+  contractAddress: initialAddress,
   network: initialNetwork = 'arbitrum-sepolia',
 }: ERC20InteractionPanelProps) {
-  const [selectedNetwork, setSelectedNetwork] = useState<'arbitrum' | 'arbitrum-sepolia'>(initialNetwork);
-  const [contractAddress, setContractAddress] = useState(initialAddress);
+  const [selectedNetwork, setSelectedNetwork] = useState<'arbitrum' | 'arbitrum-sepolia' | 'superposition' | 'superposition-testnet'>(initialNetwork);
+  const [contractAddress, setContractAddress] = useState(initialAddress || DEFAULT_CONTRACT_ADDRESSES[initialNetwork] || '');
   const [showCustomContract, setShowCustomContract] = useState(false);
   const [customAddress, setCustomAddress] = useState('');
   const [isConnected, setIsConnected] = useState(false);
@@ -85,9 +140,10 @@ export function ERC20InteractionPanel({
   const explorerUrl = networkConfig.explorerUrl;
 
   // Wagmi hooks for wallet connection
-  const { address: userAddress, isConnected: walletConnected } = useAccount();
+  const { address: userAddress, isConnected: walletConnected, chain: currentChain } = useAccount();
   const publicClient = usePublicClient({ chainId: networkConfig.chainId });
   const { data: walletClient } = useWalletClient({ chainId: networkConfig.chainId });
+  const { switchChainAsync } = useSwitchChain();
 
   // Token info
   const [tokenName, setTokenName] = useState<string | null>(null);
@@ -119,11 +175,21 @@ export function ERC20InteractionPanel({
   const [isValidatingContract, setIsValidatingContract] = useState(false);
   const [contractError, setContractError] = useState<string | null>(null);
 
-  // Use Arb Sepolia explorer for default contract, otherwise use selected network's explorer
-  const isUsingDefaultContract = contractAddress === DEFAULT_CONTRACT_ADDRESS;
-  const displayExplorerUrl = isUsingDefaultContract
-    ? 'https://sepolia.arbiscan.io'
-    : explorerUrl;
+  // Check if using the default contract for the selected network
+  const defaultAddress = DEFAULT_CONTRACT_ADDRESSES[selectedNetwork];
+  const isUsingDefaultContract = defaultAddress && contractAddress === defaultAddress;
+  const hasDefaultContract = !!defaultAddress;
+  const displayExplorerUrl = explorerUrl;
+  
+  // Update contract address when network changes
+  useEffect(() => {
+    const newDefault = DEFAULT_CONTRACT_ADDRESSES[selectedNetwork];
+    if (newDefault && (isUsingDefaultContract || !initialAddress)) {
+      setContractAddress(newDefault);
+    } else if (!newDefault && !initialAddress) {
+      setContractAddress('');
+    }
+  }, [selectedNetwork]);
 
   // Validate if an address is a contract
   const validateContract = async (address: string): Promise<boolean> => {
@@ -157,9 +223,10 @@ export function ERC20InteractionPanel({
     setIsValidatingContract(false);
   };
 
-  // Reset to default contract
+  // Reset to default contract for the selected network
   const handleUseDefaultContract = () => {
-    setContractAddress(DEFAULT_CONTRACT_ADDRESS);
+    const defaultAddr = DEFAULT_CONTRACT_ADDRESSES[selectedNetwork];
+    setContractAddress(defaultAddr || '');
     setCustomAddress('');
     setCustomAddressError(null);
     setShowCustomContract(false);
@@ -173,11 +240,74 @@ export function ERC20InteractionPanel({
   }, [contractAddress, rpcUrl, selectedNetwork]);
 
   const getWriteContract = useCallback(async () => {
-    if (!contractAddress || !walletClient) return null;
-    const provider = new ethers.BrowserProvider(walletClient as any);
+    console.log('[ERC20] getWriteContract called', { contractAddress, walletConnected, currentChainId: currentChain?.id, targetChainId: networkConfig.chainId });
+    
+    if (!contractAddress) {
+      console.error('[ERC20] No contract address');
+      throw new Error('No contract address specified');
+    }
+    
+    if (!walletConnected) {
+      console.error('[ERC20] Wallet not connected');
+      throw new Error('Please connect your wallet first');
+    }
+
+    // Check if ethereum provider exists
+    const ethereum = (window as any).ethereum;
+    if (!ethereum) {
+      console.error('[ERC20] No ethereum provider found');
+      throw new Error('No wallet detected. Please install MetaMask.');
+    }
+    
+    // Switch chain if necessary
+    const targetChainIdHex = `0x${networkConfig.chainId.toString(16)}`;
+    console.log('[ERC20] Current chain:', currentChain?.id, 'Target chain:', networkConfig.chainId);
+    
+    if (currentChain?.id !== networkConfig.chainId) {
+      console.log('[ERC20] Switching chain to', networkConfig.name);
+      try {
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: targetChainIdHex }],
+        });
+        console.log('[ERC20] Chain switched successfully');
+      } catch (switchError: any) {
+        console.log('[ERC20] Switch error:', switchError.code, switchError.message);
+        if (switchError.code === 4902 || switchError.message?.includes('Unrecognized chain') || switchError.message?.includes('wallet_addEthereumChain')) {
+          console.log('[ERC20] Chain not found, adding chain...');
+          try {
+            await ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: targetChainIdHex,
+                chainName: networkConfig.name,
+                nativeCurrency: networkConfig.chain.nativeCurrency,
+                rpcUrls: [networkConfig.rpcUrl],
+                blockExplorerUrls: [networkConfig.explorerUrl],
+              }],
+            });
+            console.log('[ERC20] Chain added successfully');
+          } catch (addError: any) {
+            console.error('[ERC20] Failed to add chain:', addError);
+            throw new Error(`Failed to add ${networkConfig.name} to wallet: ${addError.message}`);
+          }
+        } else if (switchError.code === 4001) {
+          throw new Error('User rejected chain switch');
+        } else {
+          throw switchError;
+        }
+      }
+    }
+    
+    console.log('[ERC20] Creating provider and signer...');
+    const provider = new ethers.BrowserProvider(ethereum);
     const signer = await provider.getSigner();
-    return new ethers.Contract(contractAddress, ERC20_ABI, signer);
-  }, [contractAddress, walletClient]);
+    console.log('[ERC20] Signer address:', await signer.getAddress());
+    
+    const contract = new ethers.Contract(contractAddress, ERC20_ABI, signer);
+    console.log('[ERC20] Contract created at:', contractAddress);
+    return contract;
+  }, [contractAddress, walletConnected, currentChain?.id, networkConfig]);
 
   // Helper to parse RPC/contract errors into user-friendly messages
   const parseContractError = useCallback((error: any): string => {
@@ -252,67 +382,116 @@ export function ERC20InteractionPanel({
     operation: () => Promise<ethers.TransactionResponse>,
     successMessage: string
   ) => {
-    if (txStatus.status === 'pending' || !walletConnected) return;
+    console.log('[ERC20] handleTransaction called, walletConnected:', walletConnected, 'txStatus:', txStatus.status);
+    
+    if (txStatus.status === 'pending') {
+      console.log('[ERC20] Transaction already pending, skipping');
+      return;
+    }
+    
+    if (!walletConnected) {
+      console.log('[ERC20] Wallet not connected');
+      setTxStatus({ status: 'error', message: 'Please connect your wallet first' });
+      setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
+      return;
+    }
 
     try {
       setTxStatus({ status: 'pending', message: 'Confirming...' });
+      console.log('[ERC20] Executing operation...');
       const tx = await operation();
-      setTxStatus({ status: 'pending', message: 'Waiting...', hash: tx.hash });
+      console.log('[ERC20] Transaction submitted:', tx.hash);
+      setTxStatus({ status: 'pending', message: 'Waiting for confirmation...', hash: tx.hash });
       await tx.wait();
+      console.log('[ERC20] Transaction confirmed');
       setTxStatus({ status: 'success', message: successMessage, hash: tx.hash });
       fetchTokenInfo();
     } catch (error: any) {
-      setTxStatus({
-        status: 'error',
-        message: error.reason || error.message || 'Failed'
-      });
+      console.error('[ERC20] Transaction error:', error);
+      const errorMsg = error.reason || error.message || error.shortMessage || 'Transaction failed';
+      setTxStatus({ status: 'error', message: errorMsg });
     }
     setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
   };
 
   const handleTransfer = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !transferTo || !transferAmount) return;
-    handleTransaction(
-      () => contract.transfer(transferTo, ethers.parseUnits(transferAmount, decimals)),
-      `Transferred ${transferAmount} ${tokenSymbol || 'tokens'}!`
-    );
+    console.log('[ERC20] handleTransfer called');
+    try {
+      const contract = await getWriteContract();
+      if (!contract || !transferTo || !transferAmount) return;
+      handleTransaction(
+        () => contract.transfer(transferTo, ethers.parseUnits(transferAmount, decimals)),
+        `Transferred ${transferAmount} ${tokenSymbol || 'tokens'}!`
+      );
+    } catch (error: any) {
+      console.error('[ERC20] handleTransfer error:', error);
+      setTxStatus({ status: 'error', message: error.message || 'Failed to prepare transaction' });
+      setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
+    }
   };
 
   const handleApprove = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !approveSpender || !approveAmount) return;
-    handleTransaction(
-      () => contract.approve(approveSpender, ethers.parseUnits(approveAmount, decimals)),
-      `Approved ${approveAmount} ${tokenSymbol || 'tokens'}!`
-    );
+    console.log('[ERC20] handleApprove called');
+    try {
+      const contract = await getWriteContract();
+      if (!contract || !approveSpender || !approveAmount) return;
+      handleTransaction(
+        () => contract.approve(approveSpender, ethers.parseUnits(approveAmount, decimals)),
+        `Approved ${approveAmount} ${tokenSymbol || 'tokens'}!`
+      );
+    } catch (error: any) {
+      console.error('[ERC20] handleApprove error:', error);
+      setTxStatus({ status: 'error', message: error.message || 'Failed to prepare transaction' });
+      setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
+    }
   };
 
   const handleMint = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !mintAmount) return;
-    handleTransaction(
-      () => contract.mint(ethers.parseUnits(mintAmount, decimals)),
-      `Minted ${mintAmount} ${tokenSymbol || 'tokens'} to yourself!`
-    );
+    console.log('[ERC20] handleMint called');
+    try {
+      const contract = await getWriteContract();
+      if (!contract || !mintAmount) return;
+      handleTransaction(
+        () => contract.mint(ethers.parseUnits(mintAmount, decimals)),
+        `Minted ${mintAmount} ${tokenSymbol || 'tokens'} to yourself!`
+      );
+    } catch (error: any) {
+      console.error('[ERC20] handleMint error:', error);
+      setTxStatus({ status: 'error', message: error.message || 'Failed to prepare transaction' });
+      setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
+    }
   };
 
   const handleMintTo = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !mintToAddress || !mintToAmount) return;
-    handleTransaction(
-      () => contract.mintTo(mintToAddress, ethers.parseUnits(mintToAmount, decimals)),
-      `Minted ${mintToAmount} ${tokenSymbol || 'tokens'}!`
-    );
+    console.log('[ERC20] handleMintTo called');
+    try {
+      const contract = await getWriteContract();
+      if (!contract || !mintToAddress || !mintToAmount) return;
+      handleTransaction(
+        () => contract.mintTo(mintToAddress, ethers.parseUnits(mintToAmount, decimals)),
+        `Minted ${mintToAmount} ${tokenSymbol || 'tokens'}!`
+      );
+    } catch (error: any) {
+      console.error('[ERC20] handleMintTo error:', error);
+      setTxStatus({ status: 'error', message: error.message || 'Failed to prepare transaction' });
+      setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
+    }
   };
 
   const handleBurn = async () => {
-    const contract = await getWriteContract();
-    if (!contract || !burnAmount) return;
-    handleTransaction(
-      () => contract.burn(ethers.parseUnits(burnAmount, decimals)),
-      `Burned ${burnAmount} ${tokenSymbol || 'tokens'}!`
-    );
+    console.log('[ERC20] handleBurn called');
+    try {
+      const contract = await getWriteContract();
+      if (!contract || !burnAmount) return;
+      handleTransaction(
+        () => contract.burn(ethers.parseUnits(burnAmount, decimals)),
+        `Burned ${burnAmount} ${tokenSymbol || 'tokens'}!`
+      );
+    } catch (error: any) {
+      console.error('[ERC20] handleBurn error:', error);
+      setTxStatus({ status: 'error', message: error.message || 'Failed to prepare transaction' });
+      setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
+    }
   };
 
   const checkAllowance = async () => {
@@ -372,11 +551,11 @@ export function ERC20InteractionPanel({
         <label className="text-xs text-forge-muted flex items-center gap-1.5">
           <Globe className="w-3 h-3" /> Network
         </label>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setSelectedNetwork('arbitrum-sepolia')}
             className={cn(
-              'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+              'px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
               selectedNetwork === 'arbitrum-sepolia'
                 ? 'bg-emerald-600 border-emerald-500 text-white'
                 : 'bg-forge-bg border-forge-border/50 text-forge-muted hover:text-white hover:border-emerald-500/50'
@@ -387,13 +566,35 @@ export function ERC20InteractionPanel({
           <button
             onClick={() => setSelectedNetwork('arbitrum')}
             className={cn(
-              'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+              'px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
               selectedNetwork === 'arbitrum'
                 ? 'bg-emerald-600 border-emerald-500 text-white'
                 : 'bg-forge-bg border-forge-border/50 text-forge-muted hover:text-white hover:border-emerald-500/50'
             )}
           >
             Arbitrum One
+          </button>
+          <button
+            onClick={() => setSelectedNetwork('superposition')}
+            className={cn(
+              'px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+              selectedNetwork === 'superposition'
+                ? 'bg-emerald-600 border-emerald-500 text-white'
+                : 'bg-forge-bg border-forge-border/50 text-forge-muted hover:text-white hover:border-emerald-500/50'
+            )}
+          >
+            Superposition
+          </button>
+          <button
+            onClick={() => setSelectedNetwork('superposition-testnet')}
+            className={cn(
+              'px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+              selectedNetwork === 'superposition-testnet'
+                ? 'bg-emerald-600 border-emerald-500 text-white'
+                : 'bg-forge-bg border-forge-border/50 text-forge-muted hover:text-white hover:border-emerald-500/50'
+            )}
+          >
+            Superposition Testnet
           </button>
         </div>
       </div>
@@ -480,7 +681,7 @@ export function ERC20InteractionPanel({
       </button>
 
       {/* Contract Error Banner */}
-      {contractError && (
+      {/* {contractError && (
         <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10">
           <div className="flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
@@ -496,7 +697,7 @@ export function ERC20InteractionPanel({
             </button>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Transaction Status */}
       {txStatus.status !== 'idle' && (

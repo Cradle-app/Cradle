@@ -268,26 +268,29 @@ export function generateWagmiConfig(config: Config, context: ExecutionContext): 
  */
 export function generateChainConfig(config: Config, context: ExecutionContext): string {
   const imports = [`import { type Chain } from 'viem';`];
-  const chainExports: string[] = [];
 
-  // Check for Superposition network integration
-  const hasSuperposition = context.nodeOutputs?.has('superposition-network');
+  // Check for Superposition network integration via pathContext.nodeTypes
+  const nodeTypes = context.pathContext?.nodeTypes ?? new Set<string>();
+  const hasSuperposition = nodeTypes.has('superposition-network') ||
+    nodeTypes.has('superposition-faucet') ||
+    nodeTypes.has('superposition-thirdweb') ||
+    nodeTypes.has('superposition-longtail');
 
   if (hasSuperposition) {
-    // Include Superposition chain definitions
-    imports.push(`import { arbitrum, arbitrumSepolia } from 'viem/chains';`);
+    // Include Superposition chain definitions with all common chains
+    imports.push(`import { mainnet, sepolia, arbitrum, arbitrumSepolia } from 'viem/chains';`);
 
     return dedent(`
       ${imports.join('\n')}
 
-      // Superposition L3 Chain
+      // Superposition Mainnet chain configuration
       export const superposition: Chain = {
         id: 55244,
         name: 'Superposition',
         nativeCurrency: {
-          decimals: 18,
-          name: 'Ether',
+          name: 'ETH',
           symbol: 'ETH',
+          decimals: 18,
         },
         rpcUrls: {
           default: {
@@ -295,18 +298,21 @@ export function generateChainConfig(config: Config, context: ExecutionContext): 
           },
         },
         blockExplorers: {
-          default: { name: 'Explorer', url: 'https://explorer.superposition.so' },
+          default: {
+            name: 'Superposition Explorer',
+            url: 'https://explorer.superposition.so',
+          },
         },
       };
 
-      // Superposition Testnet
+      // Superposition Testnet chain configuration
       export const superpositionTestnet: Chain = {
         id: 98985,
         name: 'Superposition Testnet',
         nativeCurrency: {
+          name: 'SPN',
+          symbol: 'SPN',
           decimals: 18,
-          name: 'Ether',
-          symbol: 'ETH',
         },
         rpcUrls: {
           default: {
@@ -314,12 +320,16 @@ export function generateChainConfig(config: Config, context: ExecutionContext): 
           },
         },
         blockExplorers: {
-          default: { name: 'Explorer', url: 'https://testnet-explorer.superposition.so' },
+          default: {
+            name: 'Superposition Testnet Explorer',
+            url: 'https://testnet-explorer.superposition.so',
+          },
         },
         testnet: true,
       };
 
-      export const chains = [superposition, superpositionTestnet, arbitrum, arbitrumSepolia] as const;
+      // Default supported chains
+      export const chains = [superposition, superpositionTestnet, arbitrum, arbitrumSepolia, mainnet, sepolia] as const;
     `);
   }
 

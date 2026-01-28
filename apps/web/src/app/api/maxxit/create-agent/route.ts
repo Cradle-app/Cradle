@@ -14,6 +14,7 @@ interface CreateAgentRequest {
     userWallet: string;
     telegramAlphaUserId: string;
     tradingPreferences: TradingPreferences;
+    isTestnet?: boolean;
 }
 
 interface CreateAgentResponse {
@@ -26,6 +27,7 @@ interface CreateAgentResponse {
     deployment?: {
         id: string;
         status: string;
+        isTestnet: boolean;
     };
     ostiumAgentAddress?: string;
     error?: string;
@@ -43,6 +45,7 @@ export async function POST(request: Request) {
     const userWallet = body?.userWallet?.trim();
     const telegramAlphaUserId = body?.telegramAlphaUserId?.trim();
     const tradingPreferences = body?.tradingPreferences;
+    const isTestnet = body?.isTestnet;
 
     if (!userWallet) {
         return NextResponse.json({ error: 'User wallet address is required.' }, { status: 400 });
@@ -66,6 +69,7 @@ export async function POST(request: Request) {
                 userWallet,
                 telegramAlphaUserId,
                 tradingPreferences,
+                isTestnet,
             }),
             cache: 'no-store',
         });

@@ -154,7 +154,7 @@ export function generateDeployHook(config: Config): string {
       deployERC721Contract,
       deployERC1155Contract,
     } from 'thirdweb/deploys';
-    import { thirdwebClient, superpositionChain } from '../config/thirdweb';
+    import { thirdwebClient, superpositionChain } from '../lib/thirdweb';
     import type { 
       DeployContractOptions, 
       DeployedContract, 
@@ -352,7 +352,7 @@ export function generateContractHook(): string {
     import { useState, useCallback, useMemo } from 'react';
     import { useActiveAccount, useReadContract, useSendTransaction } from 'thirdweb/react';
     import { getContract, prepareContractCall } from 'thirdweb';
-    import { thirdwebClient, superpositionChain } from '../config/thirdweb';
+    import { thirdwebClient, superpositionChain } from '../lib/thirdweb';
     import type { Abi } from 'abitype';
 
     export interface UseContractOptions {
@@ -464,7 +464,7 @@ export function generateThirdwebProvider(): string {
     'use client';
 
     import { ThirdwebProvider } from 'thirdweb/react';
-    import { thirdwebClient, superpositionChain, superpositionTestnetChain } from '../config/thirdweb';
+    import { thirdwebClient, superpositionChain, superpositionTestnetChain } from '../lib/thirdweb';
 
     interface SuperpositionThirdwebProviderProps {
       children: React.ReactNode;

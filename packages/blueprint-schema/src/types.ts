@@ -137,6 +137,18 @@ export interface ExecutionContext {
   config: BlueprintConfig;
   nodeOutputs: Map<string, CodegenOutput>;
   logger: ExecutionLogger;
+  /** Path context with node types, scaffold detection, and base paths */
+  pathContext?: {
+    hasFrontend: boolean;
+    hasBackend: boolean;
+    hasContracts: boolean;
+    nodeTypes: Set<string>;
+    frontendPath: string;
+    frontendSrcPath: string;
+    backendPath: string;
+    backendSrcPath: string;
+    contractsPath: string;
+  };
 }
 
 /**

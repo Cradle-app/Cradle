@@ -161,11 +161,25 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     leverage: 10,
     enableOneClick: true,
   },
+  'erc20-stylus': {
+    tokenName: 'SuperPositionToken',
+    tokenSymbol: 'SPT',
+    decimals: 18,
+    network: 'arbitrum-sepolia',
+    selectedFunctions: ['mint', 'mint_to', 'burn'], // All enabled by default
+  },
+  'erc721-stylus': {
+    collectionName: 'SuperPositionNFT',
+    collectionSymbol: 'SPTNFT',
+    network: 'arbitrum-sepolia',
+    selectedFunctions: ['mint', 'mint_to', 'safe_mint', 'burn'], // All enabled by default
+  },
   'erc1155-stylus': {
     collectionName: 'My Multi-Token Collection',
     baseUri: 'https://api.example.com/metadata/',
     network: 'arbitrum-sepolia',
     features: ['ownable', 'mintable', 'burnable', 'pausable', 'supply-tracking', 'batch-operations'],
+    selectedFunctions: ['balance_of', 'balance_of_batch', 'set_approval_for_all', 'is_approved_for_all', 'safe_transfer_from', 'safe_batch_transfer_from'],
   },
   'maxxit': {},
   'telegram-notifications': {

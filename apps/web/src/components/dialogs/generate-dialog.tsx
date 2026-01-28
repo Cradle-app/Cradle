@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useBlueprintStore } from '@/store/blueprint';
 import { useToast } from '@/components/ui/toaster';
+import { generateContractInstructions } from '@/lib/contract-instructions-generator';
 
 interface Props {
   open: boolean;
@@ -98,10 +99,14 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
 
       setStatus('generating');
 
-      // Update blueprint with GitHub config if needed
+      // Generate contract instruction markdown files for any stylus contract nodes
+      const instructionFiles = generateContractInstructions(blueprint.nodes);
+
+      // Update blueprint with GitHub config and instruction files if needed
       const githubOwner = githubSession?.github?.username || repoOwner;
       const blueprintToGenerate = {
         ...blueprint,
+        generatedFiles: instructionFiles, // Include instruction markdown files
         config: {
           ...blueprint.config,
           github: createGitHubRepo ? {
@@ -251,12 +256,12 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
           {/* Status display */}
           {status !== 'idle' && (
             <div className={`p-4 rounded-lg border ${status === 'error'
-                ? 'bg-accent-coral/10 border-accent-coral/30'
-                : status === 'needs_auth'
-                  ? 'bg-amber-500/10 border-amber-500/30'
-                  : status === 'success'
-                    ? 'bg-accent-lime/10 border-accent-lime/30'
-                    : 'bg-forge-elevated border-forge-border'
+              ? 'bg-accent-coral/10 border-accent-coral/30'
+              : status === 'needs_auth'
+                ? 'bg-amber-500/10 border-amber-500/30'
+                : status === 'success'
+                  ? 'bg-accent-lime/10 border-accent-lime/30'
+                  : 'bg-forge-elevated border-forge-border'
               }`}>
               {status === 'validating' && (
                 <div className="flex items-center gap-2 text-forge-muted">

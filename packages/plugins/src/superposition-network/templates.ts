@@ -250,7 +250,7 @@ export function generateNetworkSwitcherHook(config: Config): string {
 
     import { useCallback, useMemo } from 'react';
     import { useChainId, useSwitchChain } from 'wagmi';
-    import { superpositionMainnet${includeTestnet ? ', superpositionTestnet' : ''} } from '../config/chains';
+    import { superpositionMainnet${includeTestnet ? ', superpositionTestnet' : ''} } from '../lib/chains';
 
     export type SuperpositionNetwork = 'mainnet'${includeTestnet ? " | 'testnet'" : ''};
 
@@ -412,7 +412,7 @@ export function generateDocs(config: Config): string {
     ### Chain Configuration
 
     \`\`\`typescript
-    import { superpositionMainnet } from './config/chains';
+    import { superpositionMainnet } from './lib/chains';
     import { createConfig } from 'wagmi';
 
     const config = createConfig({
