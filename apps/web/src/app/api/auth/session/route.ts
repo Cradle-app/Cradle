@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       authenticated: true,
       github: {
+        id: sessionData.githubId,
         username: sessionData.githubUser,
         avatar: sessionData.githubAvatar,
       },

@@ -4,7 +4,10 @@ import { useBlueprintStore } from '@/store/blueprint';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Database, DollarSign, Wallet, TrendingUp, Image, Tag, Clock, Fuel, Lock } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 interface Props {
   nodeId: string;
@@ -78,8 +81,77 @@ const nodeInfo = {
   },
 };
 
+const executeSqlExample = `SELECT
+  *
+FROM dex.trades
+WHERE blockchain = 'arbitrum'
+  AND block_time >= now() - interval '1' day
+LIMIT 10`;
+
+const pluginHelp: Record<
+  Props['type'],
+  { use: string; requires: string; credits: string }
+> = {
+  'dune-execute-sql': {
+    use: 'Run arbitrary SQL over any Dune table for ad‑hoc analysis.',
+    requires: 'Valid SQL text and a Dune API key (DUNE_API_KEY env).',
+    credits:
+      'Consumes execution credits based on query complexity and performance tier (medium/large).',
+  },
+  'dune-token-price': {
+    use: 'Fetch the latest token price from Dune’s prices.latest table.',
+    requires:
+      'Blockchain selection and an ERC‑20 contract address (0x… format).',
+    credits: 'One SQL execution per request; cache behaviour controlled by settings.',
+  },
+  'dune-wallet-balances': {
+    use: 'Get ERC‑20 balances for a wallet with USD valuations.',
+    requires:
+      'Blockchain selection and a wallet address (0x… format); optional min USD filter.',
+    credits: 'Single SQL execution over balances.erc20 and related tables.',
+  },
+  'dune-dex-volume': {
+    use: 'Analyze historical DEX trading volume and trade counts.',
+    requires:
+      'Blockchain selection, time range, and optional protocol slug (e.g. uniswap-v3).',
+    credits: 'One SQL execution over dex.trades for the chosen window.',
+  },
+  'dune-nft-floor': {
+    use: 'Track NFT collection floor price and 24h activity.',
+    requires:
+      'Blockchain selection and collection contract address (0x… format).',
+    credits: 'One SQL execution over nft.trades with 7‑day lookback.',
+  },
+  'dune-address-labels': {
+    use: 'Resolve ENS names and labels for a given address.',
+    requires: 'Any EVM address (0x… format).',
+    credits: 'Single SQL execution over labels.* tables; typically low cost.',
+  },
+  'dune-transaction-history': {
+    use: 'Pull recent on‑chain transactions for a wallet, with direction.',
+    requires:
+      'Blockchain selection, wallet address (0x…) and an optional limit.',
+    credits: 'One SQL execution over {blockchain}.transactions.',
+  },
+  'dune-gas-price': {
+    use: 'Summarize gas price stats (low/avg/median/high) over 24h.',
+    requires: 'Blockchain selection only.',
+    credits: 'Single SQL execution over {blockchain}.transactions.',
+  },
+  'dune-protocol-tvl': {
+    use: 'Approximate protocol TVL using transfers into protocol contracts.',
+    requires:
+      'Blockchain selection and protocol namespace (e.g. uniswap-v3, aave-v3).',
+    credits:
+      'One SQL execution; can be heavier on chains with large transaction volumes.',
+  },
+};
+
 export function DuneAnalyticsForm({ nodeId, type, config }: Props) {
   const { updateNodeConfig } = useBlueprintStore();
+  const [isRunning, setIsRunning] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
+  const [runResult, setRunResult] = useState<Record<string, unknown> | null>(null);
 
   const updateConfig = (key: string, value: unknown) => {
     updateNodeConfig(nodeId, { ...config, [key]: value });
@@ -87,6 +159,51 @@ export function DuneAnalyticsForm({ nodeId, type, config }: Props) {
 
   const info = nodeInfo[type];
   const Icon = info.icon;
+
+  const canRun = useMemo(() => {
+    if (type === 'dune-execute-sql') return String(config.sql ?? '').trim().length > 0;
+    if (type === 'dune-token-price') return String(config.contractAddress ?? '').trim().length > 0;
+    if (type === 'dune-wallet-balances') return String(config.address ?? '').trim().length > 0;
+    if (type === 'dune-nft-floor') return String(config.collectionAddress ?? '').trim().length > 0;
+    if (type === 'dune-address-labels') return String(config.address ?? '').trim().length > 0;
+    if (type === 'dune-transaction-history') return String(config.address ?? '').trim().length > 0;
+    if (type === 'dune-protocol-tvl') return String(config.protocol ?? '').trim().length > 0;
+    return true;
+  }, [config, type]);
+
+  const runQuery = async () => {
+    setIsRunning(true);
+    setRunError(null);
+    setRunResult(null);
+
+    try {
+      const effectiveConfig =
+        type === 'dune-execute-sql' && !(config.sql as string | undefined)
+          ? { ...config, sql: executeSqlExample }
+          : config;
+
+      const res = await fetch('/api/dune/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, config: effectiveConfig }),
+      });
+
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        issues?: { message?: string }[];
+      };
+      if (!res.ok) {
+        const firstIssue = json.issues?.[0]?.message;
+        throw new Error(json.error ?? firstIssue ?? `Request failed (HTTP ${res.status})`);
+      }
+
+      setRunResult(json as Record<string, unknown>);
+    } catch (e) {
+      setRunError(e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setIsRunning(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -100,6 +217,98 @@ export function DuneAnalyticsForm({ nodeId, type, config }: Props) {
           <p className="text-xs text-zinc-400 mt-0.5">{info.description}</p>
         </div>
       </div>
+
+      {/* Plugin help / requirements / credits */}
+      <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-700/60 space-y-1.5">
+        <p className="text-xs text-zinc-200">
+          <span className="font-semibold">Use:</span> {pluginHelp[type].use}
+        </p>
+        <p className="text-xs text-zinc-300">
+          <span className="font-semibold">Requires:</span> {pluginHelp[type].requires}
+        </p>
+        <p className="text-[11px] text-zinc-500">
+          <span className="font-semibold">Dune credits:</span> {pluginHelp[type].credits}
+        </p>
+      </div>
+
+      {/* Runtime inputs required to run queries */}
+      {type === 'dune-execute-sql' && (
+        <div>
+          <label className="text-xs text-forge-muted mb-1.5 block">SQL Query</label>
+          <Textarea
+            value={(config.sql as string) ?? executeSqlExample}
+            onChange={(e) => updateConfig('sql', e.target.value)}
+            placeholder={executeSqlExample}
+            className="min-h-[140px] font-mono text-xs"
+          />
+        </div>
+      )}
+
+      {type === 'dune-token-price' && (
+        <div>
+          <label className="text-xs text-forge-muted mb-1.5 block">Token Contract Address</label>
+          <Input
+            placeholder="0x..."
+            value={(config.contractAddress as string) ?? ''}
+            onChange={(e) => updateConfig('contractAddress', e.target.value)}
+          />
+        </div>
+      )}
+
+      {type === 'dune-wallet-balances' && (
+        <div>
+          <label className="text-xs text-forge-muted mb-1.5 block">Wallet Address</label>
+          <Input
+            placeholder="0x..."
+            value={(config.address as string) ?? ''}
+            onChange={(e) => updateConfig('address', e.target.value)}
+          />
+        </div>
+      )}
+
+      {type === 'dune-nft-floor' && (
+        <div>
+          <label className="text-xs text-forge-muted mb-1.5 block">Collection Contract Address</label>
+          <Input
+            placeholder="0x..."
+            value={(config.collectionAddress as string) ?? ''}
+            onChange={(e) => updateConfig('collectionAddress', e.target.value)}
+          />
+        </div>
+      )}
+
+      {type === 'dune-address-labels' && (
+        <div>
+          <label className="text-xs text-forge-muted mb-1.5 block">Address</label>
+          <Input
+            placeholder="0x..."
+            value={(config.address as string) ?? ''}
+            onChange={(e) => updateConfig('address', e.target.value)}
+          />
+        </div>
+      )}
+
+      {type === 'dune-transaction-history' && (
+        <div>
+          <label className="text-xs text-forge-muted mb-1.5 block">Wallet Address</label>
+          <Input
+            placeholder="0x..."
+            value={(config.address as string) ?? ''}
+            onChange={(e) => updateConfig('address', e.target.value)}
+          />
+        </div>
+      )}
+
+      {type === 'dune-protocol-tvl' && (
+        <div>
+          <label className="text-xs text-forge-muted mb-1.5 block">Protocol Namespace</label>
+          <Input
+            placeholder="e.g., uniswap-v3"
+            value={(config.protocol as string) ?? ''}
+            onChange={(e) => updateConfig('protocol', e.target.value)}
+          />
+        </div>
+      )}
 
       {/* Execute SQL specific config */}
       {type === 'dune-execute-sql' && (
@@ -291,9 +500,39 @@ export function DuneAnalyticsForm({ nodeId, type, config }: Props) {
       {/* API Key Notice */}
       <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
         <p className="text-xs text-amber-400">
-          <strong>Note:</strong> You must set the <code className="bg-amber-500/20 px-1 rounded">DUNE_API_KEY</code> environment variable to use Dune Analytics features.
+          <strong>Note:</strong> You must set the <code className="bg-amber-500/20 px-1 rounded">DUNE_API_KEY</code> environment variable to use Dune Analytics features (server-side).
         </p>
       </div>
+
+      {/* Run */}
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          onClick={runQuery}
+          disabled={!canRun || isRunning}
+          variant="secondary"
+        >
+          {isRunning ? 'Running…' : 'Run query'}
+        </Button>
+        {!canRun && (
+          <p className="text-xs text-zinc-500">Fill in the required inputs above to run.</p>
+        )}
+      </div>
+
+      {runError && (
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <p className="text-xs text-red-400">{runError}</p>
+        </div>
+      )}
+
+      {runResult !== null && (
+        <div className="p-3 bg-zinc-900/40 border border-zinc-700/50 rounded-lg">
+          <p className="text-xs text-zinc-400 mb-2">Result</p>
+          <pre className="text-xs text-zinc-200 overflow-auto max-h-[260px]">
+            {JSON.stringify(runResult, null, 2)}
+          </pre>
+        </div>
+      )}
     </div>
   );
 }

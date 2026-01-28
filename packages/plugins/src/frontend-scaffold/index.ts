@@ -383,6 +383,6 @@ ${config.ssrEnabled ? '- ✅ Server-side rendering' : ''}
 
 ---
 
-Generated with ❤️ by [Cradle](https://cradle.dev)
+Generated with ❤️ by [Cradle](https://cradle-web-eight.vercel.app)
 `;
 }

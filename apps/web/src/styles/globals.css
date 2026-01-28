@@ -163,3 +163,18 @@
   @apply bg-accent-cyan/40;
 }
 
+/* Ensure RainbowKit modals appear above auth modal */
+[data-rk] {
+  z-index: 2147483647 !important;
+}
+
+/* RainbowKit modal overlay and content */
+div[role="dialog"][data-rk] {
+  z-index: 2147483647 !important;
+}
+
+/* RainbowKit connect modal */
+[data-rk] [role="dialog"] {
+  z-index: 2147483647 !important;
+}
+

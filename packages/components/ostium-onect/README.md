@@ -149,4 +149,4 @@ Manages USDC approval status and approving.
 
 ---
 
-Generated with ❤️ by [Cradle](https://cradle.dev)
+Generated with ❤️ by [Cradle](https://cradle-web-eight.vercel.app)

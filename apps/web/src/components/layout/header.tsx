@@ -2,11 +2,11 @@
 
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Download, 
-  Upload, 
-  Play, 
-  Settings, 
+import {
+  Download,
+  Upload,
+  Play,
+  Settings,
   Hexagon,
   ChevronDown,
   Sparkles,
@@ -17,16 +17,19 @@ import { Button } from '@/components/ui/button';
 import { GenerateDialog } from '@/components/dialogs/generate-dialog';
 import { ProjectSettingsDialog } from '@/components/dialogs/project-settings-dialog';
 import { GitHubConnect } from '@/components/auth/github-connect';
+import { WalletConnectButton } from '@/components/auth/wallet-connect-button';
+import { AuthGuard } from '@/components/auth/auth-guard';
 import { AIChatModal } from '@/components/dialogs/ai-chat-modal';
 import type { BlueprintNode, BlueprintEdge } from '@dapp-forge/blueprint-schema';
+import { AuthFlowModal } from '../auth/auth-flow-modal';
 
 export function Header() {
   const [showGenerate, setShowGenerate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAI, setShowAI] = useState(false);
-  const { 
-    blueprint, 
-    exportBlueprint, 
+  const {
+    blueprint,
+    exportBlueprint,
     importBlueprint,
   } = useBlueprintStore();
 
@@ -37,7 +40,7 @@ export function Header() {
   ) => {
     // Get current state and update the blueprint directly
     const currentState = useBlueprintStore.getState();
-    
+
     // Update blueprint with new nodes and edges (append to existing)
     useBlueprintStore.setState({
       ...currentState,
@@ -83,10 +86,10 @@ export function Header() {
     <header className="h-14 border-b border-forge-border/50 bg-forge-surface/80 backdrop-blur-xl flex items-center justify-between px-4 z-50 relative">
       {/* Subtle gradient line at bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-cyan/20 to-transparent" />
-      
+
       {/* Logo & Title */}
       <div className="flex items-center gap-3">
-        <motion.div 
+        <motion.div
           className="flex items-center gap-2.5"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -106,10 +109,10 @@ export function Header() {
             </span>
           </div>
         </motion.div>
-        
+
         <div className="h-6 w-px bg-forge-border/40 mx-2" />
-        
-        <button 
+
+        <button
           onClick={() => setShowSettings(true)}
           className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-forge-elevated/50 transition-colors group"
         >
@@ -122,8 +125,8 @@ export function Header() {
       </div>
 
       {/* Center - Stats */}
-      <motion.div 
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 px-3 py-1.5 rounded-full bg-forge-elevated/40 border border-forge-border/30"
+      <motion.div
+        className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-forge-elevated/40 border border-forge-border/30"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
@@ -146,76 +149,88 @@ export function Header() {
       </motion.div>
 
       {/* Actions */}
-      <motion.div 
+      <motion.div
         className="flex items-center gap-1"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleImport}
           className="h-8 px-2.5 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
         >
-          <Upload className="w-3.5 h-3.5 mr-1.5" />
+          <Download className="w-3.5 h-3.5 mr-1.5" />
           Import
         </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
+
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleExport}
           className="h-8 px-2.5 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
         >
-          <Download className="w-3.5 h-3.5 mr-1.5" />
+          <Upload className="w-3.5 h-3.5 mr-1.5" />
           Export
         </Button>
 
         <div className="w-px h-5 bg-forge-border/40 mx-1" />
-        
-        <Button
-          onClick={() => setShowAI(true)}
-          variant="ghost"
-          size="sm"
-          className="h-8 px-2.5 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
-        >
-          <Wand2 className="w-3.5 h-3.5 mr-1.5" />
-          AI Assist
-        </Button>
+
+        <AuthGuard onClick={() => setShowAI(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2.5 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
+          >
+            <Wand2 className="w-3.5 h-3.5 mr-1.5" />
+            AI Assist
+          </Button>
+        </AuthGuard>
+
+        <div className="w-px h-5 bg-forge-border/40 mx-1" />
+
+        {/* Wallet Connect Button */}
+        <WalletConnectButton variant="default" />
 
         <div className="w-px h-5 bg-forge-border/40 mx-1" />
 
         <GitHubConnect />
 
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        {/* <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowSettings(true)}
           className="h-8 w-8 p-0 text-forge-muted hover:text-white hover:bg-forge-elevated/50"
         >
           <Settings className="w-3.5 h-3.5" />
-        </Button>
+        </Button> */}
 
-        <Button
-          onClick={() => setShowGenerate(true)}
-          size="sm"
-          className="h-8 ml-1 bg-accent-cyan hover:bg-accent-cyan/90 text-black font-medium"
-        >
-          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-          Generate
-          <Play className="w-2.5 h-2.5 ml-1 fill-current" />
-        </Button>
+        <AuthGuard onClick={() => setShowGenerate(true)} requireGitHub={true}>
+          <Button
+            size="sm"
+            className="h-8 ml-1 bg-accent-cyan hover:bg-accent-cyan/90 text-black font-medium"
+          >
+            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+            Generate
+            <Play className="w-2.5 h-2.5 ml-1 fill-current" />
+          </Button>
+        </AuthGuard>
       </motion.div>
 
       {/* Dialogs */}
       <GenerateDialog open={showGenerate} onOpenChange={setShowGenerate} />
       <ProjectSettingsDialog open={showSettings} onOpenChange={setShowSettings} />
-      <AIChatModal 
-        open={showAI} 
-        onOpenChange={setShowAI} 
+      <AIChatModal
+        open={showAI}
+        onOpenChange={setShowAI}
         onApplyWorkflow={handleApplyWorkflow}
       />
+      {/* <AuthFlowModal
+        open={showAuthModal}
+        onOpenChange={closeAuthModal}
+        requireGitHub={true}
+      /> */}
     </header>
   );
 }

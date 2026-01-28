@@ -7,15 +7,18 @@ import { Button } from '@/components/ui/button';
 interface GitHubSession {
   authenticated: boolean;
   github: {
+    id: string;
     username: string;
     avatar: string;
   } | null;
 }
+import { useAuthStore } from '@/store/auth';
 
 export function GitHubConnect() {
   const [session, setSession] = useState<GitHubSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
+  const { setGitHubSession } = useAuthStore();
 
   useEffect(() => {
     fetchSession();
@@ -26,6 +29,15 @@ export function GitHubConnect() {
       const response = await fetch('/api/auth/session');
       const data = await response.json();
       setSession(data);
+
+      // Sync with auth store
+      if (data.authenticated && data.github) {
+        setGitHubSession({
+          id: data.github.id,
+          username: data.github.username,
+          avatar: data.github.avatar,
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch session:', error);
       setSession({ authenticated: false, github: null });
