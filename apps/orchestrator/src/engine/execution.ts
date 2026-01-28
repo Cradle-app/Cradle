@@ -700,7 +700,7 @@ ${project.license}
 
 ---
 
-Generated with ❤️ by [Cradle](https://cradle.dev)
+Generated with ❤️ by [Cradle](https://cradle-web-eight.vercel.app)
 `;
 }
 

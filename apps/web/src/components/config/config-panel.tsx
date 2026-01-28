@@ -5,6 +5,7 @@ import { useBlueprintStore } from '@/store/blueprint';
 import { nodeTypeToLabel, nodeTypeToColor } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { X, Settings2, MousePointerClick } from 'lucide-react';
+import { AuthOverlay } from '@/components/auth/auth-guard';
 
 // Original forms
 import { StylusContractForm } from './forms/stylus-contract-form';
@@ -145,7 +146,6 @@ export function ConfigPanel() {
         )} />
       </motion.div>
 
-      {/* Configuration form */}
       <AnimatePresence mode="wait">
         <motion.div
           key={selectedNode.id}
@@ -155,143 +155,145 @@ export function ConfigPanel() {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.2 }}
         >
-          {/* Original nodes */}
-          {selectedNode.type === 'stylus-contract' && (
-            <StylusContractForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'stylus-zk-contract' && (
-            <StylusZKContractForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'x402-paywall-api' && (
-            <X402PaywallForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'erc8004-agent-runtime' && (
-            <ERC8004AgentForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'repo-quality-gates' && (
-            <QualityGatesForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'frontend-scaffold' && (
-            <FrontendScaffoldForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-
-          {/* New Arbitrum-focused nodes */}
-          {selectedNode.type === 'eip7702-smart-eoa' && (
-            <EIP7702Form nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'wallet-auth' && (
-            <WalletAuthForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'rpc-provider' && (
-            <RPCProviderForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'arbitrum-bridge' && (
-            <ArbitrumBridgeForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'chain-data' && (
-            <ChainDataForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'ipfs-storage' && (
-            <IPFSStorageForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'chain-abstraction' && (
-            <ChainAbstractionForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'zk-primitives' && (
-            <ZKPrimitivesForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-
-          {/* Telegram nodes */}
-          {selectedNode.type === 'telegram-notifications' && (
-            <TelegramNotificationsForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'telegram-commands' && (
-            <TelegramCommandsForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'telegram-wallet-link' && (
-            <TelegramWalletLinkForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'telegram-ai-agent' && (
-            <TelegramAIAgentForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'ostium-trading' && (
-            <OstiumTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-
-          {/* ERC-20/ERC-721/ERC-1155 Stylus nodes */}
-          {selectedNode.type === 'erc20-stylus' && (
-            <ERC20StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'erc721-stylus' && (
-            <ERC721StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'erc1155-stylus' && (
-            <ERC1155StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'onchain-activity' && (
-            <OnchainActivityForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'maxxit' && (
-            <MaxxitLazyTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-
-          {/* Stylus workflow nodes */}
-          {selectedNode.type === 'stylus-rust-contract' && (
-            <StylusRustContractForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'smartcache-caching' && (
-            <SmartCacheCachingForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'auditware-analyzing' && (
-            <AuditwareAnalyzingForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-
-          {/* AIXBT nodes */}
-          {(selectedNode.type === 'aixbt-momentum' ||
-            selectedNode.type === 'aixbt-signals' ||
-            selectedNode.type === 'aixbt-indigo' ||
-            selectedNode.type === 'aixbt-observer') && (
-              <AIXBTForm nodeId={selectedNode.id} type={selectedNode.type} config={selectedNode.config} />
+          <AuthOverlay message="Connect wallet to configure properties">
+            {/* Original nodes */}
+            {selectedNode.type === 'stylus-contract' && (
+              <StylusContractForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'stylus-zk-contract' && (
+              <StylusZKContractForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'x402-paywall-api' && (
+              <X402PaywallForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'erc8004-agent-runtime' && (
+              <ERC8004AgentForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'repo-quality-gates' && (
+              <QualityGatesForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'frontend-scaffold' && (
+              <FrontendScaffoldForm nodeId={selectedNode.id} config={selectedNode.config} />
             )}
 
-          {/* Superposition L3 nodes */}
-          {selectedNode.type === 'superposition-network' && (
-            <SuperpositionNetworkForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'superposition-bridge' && (
-            <SuperpositionBridgeForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'superposition-longtail' && (
-            <SuperpositionLongtailForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'superposition-super-assets' && (
-            <SuperpositionSuperAssetsForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'superposition-thirdweb' && (
-            <SuperpositionThirdwebForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'superposition-utility-mining' && (
-            <SuperpositionUtilityMiningForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'superposition-faucet' && (
-            <SuperpositionFaucetForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-          {selectedNode.type === 'superposition-meow-domains' && (
-            <SuperpositionMeowDomainsForm nodeId={selectedNode.id} config={selectedNode.config} />
-          )}
-
-          {/* Dune Analytics nodes */}
-          {(selectedNode.type === 'dune-execute-sql' ||
-            selectedNode.type === 'dune-token-price' ||
-            selectedNode.type === 'dune-wallet-balances' ||
-            selectedNode.type === 'dune-dex-volume' ||
-            selectedNode.type === 'dune-nft-floor' ||
-            selectedNode.type === 'dune-address-labels' ||
-            selectedNode.type === 'dune-transaction-history' ||
-            selectedNode.type === 'dune-gas-price' ||
-            selectedNode.type === 'dune-protocol-tvl') && (
-              <DuneAnalyticsForm nodeId={selectedNode.id} type={selectedNode.type} config={selectedNode.config} />
+            {/* New Arbitrum-focused nodes */}
+            {selectedNode.type === 'eip7702-smart-eoa' && (
+              <EIP7702Form nodeId={selectedNode.id} config={selectedNode.config} />
             )}
+            {selectedNode.type === 'wallet-auth' && (
+              <WalletAuthForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'rpc-provider' && (
+              <RPCProviderForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'arbitrum-bridge' && (
+              <ArbitrumBridgeForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'chain-data' && (
+              <ChainDataForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'ipfs-storage' && (
+              <IPFSStorageForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'chain-abstraction' && (
+              <ChainAbstractionForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'zk-primitives' && (
+              <ZKPrimitivesForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+
+            {/* Telegram nodes */}
+            {selectedNode.type === 'telegram-notifications' && (
+              <TelegramNotificationsForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'telegram-commands' && (
+              <TelegramCommandsForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'telegram-wallet-link' && (
+              <TelegramWalletLinkForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'telegram-ai-agent' && (
+              <TelegramAIAgentForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'ostium-trading' && (
+              <OstiumTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+
+            {/* ERC-20/ERC-721/ERC-1155 Stylus nodes */}
+            {selectedNode.type === 'erc20-stylus' && (
+              <ERC20StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'erc721-stylus' && (
+              <ERC721StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'erc1155-stylus' && (
+              <ERC1155StylusForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'onchain-activity' && (
+              <OnchainActivityForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'maxxit' && (
+              <MaxxitLazyTradingForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+
+            {/* Stylus workflow nodes */}
+            {selectedNode.type === 'stylus-rust-contract' && (
+              <StylusRustContractForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'smartcache-caching' && (
+              <SmartCacheCachingForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'auditware-analyzing' && (
+              <AuditwareAnalyzingForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+
+            {/* AIXBT nodes */}
+            {(selectedNode.type === 'aixbt-momentum' ||
+              selectedNode.type === 'aixbt-signals' ||
+              selectedNode.type === 'aixbt-indigo' ||
+              selectedNode.type === 'aixbt-observer') && (
+                <AIXBTForm nodeId={selectedNode.id} type={selectedNode.type} config={selectedNode.config} />
+              )}
+
+            {/* Superposition L3 nodes */}
+            {selectedNode.type === 'superposition-network' && (
+              <SuperpositionNetworkForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'superposition-bridge' && (
+              <SuperpositionBridgeForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'superposition-longtail' && (
+              <SuperpositionLongtailForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'superposition-super-assets' && (
+              <SuperpositionSuperAssetsForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'superposition-thirdweb' && (
+              <SuperpositionThirdwebForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'superposition-utility-mining' && (
+              <SuperpositionUtilityMiningForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'superposition-faucet' && (
+              <SuperpositionFaucetForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'superposition-meow-domains' && (
+              <SuperpositionMeowDomainsForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+
+            {/* Dune Analytics nodes */}
+            {(selectedNode.type === 'dune-execute-sql' ||
+              selectedNode.type === 'dune-token-price' ||
+              selectedNode.type === 'dune-wallet-balances' ||
+              selectedNode.type === 'dune-dex-volume' ||
+              selectedNode.type === 'dune-nft-floor' ||
+              selectedNode.type === 'dune-address-labels' ||
+              selectedNode.type === 'dune-transaction-history' ||
+              selectedNode.type === 'dune-gas-price' ||
+              selectedNode.type === 'dune-protocol-tvl') && (
+                <DuneAnalyticsForm nodeId={selectedNode.id} type={selectedNode.type} config={selectedNode.config} />
+              )}
+          </AuthOverlay>
         </motion.div>
       </AnimatePresence>
     </aside>

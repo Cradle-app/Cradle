@@ -195,4 +195,4 @@ The following endpoints are available at `https://cradle-web-eight.vercel.app/ap
 
 ---
 
-Generated with ❤️ by [Cradle](https://cradle.dev)
+Generated with ❤️ by [Cradle](https://cradle-web-eight.vercel.app)

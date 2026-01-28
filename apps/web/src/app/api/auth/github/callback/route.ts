@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
     // Create a session token (in production, use proper JWT/session management)
     const sessionData = {
       githubToken: accessToken,
+      githubId: userData.id.toString(),
       githubUser: userData.login,
       githubAvatar: userData.avatar_url,
       expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours

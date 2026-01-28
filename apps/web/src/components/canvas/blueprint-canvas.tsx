@@ -16,10 +16,12 @@ import ReactFlow, {
   BackgroundVariant,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { nodeTypeToColor } from '@/lib/utils';
+import { useAccount } from 'wagmi';
+import { useAuthStore } from '@/store/auth';
 import { useBlueprintStore } from '@/store/blueprint';
 import { ForgeNode } from './forge-node';
 import { ForgeEdge } from './forge-edge';
-import { nodeTypeToColor } from '@/lib/utils';
 
 // Custom node types
 const nodeTypes: NodeTypes = {
@@ -97,6 +99,8 @@ export function BlueprintCanvas() {
     updateNode,
     removeEdge,
   } = useBlueprintStore();
+  const { isConnected } = useAccount();
+  const { isWalletConnected, isFullyAuthenticated, showAuthModal, openAuthModal, closeAuthModal } = useAuthStore();
 
   // Convert blueprint nodes to ReactFlow nodes
   const blueprintNodes: Node[] = useMemo(() =>
@@ -162,6 +166,13 @@ export function BlueprintCanvas() {
       const type = event.dataTransfer.getData('application/reactflow');
       if (!type) return;
 
+      // Double check wallet connection on drop - use isConnected from wagmi for real-time status
+      const walletConnected = isConnected || isWalletConnected;
+      if (!walletConnected) {
+        openAuthModal();
+        return;
+      }
+
       const position = {
         x: event.clientX - 280, // Offset for sidebar
         y: event.clientY - 56,   // Offset for header
@@ -169,30 +180,37 @@ export function BlueprintCanvas() {
 
       const newNode = addNode(type, position);
 
-      setNodes((nds) => [
-        ...nds,
-        {
-          id: newNode.id,
-          type: newNode.type,
-          position: newNode.position,
-          data: {
-            ...newNode.config,
-            nodeType: newNode.type,
-            label: (newNode.config as Record<string, unknown>).contractName ||
-              (newNode.config as Record<string, unknown>).agentName ||
-              newNode.type,
+      if (newNode) {
+        setNodes((nds) => [
+          ...nds,
+          {
+            id: newNode.id,
+            type: newNode.type,
+            position: newNode.position,
+            data: {
+              ...newNode.config,
+              nodeType: newNode.type,
+              label: (newNode.config as Record<string, unknown>).contractName ||
+                (newNode.config as Record<string, unknown>).agentName ||
+                newNode.type,
+            },
           },
-        },
-      ]);
+        ]);
+      }
     },
-    [addNode, setNodes]
+    [addNode, setNodes, isConnected, isWalletConnected, openAuthModal]
   );
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
+      const walletConnected = isConnected || isWalletConnected;
+      if (!walletConnected) {
+        openAuthModal(() => selectNode(node.id));
+        return;
+      }
       selectNode(node.id);
     },
-    [selectNode]
+    [isConnected, isWalletConnected, openAuthModal, selectNode]
   );
 
   const onPaneClick = useCallback(() => {
@@ -216,13 +234,17 @@ export function BlueprintCanvas() {
   );
 
   return (
-    <div className="w-full h-full relative">
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-grid-pattern bg-grid pointer-events-none z-0" />
+    <div className="relative h-full w-full overflow-hidden rounded-2xl border border-forge-border/60 bg-gradient-to-b from-black/70 via-black/80 to-black/95">
+      {/* Subtle canvas hint */}
+      <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-center">
+        <div className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-forge-muted ring-1 ring-white/5 backdrop-blur">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan/80" />
+          <span>Drag to pan · Scroll to zoom · Drop nodes from the left</span>
+        </div>
+      </div>
 
-      {/* Glow effect */}
-      <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-glow-cyan pointer-events-none z-0" />
-      <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-glow-magenta pointer-events-none z-0" />
+      {/* Subtle grid / lighting */}
+      {/* <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.16),transparent_55%),radial-gradient(circle_at_bottom,_rgba(147,51,234,0.10),transparent_55%)]" /> */}
 
       <ReactFlow
         nodes={nodes}
@@ -245,15 +267,15 @@ export function BlueprintCanvas() {
           animated: true,
           style: { strokeWidth: 2 },
         }}
-        className="z-10"
+        className="z-10 rounded-2xl bg-black/60 backdrop-blur-sm"
       >
         <Background
           variant={BackgroundVariant.Dots}
           gap={20}
           size={1}
-          color="rgba(255,255,255,0.05)"
+          color="rgba(255,255,255, 0.15)"
         />
-        <Controls className="!bg-forge-surface !border-forge-border" />
+        <Controls className="!bg-forge-surface/95 !border-forge-border !rounded-xl !shadow-sm !text-forge-muted" />
         <MiniMap
           nodeColor={(node) => {
             const color = nodeTypeToColor(node.type || '');
@@ -270,18 +292,18 @@ export function BlueprintCanvas() {
             };
             return colorMap[color] || '#666';
           }}
-          maskColor="rgba(0, 0, 0, 0.8)"
-          className="!bg-forge-surface/80 !border-forge-border"
+          maskColor="rgba(0, 0, 0, 0.85)"
+          className="!bg-forge-surface/90 !border-forge-border !rounded-xl !shadow-sm"
         />
       </ReactFlow>
 
       {/* Empty state */}
       {nodes.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent-cyan/20 to-accent-magenta/20 flex items-center justify-center">
+          <div className="max-w-xs text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-dashed border-forge-border/60 bg-black/60">
               <svg
-                className="w-8 h-8 text-forge-muted"
+                className="h-6 w-6 text-forge-muted"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -294,11 +316,11 @@ export function BlueprintCanvas() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
-              Start Building Your Dapp
+            <h3 className="mb-1 text-sm font-semibold text-white">
+              Drop your first component
             </h3>
-            <p className="text-sm text-forge-muted max-w-xs">
-              Drag nodes from the palette on the left to create your Web3 application blueprint
+            <p className="text-xs text-forge-muted">
+              Drag a node from the left palette into the canvas to begin your blueprint.
             </p>
           </div>
         </div>
