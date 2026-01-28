@@ -106,6 +106,7 @@ export class ExecutionEngine {
           config: blueprint.config,
           nodeOutputs,
           logger: createExecutionLogger(runId, node.id),
+          pathContext,
         };
 
         // Validate node config

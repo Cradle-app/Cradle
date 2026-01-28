@@ -55,6 +55,9 @@ export interface PathContext {
     /** Whether any contract plugins are present */
     hasContracts: boolean;
 
+    /** Set of all node types in the blueprint (for plugin detection) */
+    nodeTypes: Set<string>;
+
     /** Base path for frontend files (default: 'apps/web') */
     frontendPath: string;
 
@@ -92,12 +95,13 @@ const CONTRACT_TYPES = [
  * - What base paths to use
  */
 export function buildPathContext(nodes: BlueprintNode[]): PathContext {
-    const nodeTypes = nodes.map(n => n.type);
+    const nodeTypesArray = nodes.map(n => n.type);
+    const nodeTypes = new Set(nodeTypesArray);
 
     // Detect scaffolds
-    const hasFrontend = nodeTypes.some(t => FRONTEND_SCAFFOLD_TYPES.includes(t));
-    const hasBackend = nodeTypes.some(t => BACKEND_SCAFFOLD_TYPES.includes(t));
-    const hasContracts = nodeTypes.some(t => CONTRACT_TYPES.includes(t));
+    const hasFrontend = nodeTypesArray.some(t => FRONTEND_SCAFFOLD_TYPES.includes(t));
+    const hasBackend = nodeTypesArray.some(t => BACKEND_SCAFFOLD_TYPES.includes(t));
+    const hasContracts = nodeTypesArray.some(t => CONTRACT_TYPES.includes(t));
 
     // Get frontend config to determine structure
     const frontendNode = nodes.find(n => n.type === 'frontend-scaffold');
@@ -110,6 +114,7 @@ export function buildPathContext(nodes: BlueprintNode[]): PathContext {
         hasFrontend,
         hasBackend,
         hasContracts,
+        nodeTypes,
         frontendPath: 'apps/web',
         frontendSrcPath: useSrcDirectory ? 'src' : '',
         backendPath: 'apps/api',

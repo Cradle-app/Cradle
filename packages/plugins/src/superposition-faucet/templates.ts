@@ -157,7 +157,7 @@ export function generateFaucetHook(config: Config): string {
 
     import { useState, useCallback, useEffect, useMemo } from 'react';
     import { useAccount } from 'wagmi';
-    import { FAUCET_CONFIG, FAUCET_TOKENS } from '../config/faucet-constants';
+    import { FAUCET_CONFIG, FAUCET_TOKENS } from '../lib/faucet-constants';
     import type {
       FaucetToken,
       FaucetResponse,
@@ -390,7 +390,7 @@ export function generateFaucetUI(config: Config): string {
 
     import { useState } from 'react';
     import { useSuperpositionFaucet } from '../hooks/useSuperpositionFaucet';
-    import { TESTNET_CONFIG } from '../config/faucet-constants';
+    import { TESTNET_CONFIG } from '../lib/faucet-constants';
     import type { FaucetToken } from '../types/faucet';
 
     interface FaucetUIProps {
@@ -539,7 +539,7 @@ export function generateBalanceHook(): string {
     'use client';
 
     import { useAccount, useBalance } from 'wagmi';
-    import { TESTNET_CONFIG, TESTNET_TOKEN_ADDRESSES } from '../config/faucet-constants';
+    import { TESTNET_CONFIG, TESTNET_TOKEN_ADDRESSES } from '../lib/faucet-constants';
     import type { FaucetToken } from '../types/faucet';
 
     interface TokenBalance {
