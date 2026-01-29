@@ -46,12 +46,32 @@ export function AuthFlowModal({
   const [githubLoading, setGithubLoading] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
 
-  // Check for GitHub session on mount
+  // Check for GitHub session on mount and handle OAuth callback
   useEffect(() => {
     if (open) {
       checkGitHubSession();
     }
+
+    // Check if returning from GitHub OAuth
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('github') === 'connected') {
+      checkGitHubSession();
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, [open]);
+
+  // Sync auth modal step with current state when modal opens
+  useEffect(() => {
+    if (open) {
+      if (!isWalletConnected) {
+        setAuthModalStep('wallet');
+      } else if (requireGitHub) {
+        // Stay on github step - it will show Finish button when connected
+        setAuthModalStep('github');
+      }
+    }
+  }, [open, isWalletConnected, requireGitHub, setAuthModalStep]);
 
   // Auto-advance steps and save wallet to database
   useEffect(() => {
@@ -68,29 +88,18 @@ export function AuthFlowModal({
     }
   }, [isConnected, address, authModalStep, requireGitHub]);
 
-  useEffect(() => {
-    if (isGitHubConnected && authModalStep === 'github') {
-      // Save updated user with GitHub info to database
-      saveUserToDatabase().then(() => {
-        handleComplete();
-      });
-    }
-  }, [isGitHubConnected, authModalStep]);
-
+  // Check GitHub session from cookie (same flow as header GitHubConnect)
   const checkGitHubSession = async () => {
     try {
       const response = await fetch('/api/auth/session');
       const data = await response.json();
       if (data.authenticated && data.github) {
+        // Sync with auth store (same as GitHubConnect component)
         setGitHubSession({
           id: data.github.id,
           username: data.github.username,
           avatar: data.github.avatar,
         });
-        // If wallet is connected, save to database immediately
-        if (address) {
-          await saveUserToDatabase();
-        }
       }
     } catch (error) {
       console.error('Failed to check GitHub session:', error);
@@ -133,19 +142,25 @@ export function AuthFlowModal({
   };
 
   const handleComplete = useCallback(() => {
-    setAuthModalStep('complete');
-    // Final save to ensure everything is synced
+    // Save to database and close modal
     saveUserToDatabase().finally(() => {
-      setTimeout(() => {
-        onComplete?.();
-        executePendingAction();
-        onOpenChange(false);
-      }, 1500);
+      onComplete?.();
+      executePendingAction();
+      onOpenChange(false);
     });
-  }, [onComplete, executePendingAction, onOpenChange, setAuthModalStep, address, session.github]);
+  }, [onComplete, executePendingAction, onOpenChange, address, session.github]);
+
+  const handleFinish = () => {
+    handleComplete();
+  };
 
   const handleSkipGitHub = () => {
-    handleComplete();
+    // Skip GitHub and finish
+    saveUserToDatabase().finally(() => {
+      onComplete?.();
+      executePendingAction();
+      onOpenChange(false);
+    });
   };
 
   const steps = [
@@ -167,13 +182,6 @@ export function AuthFlowModal({
         },
       ]
       : []),
-    {
-      id: 'complete',
-      title: 'Ready to Build',
-      description: 'You\'re all set to start building!',
-      icon: Sparkles,
-      completed: authModalStep === 'complete',
-    },
   ];
 
   // Lower z-index when on wallet step to allow RainbowKit modal to appear above
@@ -358,35 +366,21 @@ export function AuthFlowModal({
                       </div>
                     )}
                   </div>
-                </motion.div>
-              )}
 
-              {authModalStep === 'complete' && (
-                <motion.div
-                  key="complete"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-8"
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', delay: 0.2 }}
-                    className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-accent-cyan to-accent-lime flex items-center justify-center"
-                  >
-                    <Check className="w-10 h-10 text-black" />
-                  </motion.div>
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    You&apos;re All Set!
-                  </h3>
-                  <p className="text-sm text-forge-muted">
-                    Authentication complete. Redirecting...
-                  </p>
-                  {savingUser && (
-                    <div className="flex items-center justify-center gap-2 mt-3 text-xs text-forge-muted">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Saving profile...
-                    </div>
+                  {/* Finish button when GitHub is connected */}
+                  {isGitHubConnected && session.github && (
+                    <Button
+                      onClick={handleFinish}
+                      disabled={savingUser}
+                      className="w-full gap-2 bg-accent-cyan hover:bg-accent-cyan/90 text-black font-medium"
+                    >
+                      {savingUser ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Check className="w-4 h-4" />
+                      )}
+                      Finish
+                    </Button>
                   )}
                 </motion.div>
               )}

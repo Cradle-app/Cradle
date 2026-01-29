@@ -21,10 +21,12 @@ interface AuthState {
   authModalStep: 'wallet' | 'github' | 'complete';
   pendingAction: (() => void) | null;
   isSyncing: boolean;
+  isInitialized: boolean;
 
   // Actions
   setWalletConnected: (address: string | null) => void;
   setGitHubSession: (github: AuthSession['github']) => void;
+  disconnectGitHub: () => Promise<void>;
   openAuthModal: (pendingAction?: () => void) => void;
   closeAuthModal: () => void;
   setAuthModalStep: (step: 'wallet' | 'github' | 'complete') => void;
@@ -32,6 +34,7 @@ interface AuthState {
   clearSession: () => void;
   syncWithDatabase: (walletAddress: string) => Promise<void>;
   checkDatabaseAuth: (walletAddress: string) => Promise<{ hasWallet: boolean; hasGitHub: boolean }>;
+  initializeFromDatabase: (walletAddress: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -48,6 +51,7 @@ export const useAuthStore = create<AuthState>()(
       authModalStep: 'wallet',
       pendingAction: null,
       isSyncing: false,
+      isInitialized: false,
 
       setWalletConnected: (address) => {
         set((state) => ({
@@ -118,6 +122,24 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
+      // Disconnect GitHub - only clears local session, does NOT delete from database
+      disconnectGitHub: async () => {
+        try {
+          // Only clear the session cookie, don't touch database
+          await fetch('/api/auth/session', { method: 'DELETE' });
+          
+          // Clear GitHub from local state only
+          set((state) => ({
+            session: { ...state.session, github: null },
+            isGitHubConnected: false,
+            isFullyAuthenticated: false,
+            authModalStep: state.isWalletConnected ? 'github' : 'wallet',
+          }));
+        } catch (error) {
+          console.error('Error disconnecting GitHub:', error);
+        }
+      },
+
       syncWithDatabase: async (walletAddress: string) => {
         set({ isSyncing: true });
         try {
@@ -167,6 +189,56 @@ export const useAuthStore = create<AuthState>()(
           console.error('Error checking database auth:', error);
         }
         return { hasWallet: false, hasGitHub: false };
+      },
+
+      // Initialize state from database on app load
+      initializeFromDatabase: async (walletAddress: string) => {
+        const { isInitialized } = get();
+        if (isInitialized) return;
+        
+        set({ isSyncing: true });
+        try {
+          // First check database for persisted user data
+          const response = await fetch(`/api/auth/user?walletAddress=${encodeURIComponent(walletAddress)}`);
+          if (response.ok) {
+            const data = await response.json();
+            const user = data.user;
+            
+            if (user) {
+              // Check if there's an active GitHub session (cookie)
+              const sessionResponse = await fetch('/api/auth/session');
+              const sessionData = await sessionResponse.json();
+              const hasActiveSession = sessionData.authenticated && sessionData.github;
+              
+              set({
+                session: {
+                  walletAddress: user.walletAddress,
+                  github: user.githubId && hasActiveSession
+                    ? {
+                        id: user.githubId,
+                        username: user.githubUsername || '',
+                        avatar: user.githubAvatar || '',
+                      }
+                    : null,
+                },
+                isWalletConnected: !!user.walletAddress,
+                // Only mark as GitHub connected if both database AND active session exist
+                isGitHubConnected: !!user.githubId && hasActiveSession,
+                isFullyAuthenticated: !!user.walletAddress && !!user.githubId && hasActiveSession,
+                isInitialized: true,
+              });
+            } else {
+              set({ isInitialized: true });
+            }
+          } else {
+            set({ isInitialized: true });
+          }
+        } catch (error) {
+          console.error('Error initializing from database:', error);
+          set({ isInitialized: true });
+        } finally {
+          set({ isSyncing: false });
+        }
       },
     }),
     {

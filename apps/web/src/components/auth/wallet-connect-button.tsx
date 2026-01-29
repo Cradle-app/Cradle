@@ -25,19 +25,21 @@ export function WalletConnectButton({
 }: WalletConnectButtonProps) {
   const { address, isConnected, isConnecting } = useAccount();
   const { disconnect } = useDisconnect();
-  const { setWalletConnected } = useAuthStore();
+  const { setWalletConnected, initializeFromDatabase } = useAuthStore();
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
-  // Sync wallet connection with auth store
+  // Sync wallet connection with auth store and initialize from database
   useEffect(() => {
     if (isConnected && address) {
       setWalletConnected(address);
+      // Initialize auth state from database (will restore GitHub connection if exists)
+      initializeFromDatabase(address);
       onConnect?.(address);
     } else {
       setWalletConnected(null);
     }
-  }, [isConnected, address, setWalletConnected, onConnect]);
+  }, [isConnected, address, setWalletConnected, initializeFromDatabase, onConnect]);
 
   const handleCopy = async () => {
     if (address) {

@@ -3,48 +3,51 @@
 import { useState, useEffect } from 'react';
 import { Github, LogOut, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface GitHubSession {
-  authenticated: boolean;
-  github: {
-    id: string;
-    username: string;
-    avatar: string;
-  } | null;
-}
 import { useAuthStore } from '@/store/auth';
 
 export function GitHubConnect() {
-  const [session, setSession] = useState<GitHubSession | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
-  const { setGitHubSession } = useAuthStore();
 
+  // Use Zustand store as single source of truth
+  const {
+    session,
+    isGitHubConnected,
+    setGitHubSession,
+    disconnectGitHub,
+    isSyncing
+  } = useAuthStore();
+
+  // Check session on mount and sync with store
   useEffect(() => {
-    fetchSession();
-  }, []);
+    const checkAndSyncSession = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch('/api/auth/session');
+        const data = await response.json();
 
-  const fetchSession = async () => {
-    try {
-      const response = await fetch('/api/auth/session');
-      const data = await response.json();
-      setSession(data);
-
-      // Sync with auth store
-      if (data.authenticated && data.github) {
-        setGitHubSession({
-          id: data.github.id,
-          username: data.github.username,
-          avatar: data.github.avatar,
-        });
+        // Sync session data with auth store
+        if (data.authenticated && data.github) {
+          setGitHubSession({
+            id: data.github.id,
+            username: data.github.username,
+            avatar: data.github.avatar,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch session:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to fetch session:', error);
-      setSession({ authenticated: false, github: null });
-    } finally {
+    };
+
+    // Only check if not already connected in store
+    if (!isGitHubConnected) {
+      checkAndSyncSession();
+    } else {
       setLoading(false);
     }
-  };
+  }, [isGitHubConnected, setGitHubSession]);
 
   const handleConnect = () => {
     window.location.href = '/api/auth/github';
@@ -53,8 +56,8 @@ export function GitHubConnect() {
   const handleDisconnect = async () => {
     setDisconnecting(true);
     try {
-      await fetch('/api/auth/session', { method: 'DELETE' });
-      setSession({ authenticated: false, github: null });
+      // Use the store's disconnectGitHub which only clears session, not database
+      await disconnectGitHub();
     } catch (error) {
       console.error('Failed to disconnect:', error);
     } finally {
@@ -62,7 +65,7 @@ export function GitHubConnect() {
     }
   };
 
-  if (loading) {
+  if (loading || isSyncing) {
     return (
       <Button variant="outline" size="sm" disabled className="gap-2">
         <Loader2 className="w-4 h-4 animate-spin" />
@@ -71,7 +74,8 @@ export function GitHubConnect() {
     );
   }
 
-  if (session?.authenticated && session.github) {
+  // Use store state to determine connected status
+  if (isGitHubConnected && session.github) {
     return (
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-2 px-3 py-1.5 bg-forge-surface rounded-lg border border-forge-border">
@@ -112,24 +116,16 @@ export function GitHubConnect() {
   );
 }
 
-// Hook to check GitHub connection status
+// Hook to check GitHub connection status - now uses store
 export function useGitHubSession() {
-  const [session, setSession] = useState<GitHubSession | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { session, isGitHubConnected, isSyncing } = useAuthStore();
 
-  useEffect(() => {
-    fetch('/api/auth/session')
-      .then(res => res.json())
-      .then(data => {
-        setSession(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setSession({ authenticated: false, github: null });
-        setLoading(false);
-      });
-  }, []);
-
-  return { session, loading, isConnected: session?.authenticated ?? false };
+  return {
+    session: {
+      authenticated: isGitHubConnected,
+      github: session.github
+    },
+    loading: isSyncing,
+    isConnected: isGitHubConnected
+  };
 }
-
