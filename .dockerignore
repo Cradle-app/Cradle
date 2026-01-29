@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Turbo cache
+**/.turbo
+
+# Development files
+.git
+.gitignore
+.nvmrc
+*.md
+.env*
+!.env.example
+
+# IDE
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+__tests__
+coverage
