@@ -20,7 +20,6 @@ COPY turbo.json tsconfig.base.json ./
 COPY apps/orchestrator/package.json ./apps/orchestrator/
 COPY apps/web/package.json ./apps/web/
 COPY packages/blueprint-schema/package.json ./packages/blueprint-schema/
-COPY packages/components/package.json ./packages/components/
 COPY packages/github/package.json ./packages/github/
 COPY packages/plugin-sdk/package.json ./packages/plugin-sdk/
 COPY packages/plugins/package.json ./packages/plugins/
