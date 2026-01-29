@@ -47,7 +47,14 @@ export function generatePackageJson(config: Config): string {
     devDependencies['tailwindcss'] = '^3.4.0';
     devDependencies['postcss'] = '^8.4.0';
     devDependencies['autoprefixer'] = '^10.4.0';
+    // cn utility dependencies
+    dependencies['clsx'] = '^2.1.0';
+    dependencies['tailwind-merge'] = '^2.2.0';
   }
+
+  // Contract interaction dependencies (for ERC panels)
+  dependencies['ethers'] = '^6.13.0';
+  dependencies['lucide-react'] = '^0.400.0';
 
   // State management
   if (config.stateManagement === 'zustand') {
@@ -565,6 +572,24 @@ export function generateEnvTypes(config: Config): string {
         NEXT_PUBLIC_APP_NAME?: string;
         ${config.includeContracts ? `NEXT_PUBLIC_CONTRACT_ADDRESS?: string;` : ''}
       }
+    }
+  `);
+}
+
+/**
+ * Generate lib/utils.ts - cn utility for className merging
+ * Required by ERC interaction panels
+ */
+export function generateUtils(): string {
+  return dedent(`
+    import { clsx, type ClassValue } from 'clsx';
+    import { twMerge } from 'tailwind-merge';
+
+    /**
+     * Merge class names with tailwind-merge for proper Tailwind CSS class handling
+     */
+    export function cn(...inputs: ClassValue[]) {
+      return twMerge(clsx(inputs));
     }
   `);
 }

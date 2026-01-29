@@ -88,3 +88,9 @@ export {
   useERC1155Deploy,
   useERC1155Interactions,
 } from './hooks';
+
+// Interaction Panel Component
+export { ERC1155InteractionPanel } from './ERC1155InteractionPanel';
+
+// Utilities
+export { cn } from './cn';

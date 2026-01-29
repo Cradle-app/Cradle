@@ -65,3 +65,9 @@ export {
 export {
   useERC721Interactions,
 } from './hooks';
+
+// Interaction Panel Component
+export { ERC721InteractionPanel } from './ERC721InteractionPanel';
+
+// Utilities
+export { cn } from './cn';

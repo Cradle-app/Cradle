@@ -22,6 +22,7 @@ import {
     generateGlobalStyles,
     generateEnvTypes,
     generateTsConfig,
+    generateUtils,
 } from './templates';
 import { generateContractHooks, extractConnectedContracts } from './contract-integration';
 
@@ -201,6 +202,13 @@ export class FrontendScaffoldPlugin extends BasePlugin<z.infer<typeof FrontendSc
             output,
             `${srcBase ? 'apps/web/' : ''}${srcBase}/lib/chains.ts`,
             generateChainConfig(config, context)
+        );
+
+        // lib/utils.ts - cn utility for className merging (required by ERC interaction panels)
+        this.addFile(
+            output,
+            `${srcBase ? 'apps/web/' : ''}${srcBase}/lib/utils.ts`,
+            generateUtils()
         );
 
         // =========================================================================

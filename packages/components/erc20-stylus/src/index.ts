@@ -64,3 +64,9 @@ export {
 export {
   useERC20Interactions,
 } from './hooks';
+
+// Interaction Panel Component
+export { ERC20InteractionPanel } from './ERC20InteractionPanel';
+
+// Utilities
+export { cn } from './cn';
