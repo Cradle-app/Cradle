@@ -547,9 +547,9 @@ export function generateGlobalStyles(config: Config): string {
   @tailwind utilities;
 
       :root {
-    --foreground - rgb: 0, 0, 0;
-    --background - start - rgb: 255, 255, 255;
-    --background - end - rgb: 245, 245, 245;
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 255, 255, 255;
+    --background-end-rgb: 245, 245, 245;
   }
 
       ${config.darkModeSupport ? `
@@ -570,13 +570,13 @@ export function generateGlobalStyles(config: Config): string {
       }
 
       body {
-    color: rgb(var(--foreground - rgb));
-    background: linear - gradient(
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
       to bottom,
       transparent,
-      rgb(var(--background - end - rgb))
+      rgb(var(--background-end-rgb))
           )
-    rgb(var(--background - start - rgb));
+    rgb(var(--background-start-rgb));
   }
   `);
   }
@@ -584,27 +584,27 @@ export function generateGlobalStyles(config: Config): string {
   // Vanilla CSS
   return dedent(`
     * {
-    box- sizing: border - box;
-  padding: 0;
-  margin: 0;
-}
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+    }
 
-html,
-  body {
-  max - width: 100vw;
-  overflow - x: hidden;
-}
+    html,
+    body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
 
     body {
-  font - family: -apple - system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans - serif;
-}
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
 
     a {
-  color: inherit;
-  text - decoration: none;
-}
-`);
+      color: inherit;
+      text-decoration: none;
+    }
+  `);
 }
 
 /**
