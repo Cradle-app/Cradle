@@ -110,20 +110,32 @@ export type BaseNodeConfig = z.infer<typeof BaseNodeConfig>;
 
 /**
  * Stylus contract node configuration
+ * User provides a guide for their contract logic; a markdown file is generated
+ * that can be passed to an LLM to generate/modify the Rust contract code.
  */
-export const StylusContractConfig = BaseNodeConfig.extend({
-  contractName: z.string().min(1).max(64).regex(/^[A-Z][a-zA-Z0-9]*$/),
-  contractType: z.enum(['erc20', 'erc721', 'erc1155', 'custom']),
-  features: z.array(z.enum([
-    'ownable',
-    'pausable',
-    'upgradeable',
-    'access-control',
-    'reentrancy-guard',
-  ])).default([]),
-  customCode: z.string().max(50000).optional(),
-  testCoverage: z.boolean().default(true),
+const StylusContractConfigBase = BaseNodeConfig.extend({
+  contractInstructions: z.string().min(1).max(10000),
+  contractName: z.string().min(1).max(64).regex(/^[a-zA-Z][a-zA-Z0-9_-]*$/).default('my-contract'),
 });
+
+export const StylusContractConfig = z.preprocess((raw) => {
+  const data = raw as Record<string, unknown> & { contractType?: string; features?: string[] };
+  if (data.contractType && !data.contractInstructions) {
+    const typeDesc = data.contractType === 'erc20' ? 'ERC-20 token' :
+      data.contractType === 'erc721' ? 'ERC-721 NFT' :
+      data.contractType === 'erc1155' ? 'ERC-1155 Multi-Token' : 'custom contract';
+    const features = (data.features || []).join(', ');
+    return {
+      ...data,
+      contractInstructions: `A ${typeDesc}${features ? ` with ${features}` : ''}.`,
+      contractName: data.contractName || 'my-contract',
+    };
+  }
+  if (!data.contractInstructions) {
+    return { ...data, contractInstructions: 'A simple counter with increment, decrement, and set functions.' };
+  }
+  return data;
+}, StylusContractConfigBase);
 export type StylusContractConfig = z.infer<typeof StylusContractConfig>;
 
 /**
@@ -517,7 +529,7 @@ export type OnchainActivityConfig = z.infer<typeof OnchainActivityConfig>;
  */
 export const StylusRustContractConfig = BaseNodeConfig.extend({
   network: z.enum(['arbitrum', 'arbitrum-sepolia']).default('arbitrum-sepolia'),
-  exampleType: z.enum(['counter', 'storage', 'custom']).default('counter'),
+  exampleType: z.enum(['counter', 'vending-machine', 'erc20', 'erc721', 'erc1155', 'storage', 'custom']).default('counter'),
   contractName: z.string().min(1).max(64).default('MyContract'),
   contractCode: z.string().optional(),
 });

@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 import {
   BasePlugin,
   type PluginMetadata,
@@ -8,20 +11,27 @@ import {
   type ExecutionContext,
 } from '@dapp-forge/plugin-sdk';
 import { StylusContractConfig } from '@dapp-forge/blueprint-schema';
-import { generateContractCode, generateCargoToml, generateTestFile } from './templates';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const COUNTER_CONTRACT_TEMPLATE_PATH = path.resolve(__dirname, '../../../../apps/web/src/components/counter-contract');
+const CONTRACT_OUTPUT_DIR = 'counter-contract';
 
 /**
  * Stylus Contract Plugin
- * Generates Rust/WASM smart contracts for Arbitrum Stylus
+ * Copies the counter-contract template folder and generates a markdown guide.
+ * The user provides instructions for their contract logic; the markdown can be passed
+ * to any LLM to generate code, then pasted into counter-contract/src/lib.rs.
  */
 export class StylusContractPlugin extends BasePlugin<z.infer<typeof StylusContractConfig>> {
   readonly metadata: PluginMetadata = {
     id: 'stylus-contract',
     name: 'Stylus Contract',
-    version: '0.1.0',
-    description: 'Generate Rust smart contracts for Arbitrum Stylus (WASM)',
+    version: '0.3.0',
+    description: 'Counter template + markdown guide - pass to LLM, paste generated code into src/lib.rs',
     category: 'contracts',
-    tags: ['rust', 'wasm', 'arbitrum', 'stylus', 'smart-contract'],
+    tags: ['rust', 'wasm', 'arbitrum', 'stylus', 'smart-contract', 'llm'],
   };
 
   readonly configSchema = StylusContractConfig as unknown as z.ZodType<z.infer<typeof StylusContractConfig>>;
@@ -29,23 +39,16 @@ export class StylusContractPlugin extends BasePlugin<z.infer<typeof StylusContra
   readonly ports: PluginPort[] = [
     {
       id: 'contract-out',
-      name: 'Contract ABI',
+      name: 'Contract Guide',
       type: 'output',
-      dataType: 'contract',
-    },
-    {
-      id: 'types-out',
-      name: 'Generated Types',
-      type: 'output',
-      dataType: 'types',
+      dataType: 'any',
     },
   ];
 
   getDefaultConfig(): Partial<z.infer<typeof StylusContractConfig>> {
     return {
-      contractType: 'custom',
-      features: ['ownable'],
-      testCoverage: true,
+      contractInstructions: 'Describe your contract logic here. For example: a simple counter with increment and decrement functions.',
+      contractName: 'my-contract',
     };
   }
 
@@ -56,156 +59,400 @@ export class StylusContractPlugin extends BasePlugin<z.infer<typeof StylusContra
     const config = this.configSchema.parse(node.config);
     const output = this.createEmptyOutput();
 
-    const contractName = config.contractName.toLowerCase();
+    // Generate the comprehensive markdown guide (with folder structure + paste instructions)
+    const markdownGuide = generateStylusContractGuide(config);
+    this.addFile(
+      output,
+      `docs/STYLUS_CONTRACT_GUIDE.md`,
+      markdownGuide,
+      'docs'
+    );
 
-    // Generate Cargo.toml - contract-source will place in contracts/
-    this.addFile(output, `${contractName}/Cargo.toml`, generateCargoToml(config), 'contract-source');
-
-    // Generate main contract file
-    this.addFile(output, `${contractName}/src/lib.rs`, generateContractCode(config), 'contract-source');
-
-    // Generate test file if enabled
-    if (config.testCoverage) {
-      this.addFile(output, `${contractName}/tests/integration.rs`, generateTestFile(config), 'contract-source');
+    // Copy the full counter-contract template folder
+    if (fs.existsSync(COUNTER_CONTRACT_TEMPLATE_PATH)) {
+      this.copyCounterContractTemplate(output, COUNTER_CONTRACT_TEMPLATE_PATH, CONTRACT_OUTPUT_DIR);
+    } else {
+      // Fallback: minimal template if counter-contract folder not found
+      this.addFallbackTemplate(output, CONTRACT_OUTPUT_DIR);
     }
 
     // Add environment variables
-    this.addEnvVar(output, 'STYLUS_RPC_URL', 'Arbitrum RPC URL for deployment', {
-      required: true,
-      defaultValue: context.config.network.rpcUrl,
-    });
     this.addEnvVar(output, 'DEPLOYER_PRIVATE_KEY', 'Private key for contract deployment', {
       required: true,
       secret: true,
     });
-
-    // Add scripts
-    const contractDir = `contracts/${contractName}`;
-    this.addScript(output, 'build:contract', `cd ${contractDir} && cargo build --release --target wasm32-unknown-unknown`);
-    this.addScript(output, 'test:contract', `cd ${contractDir} && cargo test`);
-    this.addScript(output, 'deploy:contract', `cargo stylus deploy --private-key $DEPLOYER_PRIVATE_KEY`);
-
-    // Add ABI interface
-    output.interfaces.push({
-      name: `${config.contractName}ABI`,
-      type: 'abi',
-      content: generateABI(config),
+    this.addEnvVar(output, 'STYLUS_RPC_URL', 'Arbitrum RPC URL (default: Arbitrum Sepolia)', {
+      required: false,
+      defaultValue: 'https://sepolia-rollup.arbitrum.io/rpc',
     });
 
-    // Add documentation
-    this.addDoc(
-      output,
-      `docs/contracts/${config.contractName}.md`,
-      `${config.contractName} Contract`,
-      generateContractDocs(config)
-    );
+    // Add scripts (run from repo root)
+    const contractPath = `contracts/${CONTRACT_OUTPUT_DIR}`;
+    this.addScript(output, 'stylus:check', `cd ${contractPath} && cargo stylus check`);
+    this.addScript(output, 'stylus:deploy', `cd ${contractPath} && cargo stylus deploy --private-key-path=./.env.key --endpoint="https://sepolia-rollup.arbitrum.io/rpc"`);
 
-    context.logger.info(`Generated Stylus contract: ${config.contractName}`, {
+    context.logger.info(`Generated Stylus Contract: counter-contract template + STYLUS_CONTRACT_GUIDE.md`, {
       nodeId: node.id,
-      contractType: config.contractType,
     });
 
     return output;
   }
+
+  private copyCounterContractTemplate(output: CodegenOutput, sourcePath: string, outputDir: string): void {
+    const skipDirs = new Set(['node_modules', 'target', '.git']);
+    const skipFiles = new Set(['Cargo.lock']);
+
+    const walk = (dir: string, relativePrefix: string) => {
+      const items = fs.readdirSync(dir);
+      for (const item of items) {
+        const fullPath = path.join(dir, item);
+        const relativePath = relativePrefix ? `${relativePrefix}/${item}` : item;
+        const stat = fs.statSync(fullPath);
+
+        if (stat.isDirectory()) {
+          if (!skipDirs.has(item)) {
+            walk(fullPath, relativePath);
+          }
+        } else {
+          if (!skipFiles.has(item)) {
+            const content = fs.readFileSync(fullPath, 'utf-8');
+            const outputPath = `contracts/${outputDir}/${relativePath}`;
+            this.addFile(output, outputPath, content);
+          }
+        }
+      }
+    };
+
+    walk(sourcePath, '');
+  }
+
+  private addFallbackTemplate(output: CodegenOutput, outputDir: string): void {
+    this.addFile(output, `contracts/${outputDir}/Cargo.toml`, `[package]
+name = "counter-contract"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+stylus-sdk = "0.6"
+alloy-primitives = "0.7"
+
+[features]
+export-abi = ["stylus-sdk/export-abi"]
+
+[profile.release]
+codegen-units = 1
+strip = true
+lto = true
+panic = "abort"
+opt-level = "s"
+`);
+    this.addFile(output, `contracts/${outputDir}/src/lib.rs`, COUNTER_TEMPLATE_CODE);
+  }
 }
 
-function generateABI(config: z.infer<typeof StylusContractConfig>): string {
-  const abiEntries: object[] = [];
+// Counter template from stylus-hello-world (cargo stylus new)
+const COUNTER_TEMPLATE_CODE = `//!
+//! Stylus Hello World - Counter Template
+//!
+//! This is the default template from \`cargo stylus new\`.
+//! **IMPORTANT**: Modify this contract according to the instructions in docs/STYLUS_CONTRACT_GUIDE.md
+//! You can pass that markdown file to any LLM (ChatGPT, Claude, etc.) to generate your custom contract logic.
+//!
+#![cfg_attr(not(any(test, feature = "export-abi")), no_main)]
+#![cfg_attr(not(any(test, feature = "export-abi")), no_std)]
 
-  // Add standard functions based on contract type
-  if (config.contractType === 'erc20') {
-    abiEntries.push(
-      { type: 'function', name: 'totalSupply', inputs: [], outputs: [{ type: 'uint256' }], stateMutability: 'view' },
-      { type: 'function', name: 'balanceOf', inputs: [{ name: 'account', type: 'address' }], outputs: [{ type: 'uint256' }], stateMutability: 'view' },
-      { type: 'function', name: 'transfer', inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ type: 'bool' }], stateMutability: 'nonpayable' },
-      { type: 'function', name: 'approve', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ type: 'bool' }], stateMutability: 'nonpayable' },
-      { type: 'function', name: 'transferFrom', inputs: [{ name: 'from', type: 'address' }, { name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ type: 'bool' }], stateMutability: 'nonpayable' }
-    );
-  } else if (config.contractType === 'erc721') {
-    abiEntries.push(
-      { type: 'function', name: 'balanceOf', inputs: [{ name: 'owner', type: 'address' }], outputs: [{ type: 'uint256' }], stateMutability: 'view' },
-      { type: 'function', name: 'ownerOf', inputs: [{ name: 'tokenId', type: 'uint256' }], outputs: [{ type: 'address' }], stateMutability: 'view' },
-      { type: 'function', name: 'safeTransferFrom', inputs: [{ name: 'from', type: 'address' }, { name: 'to', type: 'address' }, { name: 'tokenId', type: 'uint256' }], outputs: [], stateMutability: 'nonpayable' }
-    );
-  }
+#[macro_use]
+extern crate alloc;
 
-  // Add ownable functions if enabled
-  if (config.features.includes('ownable')) {
-    abiEntries.push(
-      { type: 'function', name: 'owner', inputs: [], outputs: [{ type: 'address' }], stateMutability: 'view' },
-      { type: 'function', name: 'transferOwnership', inputs: [{ name: 'newOwner', type: 'address' }], outputs: [], stateMutability: 'nonpayable' }
-    );
-  }
+use stylus_sdk::{alloy_primitives::U256, prelude::*};
 
-  // Add pausable functions if enabled
-  if (config.features.includes('pausable')) {
-    abiEntries.push(
-      { type: 'function', name: 'paused', inputs: [], outputs: [{ type: 'bool' }], stateMutability: 'view' },
-      { type: 'function', name: 'pause', inputs: [], outputs: [], stateMutability: 'nonpayable' },
-      { type: 'function', name: 'unpause', inputs: [], outputs: [], stateMutability: 'nonpayable' }
-    );
-  }
-
-  return JSON.stringify(abiEntries, null, 2);
+sol_storage! {
+    #[entrypoint]
+    pub struct Counter {
+        uint256 number;
+    }
 }
 
-function generateContractDocs(config: z.infer<typeof StylusContractConfig>): string {
-  return `# ${config.contractName}
+#[public]
+impl Counter {
+    pub fn number(&self) -> U256 {
+        self.number.get()
+    }
 
-A ${config.contractType.toUpperCase()} smart contract built with Arbitrum Stylus (Rust/WASM).
+    pub fn set_number(&mut self, new_number: U256) {
+        self.number.set(new_number);
+    }
 
-## Features
+    pub fn increment(&mut self) {
+        let number = self.number.get();
+        self.set_number(number + U256::from(1));
+    }
+}
+`;
 
-${config.features.map(f => `- **${f}**: Enabled`).join('\n')}
+function generateCounterCargoToml(contractName: string): string {
+  const crateName = contractName.toLowerCase().replace(/-/g, '_');
+  return `[package]
+name = "${crateName}"
+version = "0.1.0"
+edition = "2021"
 
-## Building
+[lib]
+crate-type = ["cdylib"]
 
-\`\`\`bash
-pnpm build:contract
-\`\`\`
+[dependencies]
+stylus-sdk = "0.6"
+alloy-primitives = "0.7"
 
-## Testing
+[features]
+export-abi = ["stylus-sdk/export-abi"]
 
-\`\`\`bash
-pnpm test:contract
-\`\`\`
-
-## Deployment
-
-1. Set your environment variables:
-   - \`STYLUS_RPC_URL\`: Your Arbitrum RPC endpoint
-   - \`DEPLOYER_PRIVATE_KEY\`: Your deployer wallet private key
-
-2. Deploy the contract:
-   \`\`\`bash
-   pnpm deploy:contract
-   \`\`\`
-
-## Contract Type: ${config.contractType}
-
-${config.contractType === 'erc20' ? `
-### ERC-20 Token Standard
-
-This contract implements the ERC-20 token standard with the following functions:
-- \`totalSupply()\`: Returns the total token supply
-- \`balanceOf(address)\`: Returns the token balance of an account
-- \`transfer(address, uint256)\`: Transfers tokens to a recipient
-- \`approve(address, uint256)\`: Approves a spender to transfer tokens
-- \`transferFrom(address, address, uint256)\`: Transfers tokens on behalf of another account
-` : config.contractType === 'erc721' ? `
-### ERC-721 NFT Standard
-
-This contract implements the ERC-721 NFT standard with the following functions:
-- \`balanceOf(address)\`: Returns the number of NFTs owned by an account
-- \`ownerOf(uint256)\`: Returns the owner of a specific token ID
-- \`safeTransferFrom(address, address, uint256)\`: Safely transfers an NFT
-` : `
-### Custom Contract
-
-This is a custom contract. Add your own functions and logic in \`src/lib.rs\`.
-`}
+[profile.release]
+codegen-units = 1
+strip = true
+lto = true
+panic = "abort"
+opt-level = "s"
 `;
 }
 
-export { generateContractCode, generateCargoToml, generateTestFile };
+function generateContractSetupReadme(config: z.infer<typeof StylusContractConfig>): string {
+  return `# Stylus Contract Setup
 
+## Quick Start
+
+1. Install cargo-stylus and the wasm target:
+   \`\`\`bash
+   cargo install cargo-stylus
+   rustup target add wasm32-unknown-unknown
+   \`\`\`
+
+2. Check that your contract compiles and passes Stylus validation:
+   \`\`\`bash
+   pnpm stylus:check
+   \`\`\`
+
+3. Deploy (see docs/STYLUS_CONTRACT_GUIDE.md for full instructions):
+   \`\`\`bash
+   pnpm stylus:deploy
+   \`\`\`
+
+## Customizing This Contract
+
+The \`src/lib.rs\` file contains the default Counter template. To implement your custom logic:
+
+1. Open \`docs/STYLUS_CONTRACT_GUIDE.md\` - it contains your instructions and LLM guidance
+2. Pass that file along with \`src/lib.rs\` to an LLM to generate your contract code
+3. Replace the contents of \`src/lib.rs\` with the LLM output
+4. Run \`pnpm stylus:check\` to verify
+`;
+}
+
+function generateStylusContractGuide(config: z.infer<typeof StylusContractConfig>): string {
+  const instructions = config.contractInstructions || 'No specific instructions provided.';
+
+  return `# Stylus Contract Deployment & Development Guide
+
+> Generated by Cradle - Web3 Foundation Builder
+
+---
+
+## Your Contract Instructions
+
+The following describes how you want your Stylus Rust contract to work. **Pass this entire markdown file to any LLM** (ChatGPT, Claude, etc.) to generate your contract code. The LLM will return new Rust code. **Paste that code into \`contracts/counter-contract/src/lib.rs\`** to replace the template.
+
+\`\`\`
+${instructions}
+\`\`\`
+
+---
+
+## Folder Structure (What You Have)
+
+Your repo includes the \`contracts/counter-contract\` folder. You only need to update \`src/lib.rs\`:
+
+\`\`\`
+contracts/
+└── counter-contract/
+    ├── .cargo/
+    │   └── config.toml      # Build config (no changes needed)
+    ├── .env.example         # Copy to .env and add PRIV_KEY_PATH, RPC_URL
+    ├── .gitignore
+    ├── Cargo.toml           # Dependencies (no changes needed)
+    ├── rust-toolchain.toml
+    ├── src/
+    │   ├── lib.rs           # ← PASTE YOUR LLM-GENERATED CONTRACT HERE
+    │   └── main.rs          # Entrypoint (no changes needed)
+    └── README.md
+
+docs/
+└── STYLUS_CONTRACT_GUIDE.md   # This file
+\`\`\`
+
+### Step-by-Step: Generate Your Contract
+
+1. **Pass this markdown file** to an LLM (ChatGPT, Claude, etc.) along with the current \`counter-contract/src/lib.rs\` content
+2. **Ask the LLM** to generate a new contract based on "Your Contract Instructions" above
+3. **Copy the LLM output** (the complete Rust code)
+4. **Paste it into** \`counter-contract/src/lib.rs\`, replacing the entire file
+5. **Verify** with \`pnpm stylus:check\`
+6. **Deploy** with \`pnpm stylus:deploy\`
+
+---
+
+## Instructions for LLM
+
+**Task**: Generate a complete Stylus Rust contract based on "Your Contract Instructions" above. The output will be pasted into \`contracts/counter-contract/src/lib.rs\`.
+
+**Requirements**:
+1. Replace the Counter logic with the contract logic described in "Your Contract Instructions"
+2. Keep the Stylus SDK imports and \`sol_storage!\` / \`#[public]\` patterns
+3. Ensure the contract compiles with \`cargo stylus check\`
+4. Keep the compressed WASM under 24KB (see troubleshooting below)
+5. Preserve \`#![cfg_attr(not(any(test, feature = "export-abi")), no_main)]\`, \`#[entrypoint]\`, and \`#[public]\` / \`#[payable]\` attributes as needed
+6. Include \`extern crate alloc\` and \`use stylus_sdk::prelude::*\`
+
+**Output**: Return the complete \`lib.rs\` code ready to paste (no markdown code fences, no extra text).
+
+---
+
+## Deployment Steps
+
+### 1. Prerequisites
+
+\`\`\`bash
+# Install Rust (if not installed)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install cargo-stylus
+cargo install cargo-stylus
+
+# Add WASM target
+rustup target add wasm32-unknown-unknown
+\`\`\`
+
+### 2. Validate Contract
+
+\`\`\`bash
+cd counter-contract
+cargo stylus check
+\`\`\`
+
+Success output:
+\`\`\`
+Contract succeeded Stylus onchain activation checks with Stylus version: 1
+\`\`\`
+
+### 3. Deploy to Arbitrum Sepolia (Testnet)
+
+\`\`\`bash
+cd contracts/counter-contract
+cargo stylus deploy \\
+  --private-key-path=/path/to/your/key.txt \\
+  --endpoint="https://sepolia-rollup.arbitrum.io/rpc"
+\`\`\`
+
+### 4. Deploy to Arbitrum One (Mainnet)
+
+\`\`\`bash
+cd contracts/counter-contract
+cargo stylus deploy \\
+  --private-key-path=/path/to/your/key.txt \\
+  --endpoint="https://arb1.arbitrum.io/rpc"
+\`\`\`
+
+### 5. Export ABI
+
+\`\`\`bash
+cd contracts/counter-contract
+cargo stylus export-abi --output=./abi.json --json
+\`\`\`
+
+---
+
+## Error Troubleshooting
+
+### Contract Exceeds 24KB After Compression
+
+**Error**: \`Contract exceeds 24KB after compression\` or similar size limit message.
+
+**Cause**: Stylus contracts must fit within Ethereum's 24KB [code-size limit](https://ethereum.org/en/developers/tutorials/downsizing-contracts-to-fight-the-contract-size-limit/).
+
+**Solutions**:
+- Remove unused code and dependencies from \`Cargo.toml\`
+- Use \`#[no_std]\` to avoid the Rust standard library
+- Set \`opt-level = "z"\` or \`opt-level = "s"\` in \`[profile.release]\`
+- Split logic across multiple smaller contracts
+- See [Cargo Stylus OPTIMIZING_BINARIES.md](https://github.com/OffchainLabs/stylus-sdk-rs/blob/main/cargo-stylus/OPTIMIZING_BINARIES.md)
+
+---
+
+### max fee per gas less than block base fee
+
+**Error**: \`Execution failed: {'code': -32000, 'message': 'failed with gas: max fee per gas less than block base fee'\`
+
+**Cause**: The Arbitrum network (especially Sepolia testnet) is congested. Your gas price is too low.
+
+**Solutions**:
+- Wait and retry when the network is less congested
+- Use a higher gas price (cargo stylus may not expose this directly - check for \`--gas-price\` or similar flags)
+- Ensure you have sufficient ETH for gas on Arbitrum Sepolia (get testnet ETH from [faucet](https://docs.arbitrum.io/stylus/reference/testnet-information))
+- Try deploying during off-peak hours
+
+---
+
+### binary exports reserved symbol / WASM Validation Errors
+
+**Error**: \`binary exports reserved symbol stylus_ink_left\` or \`failed to parse contract\`
+
+**Cause**: The WASM binary uses reserved symbols or invalid exports for Stylus.
+
+**Solutions**:
+- Ensure you're using a supported version of \`stylus-sdk\` (check [stylus-sdk-rs](https://github.com/OffchainLabs/stylus-sdk-rs))
+- Don't manually export Stylus-internal symbols
+- Run \`cargo stylus check\` to validate before deploying
+- See [VALID_WASM.md](https://github.com/OffchainLabs/stylus-sdk-rs/blob/main/cargo-stylus/VALID_WASM.md)
+
+---
+
+### Activation Failures
+
+**Error**: Contract deployment succeeds but activation fails.
+
+**Solutions**:
+- Verify with \`cargo stylus check\` first
+- Ensure sufficient funds for both deploy and activate (two transactions)
+- Check contract doesn't exceed size or feature limitations
+- Verify RPC endpoint is correct and reachable
+
+---
+
+### Insufficient Funds
+
+**Error**: Transaction reverted or insufficient balance.
+
+**Solutions**:
+- Get Arbitrum Sepolia testnet ETH from the [faucet](https://docs.arbitrum.io/stylus/reference/testnet-information)
+- For mainnet, ensure your wallet has enough ETH on Arbitrum One
+
+---
+
+## Reference & Support
+
+- **[Stylus by Example](https://stylus-by-example.org/)** – Code examples and tutorials
+- **[Arbitrum Stylus Docs](https://docs.arbitrum.io/stylus/gentle-introduction)** – Official documentation
+- **[Arbitrum Discord](https://discord.com/channels/585084330037084172/1146789176939909251)** – Stylus dev channel
+- **[Arbitrum Stylus Telegram](https://t.me/arbitrum_stylus)** – Community chat
+- **[Cargo Stylus README](https://github.com/OffchainLabs/stylus-sdk-rs/blob/main/cargo-stylus/README.md)** – CLI reference
+- **[GitHub Issues](https://github.com/OffchainLabs/stylus-sdk-rs/issues)** – Report bugs
+
+---
+
+## Testnet Information
+
+RPC endpoints, faucets, and chain IDs: [Arbitrum Stylus Testnet Info](https://docs.arbitrum.io/stylus/reference/testnet-information)
+`;
+}

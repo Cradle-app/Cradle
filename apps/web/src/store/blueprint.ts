@@ -46,10 +46,8 @@ interface BlueprintState {
 const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
   // Original nodes
   'stylus-contract': {
-    contractName: 'MyContract',
-    contractType: 'custom',
-    features: ['ownable'],
-    testCoverage: true,
+    contractName: 'my-contract',
+    contractInstructions: 'Describe your contract logic here. For example: a simple counter with increment and decrement, or a vending machine with cooldowns.',
   },
   'stylus-zk-contract': {
     contractName: 'MyZKToken',

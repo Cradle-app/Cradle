@@ -7,10 +7,8 @@
       "type": "stylus-contract",
       "position": { "x": 100, "y": 100 },
       "config": {
-        "contractName": "NFTMarketplace",
-        "contractType": "erc721",
-        "features": ["ownable", "pausable", "reentrancy-guard"],
-        "testCoverage": true
+        "contractName": "nft-marketplace",
+        "contractInstructions": "An NFT marketplace contract with ERC-721 support, ownable, pausable, and reentrancy guard. List, buy, and delist NFTs."
       }
     },
     {

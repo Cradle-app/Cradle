@@ -82,10 +82,8 @@ const validNodeTypes = [
 // Default node configs matching the blueprint store
 const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
   'stylus-contract': {
-    contractName: 'MyContract',
-    contractType: 'custom',
-    features: ['ownable'],
-    testCoverage: true,
+    contractName: 'my-contract',
+    contractInstructions: 'Describe your contract logic. Example: a counter with increment/decrement, or a token with mint/burn.',
   },
   'stylus-zk-contract': {
     contractName: 'MyZKToken',
@@ -418,7 +416,7 @@ export function getAvailableNodeTypesContext(): string {
 Available components for building Web3 applications on Arbitrum:
 
 CONTRACTS:
-- stylus_contract: Rust/WASM smart contract for Arbitrum Stylus
+- stylus_contract: Stylus contract - provide instructions, get markdown guide + counter template for LLM-assisted code gen
 - stylus_zk_contract: Privacy-preserving contract with ZK proofs
 - stylus_rust_contract: Build and deploy Rust contracts on Stylus
 - smartcache_caching: Enable contract caching for cheaper gas costs

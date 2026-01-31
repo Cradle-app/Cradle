@@ -7,10 +7,8 @@
       "type": "stylus-contract",
       "position": { "x": 100, "y": 200 },
       "config": {
-        "contractName": "MyToken",
-        "contractType": "erc20",
-        "features": ["ownable", "pausable"],
-        "testCoverage": true
+        "contractName": "my-token",
+        "contractInstructions": "An ERC-20 token with minting, burning, and transfer. Include ownable and pausable features."
       }
     },
     {

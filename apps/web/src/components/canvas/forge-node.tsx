@@ -212,13 +212,13 @@ function ForgeNodeComponent({ id, data, selected }: NodeProps) {
 
         {/* Tags */}
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {nodeType === 'stylus-contract' && data.contractType && (
+          {nodeType === 'stylus-contract' && (data.contractName || data.contractInstructions) && (
             <span className={cn(
-              'text-[10px] px-2 py-1 rounded-md font-mono uppercase tracking-wide',
+              'text-[10px] px-2 py-1 rounded-md font-mono tracking-wide truncate max-w-[120px]',
               'bg-forge-bg/60 border border-white/5',
               colors.text
-            )}>
-              {String(data.contractType)}
+            )} title={data.contractInstructions as string}>
+              {String(data.contractName || 'Stylus')}
             </span>
           )}
 

@@ -10,7 +10,7 @@ import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'Cradle - Web3 Foundation Builder',
-  description: 'Build your Web3 project foundation visually. Define architecture, generate production-ready code, then fine-tune with AI.',
+  description: 'Build your Web3 project foundation visually. Define architecture, generate clean structured code, then fine-tune with AI.',
   icons: {
     icon: '/favicon.ico',
   },
