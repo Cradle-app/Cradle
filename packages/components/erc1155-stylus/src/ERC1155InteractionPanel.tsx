@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { cn } from './cn';
 import { useAccount, useWalletClient, usePublicClient, useSwitchChain } from 'wagmi';
-import { arbitrum, arbitrumSepolia, type Chain } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia } from 'viem/chains';
+import type { Chain } from 'viem';
 
 // Define custom Superposition chains
 const superposition: Chain = {

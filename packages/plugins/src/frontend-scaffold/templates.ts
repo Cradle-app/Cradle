@@ -458,6 +458,7 @@ export function generateWalletButton(config: Config): string {
 
 /**
  * Generate tailwind.config.js
+ * Includes Cradle's forge-* theme colors for proper interaction panel styling
  */
 export function generateTailwindConfig(config: Config): string {
   return dedent(`
@@ -470,6 +471,31 @@ export function generateTailwindConfig(config: Config): string {
       theme: {
         extend: {
           colors: {
+            // Cradle dark theme - deep space aesthetic (required for interaction panels)
+            forge: {
+              bg: '#050508',
+              surface: '#0c0c12',
+              elevated: '#141420',
+              border: '#1e1e2e',
+              muted: '#5a5a7a',
+              text: '#e4e4ef',
+            },
+            accent: {
+              cyan: '#00d4ff',
+              magenta: '#c026d3',
+              lime: '#22c55e',
+              amber: '#f59e0b',
+              coral: '#f43f5e',
+              purple: '#8b5cf6',
+            },
+            node: {
+              contracts: '#00d4ff',
+              payments: '#f59e0b',
+              agents: '#c026d3',
+              app: '#22c55e',
+              quality: '#f43f5e',
+              intelligence: '#8b5cf6',
+            },
             primary: {
               50: '#eef2ff',
               100: '#e0e7ff',
@@ -483,6 +509,10 @@ export function generateTailwindConfig(config: Config): string {
               900: '#312e81',
               950: '#1e1b4b',
             },
+          },
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
           },
         },
       },
@@ -513,14 +543,14 @@ export function generateGlobalStyles(config: Config): string {
   if (config.styling === 'tailwind') {
     return dedent(`
       @tailwind base;
-      @tailwind components;
-      @tailwind utilities;
+  @tailwind components;
+  @tailwind utilities;
 
       :root {
-        --foreground-rgb: 0, 0, 0;
-        --background-start-rgb: 255, 255, 255;
-        --background-end-rgb: 245, 245, 245;
-      }
+    --foreground - rgb: 0, 0, 0;
+    --background - start - rgb: 255, 255, 255;
+    --background - end - rgb: 245, 245, 245;
+  }
 
       ${config.darkModeSupport ? `
       @media (prefers-color-scheme: dark) {
@@ -536,44 +566,45 @@ export function generateGlobalStyles(config: Config): string {
         --background-start-rgb: 0, 0, 0;
         --background-end-rgb: 0, 0, 0;
       }
-      ` : ''}
+      ` : ''
+      }
 
       body {
-        color: rgb(var(--foreground-rgb));
-        background: linear-gradient(
-            to bottom,
-            transparent,
-            rgb(var(--background-end-rgb))
+    color: rgb(var(--foreground - rgb));
+    background: linear - gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background - end - rgb))
           )
-          rgb(var(--background-start-rgb));
-      }
-    `);
+    rgb(var(--background - start - rgb));
+  }
+  `);
   }
 
   // Vanilla CSS
   return dedent(`
     * {
-      box-sizing: border-box;
-      padding: 0;
-      margin: 0;
-    }
+    box- sizing: border - box;
+  padding: 0;
+  margin: 0;
+}
 
-    html,
-    body {
-      max-width: 100vw;
-      overflow-x: hidden;
-    }
+html,
+  body {
+  max - width: 100vw;
+  overflow - x: hidden;
+}
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-        Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    }
+  font - family: -apple - system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans - serif;
+}
 
     a {
-      color: inherit;
-      text-decoration: none;
-    }
-  `);
+  color: inherit;
+  text - decoration: none;
+}
+`);
 }
 
 /**
@@ -581,14 +612,14 @@ export function generateGlobalStyles(config: Config): string {
  */
 export function generateEnvTypes(config: Config): string {
   return dedent(`
-    declare namespace NodeJS {
-      interface ProcessEnv {
+declare namespace NodeJS {
+  interface ProcessEnv {
         ${config.walletConnect ? `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: string;` : ''}
-        NEXT_PUBLIC_APP_NAME?: string;
+  NEXT_PUBLIC_APP_NAME ?: string;
         ${config.includeContracts ? `NEXT_PUBLIC_CONTRACT_ADDRESS?: string;` : ''}
-      }
+}
     }
-  `);
+`);
 }
 
 /**
@@ -597,14 +628,67 @@ export function generateEnvTypes(config: Config): string {
  */
 export function generateUtils(): string {
   return dedent(`
-    import { clsx, type ClassValue } from 'clsx';
-    import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-    /**
-     * Merge class names with tailwind-merge for proper Tailwind CSS class handling
-     */
-    export function cn(...inputs: ClassValue[]) {
-      return twMerge(clsx(inputs));
-    }
-  `);
+/**
+ * Merge class names with tailwind-merge for proper Tailwind CSS class handling
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
+`);
+}
+
+/**
+ * Generate types/viem.d.ts - Type declarations for viem module
+ * Required when viem package is missing .d.ts files
+ */
+export function generateViemTypes(): string {
+  return dedent(`
+declare module 'viem' {
+  export interface Chain {
+    id: number;
+    name: string;
+    nativeCurrency: {
+      decimals: number;
+      name: string;
+      symbol: string;
+    };
+    rpcUrls: {
+      default: { http: readonly string[] };
+      [key: string]: { http: readonly string[] } | undefined;
+    };
+    blockExplorers?: {
+      default: { name: string; url: string };
+      [key: string]: { name: string; url: string } | undefined;
+    };
+    testnet?: boolean;
+  }
+}
+`);
+}
+
+/**
+ * Generate types/viem-chains.d.ts - Type declarations for viem/chains module
+ * Required when viem package is missing .d.ts files
+ */
+export function generateViemChainsTypes(): string {
+  return dedent(`
+import type { Chain } from 'viem';
+
+declare module 'viem/chains' {
+  export const mainnet: Chain;
+  export const sepolia: Chain;
+  export const arbitrum: Chain;
+  export const arbitrumSepolia: Chain;
+  export const polygon: Chain;
+  export const polygonMumbai: Chain;
+  export const optimism: Chain;
+  export const optimismSepolia: Chain;
+  export const base: Chain;
+  export const baseSepolia: Chain;
+}
+`);
+}
+

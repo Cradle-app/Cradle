@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAccount, useWalletClient, usePublicClient, useSwitchChain } from 'wagmi';
-import { arbitrum, arbitrumSepolia, type Chain } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia } from 'viem/chains';
+import type { Chain } from 'viem';
 
 // Define custom Superposition chains
 const superposition: Chain = {
@@ -188,7 +189,7 @@ export function ERC721InteractionPanel({
   const isUsingDefaultContract = defaultAddress && contractAddress === defaultAddress;
   const hasDefaultContract = !!defaultAddress;
   const displayExplorerUrl = explorerUrl;
-  
+
   // Update contract address when network changes
   useEffect(() => {
     const newDefault = DEFAULT_CONTRACT_ADDRESSES[selectedNetwork];
@@ -249,12 +250,12 @@ export function ERC721InteractionPanel({
 
   const getWriteContract = useCallback(async () => {
     console.log('[ERC721] getWriteContract called', { contractAddress, walletConnected, currentChainId: currentChain?.id, targetChainId: networkConfig.chainId });
-    
+
     if (!contractAddress) {
       console.error('[ERC721] No contract address');
       throw new Error('No contract address specified');
     }
-    
+
     if (!walletConnected) {
       console.error('[ERC721] Wallet not connected');
       throw new Error('Please connect your wallet first');
@@ -266,11 +267,11 @@ export function ERC721InteractionPanel({
       console.error('[ERC721] No ethereum provider found');
       throw new Error('No wallet detected. Please install MetaMask.');
     }
-    
+
     // Switch chain if necessary
     const targetChainIdHex = `0x${networkConfig.chainId.toString(16)}`;
     console.log('[ERC721] Current chain:', currentChain?.id, 'Target chain:', networkConfig.chainId);
-    
+
     if (currentChain?.id !== networkConfig.chainId) {
       console.log('[ERC721] Switching chain to', networkConfig.name);
       try {
@@ -308,13 +309,13 @@ export function ERC721InteractionPanel({
         }
       }
     }
-    
+
     // Use ethers with window.ethereum directly for better compatibility
     console.log('[ERC721] Creating provider and signer...');
     const provider = new ethers.BrowserProvider(ethereum);
     const signer = await provider.getSigner();
     console.log('[ERC721] Signer address:', await signer.getAddress());
-    
+
     const contract = new ethers.Contract(contractAddress, ERC721_ABI, signer);
     console.log('[ERC721] Contract created at:', contractAddress);
     return contract;
@@ -390,19 +391,19 @@ export function ERC721InteractionPanel({
     successMessage: string
   ) => {
     console.log('[ERC721] handleTransaction called, walletConnected:', walletConnected, 'txStatus:', txStatus.status);
-    
+
     if (txStatus.status === 'pending') {
       console.log('[ERC721] Transaction already pending, skipping');
       return;
     }
-    
+
     if (!walletConnected) {
       console.log('[ERC721] Wallet not connected');
       setTxStatus({ status: 'error', message: 'Please connect your wallet first' });
       setTimeout(() => setTxStatus({ status: 'idle', message: '' }), 5000);
       return;
     }
-    
+
     try {
       setTxStatus({ status: 'pending', message: 'Confirming...' });
       console.log('[ERC721] Executing operation...');

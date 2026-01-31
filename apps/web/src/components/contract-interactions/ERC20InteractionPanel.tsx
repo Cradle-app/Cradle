@@ -20,7 +20,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAccount, useWalletClient, usePublicClient, useSwitchChain } from 'wagmi';
-import { arbitrum, arbitrumSepolia, type Chain } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia } from 'viem/chains';
+import type { Chain } from 'viem';
 
 // Define custom Superposition chains
 const superposition: Chain = {
@@ -180,7 +181,7 @@ export function ERC20InteractionPanel({
   const isUsingDefaultContract = defaultAddress && contractAddress === defaultAddress;
   const hasDefaultContract = !!defaultAddress;
   const displayExplorerUrl = explorerUrl;
-  
+
   // Update contract address when network changes
   useEffect(() => {
     const newDefault = DEFAULT_CONTRACT_ADDRESSES[selectedNetwork];
@@ -241,12 +242,12 @@ export function ERC20InteractionPanel({
 
   const getWriteContract = useCallback(async () => {
     console.log('[ERC20] getWriteContract called', { contractAddress, walletConnected, currentChainId: currentChain?.id, targetChainId: networkConfig.chainId });
-    
+
     if (!contractAddress) {
       console.error('[ERC20] No contract address');
       throw new Error('No contract address specified');
     }
-    
+
     if (!walletConnected) {
       console.error('[ERC20] Wallet not connected');
       throw new Error('Please connect your wallet first');
@@ -258,11 +259,11 @@ export function ERC20InteractionPanel({
       console.error('[ERC20] No ethereum provider found');
       throw new Error('No wallet detected. Please install MetaMask.');
     }
-    
+
     // Switch chain if necessary
     const targetChainIdHex = `0x${networkConfig.chainId.toString(16)}`;
     console.log('[ERC20] Current chain:', currentChain?.id, 'Target chain:', networkConfig.chainId);
-    
+
     if (currentChain?.id !== networkConfig.chainId) {
       console.log('[ERC20] Switching chain to', networkConfig.name);
       try {
@@ -298,12 +299,12 @@ export function ERC20InteractionPanel({
         }
       }
     }
-    
+
     console.log('[ERC20] Creating provider and signer...');
     const provider = new ethers.BrowserProvider(ethereum);
     const signer = await provider.getSigner();
     console.log('[ERC20] Signer address:', await signer.getAddress());
-    
+
     const contract = new ethers.Contract(contractAddress, ERC20_ABI, signer);
     console.log('[ERC20] Contract created at:', contractAddress);
     return contract;
@@ -383,12 +384,12 @@ export function ERC20InteractionPanel({
     successMessage: string
   ) => {
     console.log('[ERC20] handleTransaction called, walletConnected:', walletConnected, 'txStatus:', txStatus.status);
-    
+
     if (txStatus.status === 'pending') {
       console.log('[ERC20] Transaction already pending, skipping');
       return;
     }
-    
+
     if (!walletConnected) {
       console.log('[ERC20] Wallet not connected');
       setTxStatus({ status: 'error', message: 'Please connect your wallet first' });

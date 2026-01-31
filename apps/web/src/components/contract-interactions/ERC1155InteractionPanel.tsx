@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAccount, useWalletClient, usePublicClient, useSwitchChain } from 'wagmi';
-import { arbitrum, arbitrumSepolia, type Chain } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia } from 'viem/chains';
+import type { Chain } from 'viem';
 
 // Define custom Superposition chains
 const superposition: Chain = {
@@ -238,12 +239,12 @@ export function ERC1155InteractionPanel({
 
   const getWriteContract = useCallback(async () => {
     console.log('[ERC1155] getWriteContract called', { contractAddress, walletConnected, currentChainId: currentChain?.id, targetChainId: networkConfig.chainId });
-    
+
     if (!contractAddress) {
       console.error('[ERC1155] No contract address');
       throw new Error('No contract address specified');
     }
-    
+
     if (!walletConnected) {
       console.error('[ERC1155] Wallet not connected');
       throw new Error('Please connect your wallet first');
@@ -255,11 +256,11 @@ export function ERC1155InteractionPanel({
       console.error('[ERC1155] No ethereum provider found');
       throw new Error('No wallet detected. Please install MetaMask.');
     }
-    
+
     // Switch chain if necessary
     const targetChainIdHex = `0x${networkConfig.chainId.toString(16)}`;
     console.log('[ERC1155] Current chain:', currentChain?.id, 'Target chain:', networkConfig.chainId);
-    
+
     if (currentChain?.id !== networkConfig.chainId) {
       console.log('[ERC1155] Switching chain to', networkConfig.name);
       try {
@@ -295,12 +296,12 @@ export function ERC1155InteractionPanel({
         }
       }
     }
-    
+
     console.log('[ERC1155] Creating provider and signer...');
     const provider = new ethers.BrowserProvider(ethereum);
     const signer = await provider.getSigner();
     console.log('[ERC1155] Signer address:', await signer.getAddress());
-    
+
     const contract = new ethers.Contract(contractAddress, ERC1155_ABI, signer);
     console.log('[ERC1155] Contract created at:', contractAddress);
     return contract;
@@ -379,12 +380,12 @@ export function ERC1155InteractionPanel({
     successMessage: string
   ) => {
     console.log('[ERC1155] handleTransaction called, walletConnected:', walletConnected, 'txStatus:', txStatus.status);
-    
+
     if (txStatus.status === 'pending') {
       console.log('[ERC1155] Transaction already pending, skipping');
       return;
     }
-    
+
     if (!walletConnected) {
       console.log('[ERC1155] Wallet not connected');
       setTxStatus({ status: 'error', message: 'Please connect your wallet first' });

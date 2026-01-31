@@ -39,7 +39,7 @@ export class ERC721StylusPlugin extends BasePlugin<z.infer<typeof ERC721StylusCo
 
   /**
    * Path mappings for intelligent file routing when frontend-scaffold is present
-   * Only copies the interaction panel and cn utility - other static files are not needed
+   * Copies the interaction panel and cn utility together
    */
   readonly componentPathMappings: Record<string, PathCategory> = {
     'src/ERC721InteractionPanel.tsx': 'frontend-components',

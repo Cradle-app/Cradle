@@ -5,7 +5,7 @@ import { ReactFlowProvider } from 'reactflow';
 import { useState, useEffect } from 'react';
 import { ToastProvider } from '@/components/ui/toaster';
 import { WagmiProvider, http, useAccount } from 'wagmi';
-import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia } from 'viem/chains';
 import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { useAuthStore } from '@/store/auth';
