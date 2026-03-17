@@ -27,7 +27,24 @@ export const metadata: Metadata = {
   openGraph: {
     title: '[N]skills - Web3 Skills Composer',
     description: 'Compose N skills for your Web3 project visually. Define architecture, generate a skills repo, then let Claude Code scaffold the full project.',
+    url: 'https://www.nskills.xyz',
+    siteName: '[N]skills',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: '[N]skills - Web3 Skills Composer',
+      },
+    ],
+    locale: 'en_US',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '[N]skills - Web3 Skills Composer',
+    description: 'Compose N skills for your Web3 project visually. Define architecture, generate a skills repo, then let Claude Code scaffold the full project.',
+    images: ['/og-image.png'],
   },
 };
 
