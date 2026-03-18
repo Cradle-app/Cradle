@@ -473,8 +473,8 @@ PAYMENTS:
 AGENTS:
 - erc8004_agent: AI agent with on-chain registry (ERC-8004)
 - eigenai_agent: EigenAI LLM agent with signed responses and verification helpers
-- ostium_trading: One-click trading setup for Ostium
-- maxxit_lazy_trader: Maxxit Lazy Trader API integration
+- ostium_trading: One-click trading setup for Ostium (execution layer for trades)
+- maxxit_lazy_trader: Maxxit Lazy Trader API integration (usually paired with wallet_auth and frontend_scaffold as a Maxxit API starter)
 - onchain_activity: Fetch wallet transactions by category
 
 APP:

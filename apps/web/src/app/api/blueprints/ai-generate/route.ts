@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAvailableNodeTypesContext } from '@/lib/ai-workflow-converter';
+import { NextRequest, NextResponse } from "next/server";
+import { getAvailableNodeTypesContext } from "@/lib/ai-workflow-converter";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 // System prompt for the AI
 const SYSTEM_PROMPT = `You are a friendly Web3 application architect assistant for [N]skills, a visual skills composer for Arbitrum dApps.
@@ -52,6 +52,7 @@ Examples of BUILD REQUEST intents:
 - "Market momentum dashboard with AIXBT"
 - "Smart trading bot with Indigo research"
 - "Project alert system using AIXBT signals"
+- "Maxxit API app with wallet auth and a frontend"
 
 For Intelligence-related requests, prioritize these components:
 - aixbt_momentum: Use for market heat, trending projects, and cluster data.
@@ -67,14 +68,14 @@ interface AITool {
 }
 
 interface AIWorkflowResponse {
-  type?: 'workflow';
+  type?: "workflow";
   tools: AITool[];
   description: string;
   has_sequential_execution: boolean;
 }
 
 interface AIMessageResponse {
-  type: 'message';
+  type: "message";
   content: string;
 }
 
@@ -115,41 +116,69 @@ function isConversationalQuery(query: string): boolean {
   const lowerQuery = query.toLowerCase().trim();
 
   // Common greetings
-  const greetings = ['hello', 'hi', 'hey', 'hola', 'howdy', 'greetings', 'good morning', 'good afternoon', 'good evening', 'sup', 'yo', 'hii', 'hiii', 'heya', 'heyo'];
-  if (greetings.some(g => lowerQuery === g || lowerQuery.startsWith(g + ' ') || lowerQuery.startsWith(g + '!'))) {
+  const greetings = [
+    "hello",
+    "hi",
+    "hey",
+    "hola",
+    "howdy",
+    "greetings",
+    "good morning",
+    "good afternoon",
+    "good evening",
+    "sup",
+    "yo",
+    "hii",
+    "hiii",
+    "heya",
+    "heyo",
+  ];
+  if (
+    greetings.some(
+      (g) =>
+        lowerQuery === g ||
+        lowerQuery.startsWith(g + " ") ||
+        lowerQuery.startsWith(g + "!"),
+    )
+  ) {
     return true;
   }
 
   // Help/question patterns
   const helpPatterns = [
-    'what can you do',
-    'how do you work',
-    'how does this work',
-    'help me',
-    'what is this',
-    'who are you',
-    'what are you',
-    'can you help',
-    'i need help',
-    'how to use',
-    'what should i',
-    'thanks',
-    'thank you',
-    'okay',
-    'ok',
-    'cool',
-    'nice',
-    'great',
-    'awesome',
-    'got it',
+    "what can you do",
+    "how do you work",
+    "how does this work",
+    "help me",
+    "what is this",
+    "who are you",
+    "what are you",
+    "can you help",
+    "i need help",
+    "how to use",
+    "what should i",
+    "thanks",
+    "thank you",
+    "okay",
+    "ok",
+    "cool",
+    "nice",
+    "great",
+    "awesome",
+    "got it",
   ];
 
-  if (helpPatterns.some(p => lowerQuery.includes(p))) {
+  if (helpPatterns.some((p) => lowerQuery.includes(p))) {
     return true;
   }
 
   // Very short queries that aren't build commands
-  if (lowerQuery.length < 10 && !lowerQuery.includes('build') && !lowerQuery.includes('create') && !lowerQuery.includes('make')) {
+  if (
+    lowerQuery.length < 10 &&
+    !lowerQuery.includes("build") &&
+    !lowerQuery.includes("create") &&
+    !lowerQuery.includes("make")
+  ) {
     return true;
   }
 
@@ -161,37 +190,72 @@ function generateConversationalResponse(query: string): AIMessageResponse {
   const lowerQuery = query.toLowerCase().trim();
 
   // Greetings
-  if (['hello', 'hi', 'hey', 'hola', 'howdy', 'sup', 'yo', 'hii', 'hiii', 'heya', 'heyo'].some(g => lowerQuery.startsWith(g))) {
+  if (
+    [
+      "hello",
+      "hi",
+      "hey",
+      "hola",
+      "howdy",
+      "sup",
+      "yo",
+      "hii",
+      "hiii",
+      "heya",
+      "heyo",
+    ].some((g) => lowerQuery.startsWith(g))
+  ) {
     const responses = [
       "Hey! 👋 I'm here to help you design Web3 apps on Arbitrum. What would you like to build today?",
       "Hi there! Ready to architect something awesome? Tell me what kind of dApp you want to create.",
       "Hello! I can help you design NFT marketplaces, DeFi dashboards, Telegram bots, and more. What's on your mind?",
     ];
-    return { type: 'message', content: responses[Math.floor(Math.random() * responses.length)] };
+    return {
+      type: "message",
+      content: responses[Math.floor(Math.random() * responses.length)],
+    };
   }
 
   // Help requests
-  if (lowerQuery.includes('help') || lowerQuery.includes('what can you do') || lowerQuery.includes('how')) {
+  if (
+    lowerQuery.includes("help") ||
+    lowerQuery.includes("what can you do") ||
+    lowerQuery.includes("how")
+  ) {
     return {
-      type: 'message',
-      content: "I can help you design Web3 application architectures! Just describe what you want to build, like:\n\n• \"NFT marketplace with wallet auth\"\n• \"DeFi dashboard with bridging\"\n• \"Telegram bot for crypto alerts\"\n• \"Trading agent on Ostium\"\n\nI'll suggest the right components and you can add them to your canvas.",
+      type: "message",
+      content:
+        'I can help you design Web3 application architectures! Just describe what you want to build, like:\n\n• "NFT marketplace with wallet auth"\n• "DeFi dashboard with bridging"\n• "Telegram bot for crypto alerts"\n• "Trading agent on Ostium"\n\nI\'ll suggest the right components and you can add them to your canvas.',
     };
   }
 
   // Thanks
-  if (lowerQuery.includes('thank') || lowerQuery.includes('thanks')) {
-    return { type: 'message', content: "You're welcome! Let me know if you need help with anything else. 🙂" };
+  if (lowerQuery.includes("thank") || lowerQuery.includes("thanks")) {
+    return {
+      type: "message",
+      content:
+        "You're welcome! Let me know if you need help with anything else. 🙂",
+    };
   }
 
   // Affirmations
-  if (['okay', 'ok', 'cool', 'nice', 'great', 'awesome', 'got it'].some(a => lowerQuery.includes(a))) {
-    return { type: 'message', content: "Great! Feel free to describe any Web3 app you'd like to build and I'll design an architecture for it." };
+  if (
+    ["okay", "ok", "cool", "nice", "great", "awesome", "got it"].some((a) =>
+      lowerQuery.includes(a),
+    )
+  ) {
+    return {
+      type: "message",
+      content:
+        "Great! Feel free to describe any Web3 app you'd like to build and I'll design an architecture for it.",
+    };
   }
 
   // Default
   return {
-    type: 'message',
-    content: "I'm not sure what you'd like to build. Could you describe your project? For example: \"I want to build an NFT marketplace\" or \"Create a DeFi dashboard with bridging\".",
+    type: "message",
+    content:
+      'I\'m not sure what you\'d like to build. Could you describe your project? For example: "I want to build an NFT marketplace" or "Create a DeFi dashboard with bridging".',
   };
 }
 
@@ -200,10 +264,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { user_query } = body;
 
-    if (!user_query || typeof user_query !== 'string') {
+    if (!user_query || typeof user_query !== "string") {
       return NextResponse.json(
-        { error: 'user_query is required' },
-        { status: 400 }
+        { error: "user_query is required" },
+        { status: 400 },
       );
     }
 
@@ -217,32 +281,37 @@ export async function POST(request: NextRequest) {
 
     if (!openaiApiKey) {
       // Return a mock response for demo purposes when no API key is configured
-      console.log('[AI-Generate] No OpenAI API key configured, returning mock response');
+      console.log(
+        "[AI-Generate] No OpenAI API key configured, returning mock response",
+      );
       return NextResponse.json(generateMockWorkflowResponse(user_query));
     }
 
     try {
       // Call OpenAI API
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openaiApiKey}`,
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openaiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: SYSTEM_PROMPT },
+              { role: "user", content: user_query },
+            ],
+            temperature: 0.7,
+            max_tokens: 1500,
+          }),
         },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: user_query },
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('[AI-Generate] OpenAI API error:', errorData);
+        console.error("[AI-Generate] OpenAI API error:", errorData);
         // Fall back to mock response
         return NextResponse.json(generateMockWorkflowResponse(user_query));
       }
@@ -257,12 +326,12 @@ export async function POST(request: NextRequest) {
       const parsedResponse = parseAIResponse(content);
 
       if (!parsedResponse) {
-        console.error('[AI-Generate] Failed to parse AI response:', content);
+        console.error("[AI-Generate] Failed to parse AI response:", content);
         return NextResponse.json(generateMockWorkflowResponse(user_query));
       }
 
       // Check if it's a message response
-      if ('type' in parsedResponse && parsedResponse.type === 'message') {
+      if ("type" in parsedResponse && parsedResponse.type === "message") {
         return NextResponse.json(parsedResponse);
       }
 
@@ -274,14 +343,14 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(workflowResponse);
     } catch (aiError) {
-      console.error('[AI-Generate] AI API error:', aiError);
+      console.error("[AI-Generate] AI API error:", aiError);
       return NextResponse.json(generateMockWorkflowResponse(user_query));
     }
   } catch (error) {
-    console.error('[AI-Generate] Request error:', error);
+    console.error("[AI-Generate] Request error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
     );
   }
 }
@@ -290,46 +359,120 @@ export async function POST(request: NextRequest) {
 function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   const lowerQuery = query.toLowerCase();
   const tools: AITool[] = [];
-  let description = '';
+  let description = "";
 
   // Detect patterns and build appropriate architecture
-  const hasNFT = lowerQuery.includes('nft') || lowerQuery.includes('erc721') || lowerQuery.includes('collectible');
-  const hasToken = lowerQuery.includes('token') || lowerQuery.includes('erc20');
-  const hasDeFi = lowerQuery.includes('defi') || lowerQuery.includes('trading') || lowerQuery.includes('swap') || lowerQuery.includes('yield');
-  const hasAI = lowerQuery.includes('ai') || lowerQuery.includes('agent') || lowerQuery.includes('bot');
-  const hasEigenAI = lowerQuery.includes('eigenai') || lowerQuery.includes('eigen ai') || lowerQuery.includes('eigen ai');
-  const hasTelegram = lowerQuery.includes('telegram') || lowerQuery.includes('notification') || lowerQuery.includes('alert');
-  const hasBridge = lowerQuery.includes('bridge') || lowerQuery.includes('l1') || lowerQuery.includes('l2') || lowerQuery.includes('cross-chain');
-  const hasIPFS = lowerQuery.includes('ipfs') || lowerQuery.includes('storage') || lowerQuery.includes('metadata');
-  const hasZK = lowerQuery.includes('zk') || lowerQuery.includes('privacy') || lowerQuery.includes('private');
-  const hasWallet = lowerQuery.includes('wallet') || lowerQuery.includes('login') || lowerQuery.includes('auth');
-  const hasFrontend = lowerQuery.includes('frontend') || lowerQuery.includes('ui') || lowerQuery.includes('dashboard') || lowerQuery.includes('app');
-  const hasOstium = lowerQuery.includes('ostium') || lowerQuery.includes('perpetual') || lowerQuery.includes('leverage') || lowerQuery.includes('1-click') || lowerQuery.includes('one-click') || lowerQuery.includes('1ct');
-  const hasMaxxit = lowerQuery.includes('maxxit') || lowerQuery.includes('lazy') || lowerQuery.includes('copy trad') || lowerQuery.includes('copy-trad') || lowerQuery.includes('social trading');
-  const hasERC8004 = lowerQuery.includes('erc8004') || lowerQuery.includes('erc-8004') || lowerQuery.includes('8004') || lowerQuery.includes('agent registry') || lowerQuery.includes('on-chain agent');
-  const hasMarketplace = lowerQuery.includes('marketplace') || lowerQuery.includes('buy') || lowerQuery.includes('sell');
-  const hasPaywall = lowerQuery.includes('paywall') || lowerQuery.includes('payment') || lowerQuery.includes('monetize') || lowerQuery.includes('premium');
-  const hasAnalytics = lowerQuery.includes('analytics') || lowerQuery.includes('activity') || lowerQuery.includes('transaction') || lowerQuery.includes('history');
+  const hasNFT =
+    lowerQuery.includes("nft") ||
+    lowerQuery.includes("erc721") ||
+    lowerQuery.includes("collectible");
+  const hasToken = lowerQuery.includes("token") || lowerQuery.includes("erc20");
+  const hasDeFi =
+    lowerQuery.includes("defi") ||
+    lowerQuery.includes("trading") ||
+    lowerQuery.includes("swap") ||
+    lowerQuery.includes("yield");
+  const hasAI =
+    lowerQuery.includes("ai") ||
+    lowerQuery.includes("agent") ||
+    lowerQuery.includes("bot");
+  const hasEigenAI =
+    lowerQuery.includes("eigenai") ||
+    lowerQuery.includes("eigen ai") ||
+    lowerQuery.includes("eigen ai");
+  const hasTelegram =
+    lowerQuery.includes("telegram") ||
+    lowerQuery.includes("notification") ||
+    lowerQuery.includes("alert");
+  const hasBridge =
+    lowerQuery.includes("bridge") ||
+    lowerQuery.includes("l1") ||
+    lowerQuery.includes("l2") ||
+    lowerQuery.includes("cross-chain");
+  const hasIPFS =
+    lowerQuery.includes("ipfs") ||
+    lowerQuery.includes("storage") ||
+    lowerQuery.includes("metadata");
+  const hasZK =
+    lowerQuery.includes("zk") ||
+    lowerQuery.includes("privacy") ||
+    lowerQuery.includes("private");
+  const hasWallet =
+    lowerQuery.includes("wallet") ||
+    lowerQuery.includes("login") ||
+    lowerQuery.includes("auth");
+  const hasFrontend =
+    lowerQuery.includes("frontend") ||
+    lowerQuery.includes("ui") ||
+    lowerQuery.includes("dashboard") ||
+    lowerQuery.includes("app");
+  const hasOstium =
+    lowerQuery.includes("ostium") ||
+    lowerQuery.includes("perpetual") ||
+    lowerQuery.includes("leverage") ||
+    lowerQuery.includes("1-click") ||
+    lowerQuery.includes("one-click") ||
+    lowerQuery.includes("1ct");
+  const hasMaxxit =
+    lowerQuery.includes("maxxit") ||
+    lowerQuery.includes("lazy") ||
+    lowerQuery.includes("copy trad") ||
+    lowerQuery.includes("copy-trad") ||
+    lowerQuery.includes("social trading");
+  const hasERC8004 =
+    lowerQuery.includes("erc8004") ||
+    lowerQuery.includes("erc-8004") ||
+    lowerQuery.includes("8004") ||
+    lowerQuery.includes("agent registry") ||
+    lowerQuery.includes("on-chain agent");
+  const hasMarketplace =
+    lowerQuery.includes("marketplace") ||
+    lowerQuery.includes("buy") ||
+    lowerQuery.includes("sell");
+  const hasPaywall =
+    lowerQuery.includes("paywall") ||
+    lowerQuery.includes("payment") ||
+    lowerQuery.includes("monetize") ||
+    lowerQuery.includes("premium");
+  const hasAnalytics =
+    lowerQuery.includes("analytics") ||
+    lowerQuery.includes("activity") ||
+    lowerQuery.includes("transaction") ||
+    lowerQuery.includes("history");
 
   let toolId = 1;
   const getToolId = () => `tool_${toolId++}`;
 
   // Always add wallet auth if building an app
-  if (hasWallet || hasFrontend || hasNFT || hasDeFi || hasMarketplace) {
+  if (
+    hasWallet ||
+    hasFrontend ||
+    hasNFT ||
+    hasDeFi ||
+    hasMarketplace ||
+    hasMaxxit
+  ) {
     tools.push({
       id: getToolId(),
-      type: 'wallet_auth',
-      name: 'Wallet Authentication',
+      type: "wallet_auth",
+      name: "Wallet Authentication",
       next_tools: [],
     });
   }
 
   // Add RPC provider for data-heavy apps
-  if (hasDeFi || hasNFT || hasBridge || hasMarketplace || hasAnalytics) {
+  if (
+    hasDeFi ||
+    hasNFT ||
+    hasBridge ||
+    hasMarketplace ||
+    hasAnalytics ||
+    hasMaxxit
+  ) {
     tools.push({
       id: getToolId(),
-      type: 'rpc_provider',
-      name: 'RPC Provider',
+      type: "rpc_provider",
+      name: "RPC Provider",
       next_tools: [],
     });
   }
@@ -338,8 +481,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasAnalytics) {
     tools.push({
       id: getToolId(),
-      type: 'onchain_activity',
-      name: 'Onchain Activity',
+      type: "onchain_activity",
+      name: "Onchain Activity",
       next_tools: [],
     });
   }
@@ -348,16 +491,16 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasNFT) {
     tools.push({
       id: getToolId(),
-      type: hasZK ? 'stylus_zk_contract' : 'stylus_contract',
-      name: hasZK ? 'Private NFT Contract' : 'NFT Smart Contract',
+      type: hasZK ? "stylus_zk_contract" : "stylus_contract",
+      name: hasZK ? "Private NFT Contract" : "NFT Smart Contract",
       next_tools: [],
     });
 
     if (hasIPFS || hasMarketplace) {
       tools.push({
         id: getToolId(),
-        type: 'ipfs_storage',
-        name: 'IPFS Metadata Storage',
+        type: "ipfs_storage",
+        name: "IPFS Metadata Storage",
         next_tools: [],
       });
     }
@@ -366,8 +509,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasToken && !hasNFT) {
     tools.push({
       id: getToolId(),
-      type: 'stylus_contract',
-      name: 'Token Contract',
+      type: "stylus_contract",
+      name: "Token Contract",
       next_tools: [],
     });
   }
@@ -375,8 +518,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasZK && !hasNFT) {
     tools.push({
       id: getToolId(),
-      type: 'zk_primitives',
-      name: 'ZK Privacy Proofs',
+      type: "zk_primitives",
+      name: "ZK Privacy Proofs",
       next_tools: [],
     });
   }
@@ -385,8 +528,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasOstium) {
     tools.push({
       id: getToolId(),
-      type: 'ostium_trading',
-      name: 'Ostium One-Click Trading',
+      type: "ostium_trading",
+      name: "Ostium One-Click Trading",
       next_tools: [],
     });
   }
@@ -394,8 +537,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasMaxxit) {
     tools.push({
       id: getToolId(),
-      type: 'maxxit_lazy_trader',
-      name: 'Maxxit Lazy Trader',
+      type: "maxxit_lazy_trader",
+      name: "Maxxit Lazy Trader",
       next_tools: [],
     });
   }
@@ -403,8 +546,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasBridge) {
     tools.push({
       id: getToolId(),
-      type: 'arbitrum_bridge',
-      name: 'Arbitrum Bridge',
+      type: "arbitrum_bridge",
+      name: "Arbitrum Bridge",
       next_tools: [],
     });
   }
@@ -412,8 +555,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasDeFi && !hasOstium && !hasMaxxit && !hasAnalytics) {
     tools.push({
       id: getToolId(),
-      type: 'chain_data',
-      name: 'On-Chain Data',
+      type: "chain_data",
+      name: "On-Chain Data",
       next_tools: [],
     });
   }
@@ -423,30 +566,30 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
     // Explicitly requested ERC-8004 agent
     tools.push({
       id: getToolId(),
-      type: 'erc8004_agent',
-      name: 'ERC-8004 AI Agent',
+      type: "erc8004_agent",
+      name: "ERC-8004 AI Agent",
       next_tools: [],
     });
   } else if (hasEigenAI) {
     tools.push({
       id: getToolId(),
-      type: 'eigenai_agent',
-      name: 'EigenAI Agent',
+      type: "eigenai_agent",
+      name: "EigenAI Agent",
       next_tools: [],
     });
   } else if (hasAI || hasEigenAI) {
     if (hasTelegram) {
       tools.push({
         id: getToolId(),
-        type: 'telegram_ai_agent',
-        name: 'Telegram AI Agent',
+        type: "telegram_ai_agent",
+        name: "Telegram AI Agent",
         next_tools: [],
       });
     } else {
       tools.push({
         id: getToolId(),
-        type: 'erc8004_agent',
-        name: 'ERC-8004 AI Agent',
+        type: "erc8004_agent",
+        name: "ERC-8004 AI Agent",
         next_tools: [],
       });
     }
@@ -456,14 +599,14 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasTelegram && !hasAI) {
     tools.push({
       id: getToolId(),
-      type: 'telegram_notifications',
-      name: 'Telegram Alerts',
+      type: "telegram_notifications",
+      name: "Telegram Alerts",
       next_tools: [],
     });
     tools.push({
       id: getToolId(),
-      type: 'telegram_wallet_link',
-      name: 'Wallet Link',
+      type: "telegram_wallet_link",
+      name: "Wallet Link",
       next_tools: [],
     });
   }
@@ -472,18 +615,18 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (hasPaywall) {
     tools.push({
       id: getToolId(),
-      type: 'x402_paywall',
-      name: 'Payment Paywall',
+      type: "x402_paywall",
+      name: "Payment Paywall",
       next_tools: [],
     });
   }
 
   // Frontend
-  if (hasFrontend || hasMarketplace || hasDeFi) {
+  if (hasFrontend || hasMarketplace || hasDeFi || hasMaxxit) {
     tools.push({
       id: getToolId(),
-      type: 'frontend_scaffold',
-      name: 'Next.js Frontend',
+      type: "frontend_scaffold",
+      name: "Next.js Frontend",
       next_tools: [],
     });
   }
@@ -492,8 +635,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (tools.length > 4) {
     tools.push({
       id: getToolId(),
-      type: 'sdk_generator',
-      name: 'TypeScript SDK',
+      type: "sdk_generator",
+      name: "TypeScript SDK",
       next_tools: [],
     });
   }
@@ -502,8 +645,8 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   if (tools.length > 3) {
     tools.push({
       id: getToolId(),
-      type: 'quality_gates',
-      name: 'Quality Gates',
+      type: "quality_gates",
+      name: "Quality Gates",
       next_tools: [],
     });
   }
@@ -511,11 +654,27 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
   // Default fallback if no specific patterns matched
   if (tools.length === 0) {
     tools.push(
-      { id: 'tool_1', type: 'wallet_auth', name: 'Wallet Authentication', next_tools: ['tool_2'] },
-      { id: 'tool_2', type: 'stylus_contract', name: 'Smart Contract', next_tools: ['tool_3'] },
-      { id: 'tool_3', type: 'frontend_scaffold', name: 'Next.js Frontend', next_tools: [] }
+      {
+        id: "tool_1",
+        type: "wallet_auth",
+        name: "Wallet Authentication",
+        next_tools: ["tool_2"],
+      },
+      {
+        id: "tool_2",
+        type: "stylus_contract",
+        name: "Smart Contract",
+        next_tools: ["tool_3"],
+      },
+      {
+        id: "tool_3",
+        type: "frontend_scaffold",
+        name: "Next.js Frontend",
+        next_tools: [],
+      },
     );
-    description = 'A basic dApp architecture with wallet authentication, smart contract, and frontend.';
+    description =
+      "A basic dApp architecture with wallet authentication, smart contract, and frontend.";
   }
 
   // Create connections (linear flow for simplicity)
@@ -525,13 +684,13 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
 
   // Generate description based on components
   if (!description) {
-    const componentNames = tools.map(t => t.name).join(', ');
+    const componentNames = tools.map((t) => t.name).join(", ");
     if (hasNFT && hasMarketplace) {
       description = `NFT marketplace architecture with ${componentNames}. This setup enables minting, trading, and displaying NFTs with proper metadata storage.`;
-    } else if (hasOstium) {
+    } else if (hasOstium && !hasMaxxit) {
       description = `Ostium one-click trading architecture with ${componentNames}. This enables perpetual trading with streamlined delegation and approval flows.`;
     } else if (hasMaxxit) {
-      description = `Maxxit lazy trading architecture with ${componentNames}. This enables copy trading and automated portfolio management via social trading strategies.`;
+      description = `Maxxit API starter architecture with ${componentNames}. This wires wallet authentication into Maxxit Lazy Trader and exposes a frontend for building Maxxit-powered apps.`;
     } else if (hasERC8004) {
       description = `ERC-8004 AI agent architecture with ${componentNames}. This enables on-chain agent registration with verifiable capabilities and rate limiting.`;
     } else if (hasDeFi) {

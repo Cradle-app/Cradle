@@ -47,7 +47,10 @@ const nodeTypes: NodeTypes = getPluginIds().reduce(
     acc[pluginId] = ForgeNode;
     return acc;
   },
-  {} as NodeTypes
+  {
+    // Keep legacy AI-generated stylus-contract nodes styled with ForgeNode
+    'stylus-contract': ForgeNode,
+  } as NodeTypes
 );
 
 // Custom edge types
