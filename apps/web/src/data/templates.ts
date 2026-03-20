@@ -281,52 +281,54 @@ export const TEMPLATES: Template[] = [
   },
 
   // ── 7. NFT Marketplace ─────────────────────────────────────────────────
-  // Flow: {stylus, erc721, erc1155} → {smartcache, auditware, ipfs, frontend, dune-nft, sdk} → {wallet, chain-data}
+  // Flow (core): {erc721} → {smartcache, auditware} → {frontend} → {wallet}
+  // Flow (ghost suggestions): {ipfs, dune-nft-floor, dune-tx-history, chain-data, openclaw-agent, paywall, agent-runtime, quality-gates}
   {
     id: "nft-marketplace",
     name: "NFT Marketplace",
     description:
-      "Custom Stylus marketplace contract + ERC-721/1155 + SmartCache + Radar + IPFS + analytics + history — agent + paywall as suggestions",
+      "ERC-721 + SmartCache + Radar (Auditware) + Wallet Auth + Frontend scaffold — IPFS, Dune analytics, chain indexing, agent, and paywall as suggestions",
     icon: "Image",
     colorClass: "accent-secondary",
     category: "nft",
-    tags: ["NFT", "Stylus", "Marketplace", "Caching", "Radar"],
+    tags: ["NFT", "ERC-721", "Caching", "Radar", "Wallet", "Frontend"],
     explainer:
-      "A custom Stylus marketplace contract handles listings, bids, and royalty splits — SmartCache reduces latency and gas costs by warming the marketplace contract cache, and Auditware (Radar) scans it for vulnerabilities. Pre-deployed ERC-721 and ERC-1155 (usable directly) handle NFT minting, with metadata pinned to IPFS. The frontend renders the marketplace UI with wallet auth, Dune NFT Floor tracks collection prices, chain-data indexes events, and Transaction History provides a full audit trail of activity.",
+      "Core blocks build a minimal marketplace backbone: ERC-721 defines the NFT asset layer, SmartCache reduces latency and gas by warming contract caches, Auditware (Radar) scans for vulnerabilities, and the Frontend + Wallet Auth provide the user interaction surface. Ghost nodes are optional marketplace extensions: IPFS for metadata storage pinning, Dune NFT Floor and Transaction History for analytics and audit trails, Chain Data for event indexing, an OpenClaw agent for execution workflows, and paywall + quality gates for monetization and CI safety.",
     nodes: [
-      // { type: 'stylus-rust-contract', position: { x: 0, y: 0 } },            // 0  T0
-      { type: "erc721-stylus", position: { x: 0, y: 340 } }, // 0  T0
-      // { type: 'erc1155-stylus', position: { x: 0, y: 160 } },           // 2  T0
+      { type: "erc721-stylus", position: { x: 0, y: 0 } }, // 0  T0
       { type: "smartcache-caching", position: { x: 360, y: -160 } }, // 1  T1
       { type: "auditware-analyzing", position: { x: 650, y: -160 } }, // 2  T1
-      { type: "ipfs-storage", position: { x: 360, y: 320 } }, // 3  T1
-      { type: "frontend-scaffold", position: { x: 360, y: 140 } }, // 4  T1
-      { type: "dune-nft-floor", position: { x: 360, y: 600 } }, // 5  T1
-      { type: "dune-transaction-history", position: { x: 360, y: 450 } }, // 6  T1
-      { type: "wallet-auth", position: { x: 680, y: 40 } }, // 7  T2
-      { type: "chain-data", position: { x: 700, y: 220 } }, // 8 T2
-      { type: "openclaw-agent", position: { x: 960, y: 140 } }, // 9  T2
+      { type: "frontend-scaffold", position: { x: 360, y: 140 } }, // 3  T1
+      { type: "wallet-auth", position: { x: 680, y: 40 } }, // 4  T2
     ],
     edges: [
-      { source: 4, target: 9 }, // frontend-scaffold → openclaw-agent
-      { source: 0, target: 1 },
-      { source: 1, target: 2 },
-      { source: 0, target: 3 },
-      { source: 0, target: 4 },
-      { source: 0, target: 5 },
-      { source: 0, target: 6 },
-      { source: 4, target: 7 },
-      { source: 4, target: 8 },
+      { source: 0, target: 1 }, // erc721 → smartcache
+      { source: 1, target: 2 }, // smartcache → auditware
+      { source: 0, target: 3 }, // erc721 → frontend
+      { source: 3, target: 4 }, // frontend → wallet-auth
     ],
     ghostNodes: [
-      { type: "x402-paywall-api", position: { x: 900, y: 0 } }, // g0 (idx 10)
-      { type: "erc8004-agent-runtime", position: { x: 900, y: 150 } }, // g1 (idx 11)
-      { type: "repo-quality-gates", position: { x: 900, y: 300 } }, // g2 (idx 12)
+      { type: "ipfs-storage", position: { x: 900, y: 320 } }, // g0 (idx 5)
+      { type: "dune-nft-floor", position: { x: 900, y: 600 } }, // g1 (idx 6)
+      {
+        type: "dune-transaction-history",
+        position: { x: 900, y: 450 },
+      }, // g2 (idx 7)
+      { type: "chain-data", position: { x: 900, y: 220 } }, // g3 (idx 8)
+      { type: "openclaw-agent", position: { x: 960, y: 140 } }, // g4 (idx 9)
+      { type: "x402-paywall-api", position: { x: 900, y: 0 } }, // g5 (idx 10)
+      { type: "erc8004-agent-runtime", position: { x: 900, y: 150 } }, // g6 (idx 11)
+      { type: "repo-quality-gates", position: { x: 900, y: 300 } }, // g7 (idx 12)
     ],
     ghostEdges: [
-      { source: 4, target: 10 }, // frontend → paywall
-      { source: 4, target: 11 }, // frontend → agent
-      { source: 0, target: 12 }, // stylus → quality-gates
+      { source: 3, target: 5 }, // frontend → ipfs
+      { source: 0, target: 6 }, // erc721 → dune-nft-floor
+      { source: 0, target: 7 }, // erc721 → dune-transaction-history
+      { source: 3, target: 8 }, // frontend → chain-data
+      { source: 3, target: 9 }, // frontend → openclaw-agent
+      { source: 3, target: 10 }, // frontend → paywall
+      { source: 3, target: 11 }, // frontend → agent-runtime
+      { source: 0, target: 12 }, // erc721 → quality-gates
     ],
   },
 
