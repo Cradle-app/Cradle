@@ -20,9 +20,20 @@ import {
   getPluginLibRoot,
   FRONTEND_SCAFFOLD_TYPES,
   BACKEND_SCAFFOLD_TYPES,
+  CONTRACT_TYPES,
   type NodePlugin,
   type PathContext,
 } from "@dapp-forge/plugin-sdk";
+
+/** Mirrors generateRootFiles — determines root package.json vs apps/web-only layout */
+function needsMonorepoLayout(pathContext?: PathContext): boolean {
+  if (!pathContext) return true;
+  return (
+    pathContext.hasBackend ||
+    (pathContext.hasContracts && !pathContext.hasFrontend) ||
+    !pathContext.hasFrontend
+  );
+}
 import type { PathCategory } from "@dapp-forge/blueprint-schema";
 import { RunStore } from "../store/runs";
 import { createExecutionLogger } from "../utils/logger";
@@ -181,19 +192,6 @@ export class ExecutionEngine {
           );
         }
 
-        // Copy API routes if plugin declares a dependency on them
-        if (plugin.apiRoutesPath) {
-          logger.info(`Copying API routes from: ${plugin.apiRoutesPath}`, {
-            nodeId: node.id,
-          });
-          this.copyApiRoutesToOutput(
-            fs,
-            "/output",
-            plugin.apiRoutesPath,
-            pathContext,
-          );
-        }
-
         // Collect env vars and scripts
         allEnvVars.push(...output.envVars);
         allScripts.push(...output.scripts);
@@ -213,6 +211,7 @@ export class ExecutionEngine {
         allScripts,
         pathContext,
         sortedNodes,
+        this.registry,
       );
 
       // Run format and lint
@@ -803,68 +802,38 @@ function generateRootFiles(
   scripts: CodegenOutput["scripts"],
   pathContext?: PathContext,
   nodes?: BlueprintNode[],
+  pluginRegistry?: ReturnType<typeof getDefaultRegistry>,
 ): void {
   // Determine if we need monorepo structure
   // Only need monorepo if:
   // 1. Has backend (multiple apps need coordination), OR
   // 2. Has contracts WITHOUT frontend (standalone contract project needs different setup)
   // When frontend + ERC contracts, we don't need monorepo - frontend handles the interaction
-  const needsMonorepo =
-    pathContext?.hasBackend ||
-    (pathContext?.hasContracts && !pathContext?.hasFrontend) ||
-    !pathContext?.hasFrontend;
+  const needsMonorepo = needsMonorepoLayout(pathContext);
   const { project } = blueprint.config;
 
-  // Generate package.json
-  // Adjust scripts based on whether we need monorepo structure
-  const packageJson = needsMonorepo
-    ? {
-        name: project.name.toLowerCase().replace(/\s+/g, "-"),
-        version: project.version,
-        description: project.description,
-        private: true,
-        scripts: {
-          dev: "next dev",
-          build: "next build",
-          start: "next start",
-          lint: "next lint",
-          ...Object.fromEntries(scripts.map((s) => [s.name, s.command])),
-        },
-        dependencies: {},
-        devDependencies: {
-          typescript: "^5.3.0",
-        },
-        packageManager: "pnpm@9.0.0",
-        author: project.author,
-        license: project.license,
-        keywords: project.keywords,
-      }
-    : {
-        // Standalone frontend - simpler package.json pointing to apps/web
-        name: project.name.toLowerCase().replace(/\s+/g, "-"),
-        version: project.version,
-        description: project.description,
-        private: true,
-        scripts: {
-          dev: "next dev",
-          build: "next build",
-          start: "next start",
-          lint: "next lint",
-          ...Object.fromEntries(scripts.map((s) => [s.name, s.command])),
-        },
-        dependencies: {},
-        devDependencies: {
-          typescript: "^5.3.0",
-        },
-        packageManager: "pnpm@9.0.0",
-        license: project.license,
-        keywords: project.keywords,
-      };
+  // Only generate root package.json for monorepo setups (pnpm workspaces need it).
+  // Standalone frontends use apps/web/package.json directly.
+  if (needsMonorepo) {
+    const packageJson = {
+      name: project.name.toLowerCase().replace(/\s+/g, "-"),
+      version: project.version,
+      description: project.description,
+      private: true,
+      scripts: {
+        ...Object.fromEntries(scripts.map((s) => [s.name, s.command])),
+      },
+      packageManager: "pnpm@9.0.0",
+      author: project.author,
+      license: project.license,
+      keywords: project.keywords,
+    };
 
-  fs.writeFileSync(
-    `${basePath}/package.json`,
-    JSON.stringify(packageJson, null, 2),
-  );
+    fs.writeFileSync(
+      `${basePath}/package.json`,
+      JSON.stringify(packageJson, null, 2),
+    );
+  }
 
   // Generate .env.example
   // Put in apps/web for standalone frontend, root for monorepo
@@ -890,7 +859,15 @@ function generateRootFiles(
   fs.writeFileSync(envPath, envExample);
 
   // Generate README.md
-  const readme = generateReadme(project, scripts, dedupedEnvVars, nodes);
+  const readme = generateReadme(
+    project,
+    scripts,
+    dedupedEnvVars,
+    nodes,
+    pathContext,
+    needsMonorepo,
+    pluginRegistry,
+  );
   fs.writeFileSync(`${basePath}/README.md`, readme);
 
   // Generate .gitignore
@@ -1002,14 +979,29 @@ function dedupeEnvVars(
   return Array.from(byKey.values());
 }
 
+function dedupeScriptsByName(
+  scripts: CodegenOutput["scripts"],
+): CodegenOutput["scripts"] {
+  const byName = new Map<string, CodegenOutput["scripts"][number]>();
+  for (const s of scripts) {
+    if (!byName.has(s.name)) byName.set(s.name, s);
+  }
+  return Array.from(byName.values());
+}
+
 function generateReadme(
   project: Blueprint["config"]["project"],
   scripts: CodegenOutput["scripts"],
   envVars: CodegenOutput["envVars"],
   nodes?: BlueprintNode[],
+  pathContext?: PathContext,
+  needsMonorepo = true,
+  pluginRegistry?: ReturnType<typeof getDefaultRegistry>,
 ): string {
   const appSlug = project.name.toLowerCase().replace(/\s+/g, "-");
-  const nodeTypes = new Set((nodes || []).map((n) => n.type));
+  const nodeList = nodes || [];
+  const nodeTypes = new Set(nodeList.map((n) => n.type));
+  const registry = pluginRegistry ?? getDefaultRegistry();
 
   // Build contracts section based on which plugins are present
   let contractsStructure =
@@ -1034,16 +1026,132 @@ function generateReadme(
     contracts.forEach((c) => {
       contractsStructure += `│   └── ${c}/\n`;
     });
-  } else {
+  } else if (pathContext?.hasContracts) {
     contractsStructure += `│   └── (contract source)\n`;
   }
 
-  const hasFrontend = nodeTypes.has("frontend-scaffold");
+  const hasFrontend = pathContext?.hasFrontend ?? nodeTypes.has("frontend-scaffold");
+  const contractTypeSet = new Set<string>([
+    ...CONTRACT_TYPES,
+    "stylus-rust-contract",
+    "smartcache-caching",
+  ]);
+  const hasContracts =
+    Boolean(pathContext?.hasContracts) ||
+    [...nodeTypes].some((t) => contractTypeSet.has(t));
+
   let structureBlock = `\`\`\`\n${appSlug}/\n`;
-  if (hasFrontend) {
-    structureBlock += `├── apps/\n│   └── web/                    # Next.js frontend\n│       ├── src/\n│       ├── package.json\n│       └── ...\n`;
+  if (needsMonorepo) {
+    structureBlock += `├── package.json                # Workspace root (pnpm)\n`;
   }
-  structureBlock += `${contractsStructure}├── docs/                       # Documentation\n├── scripts/                     # Deploy scripts\n├── .gitignore\n└── README.md\n\`\`\``;
+  if (hasFrontend) {
+    structureBlock += `├── apps/\n│   └── web/                    # Next.js app (${needsMonorepo ? "workspace package" : "install dependencies here"})\n│       ├── src/\n│       ├── package.json\n│       └── ...\n`;
+  }
+  if (hasContracts) {
+    structureBlock += contractsStructure;
+  }
+  structureBlock += `├── docs/                       # Documentation\n`;
+  structureBlock += `├── scripts/                     # Deploy / utility scripts (if generated)\n`;
+  structureBlock += `├── .gitignore\n`;
+  structureBlock += `└── README.md\n\`\`\``;
+
+  // Selected plugins (topological order, unique types)
+  const seenTypes = new Set<string>();
+  const pluginLines: string[] = [];
+  for (const node of nodeList) {
+    if (seenTypes.has(node.type)) continue;
+    seenTypes.add(node.type);
+    const plugin = registry.get(node.type) as NodePlugin | undefined;
+    const title = plugin?.metadata?.name ?? node.type;
+    const desc = plugin?.metadata?.description?.trim();
+    pluginLines.push(
+      desc
+        ? `- **${title}** — ${desc}`
+        : `- **${title}** (\`${node.type}\`)`,
+    );
+  }
+  const pluginsSection =
+    pluginLines.length > 0
+      ? `## Blueprint: selected nodes
+
+These components were included in this generation:
+
+${pluginLines.join("\n")}
+
+`
+      : "";
+
+  const dedupedScripts = dedupeScriptsByName(scripts);
+  const scriptsTable =
+    dedupedScripts.length > 0
+      ? dedupedScripts
+          .map(
+            (s) =>
+              `| \`${s.name}\` | ${s.description || s.command.replace(/\|/g, "\\|")} |`,
+          )
+          .join("\n")
+      : "| *(none merged to root package.json)* | For a standalone frontend, see \`apps/web/package.json\` for \`dev\`, \`build\`, and \`lint\`. |";
+
+  const pm = "pnpm";
+  const installBlock = needsMonorepo
+    ? `2. **Install dependencies** (workspace root — uses [pnpm](https://pnpm.io) workspaces):
+
+   \`\`\`bash
+   ${pm} install
+   \`\`\`
+
+   This installs all workspace packages (including \`apps/web\` when present).`
+    : `2. **Install dependencies** for the Next.js app (this project has no root \`package.json\`; dependencies live under \`apps/web\`):
+
+   \`\`\`bash
+   cd apps/web
+   ${pm} install
+   \`\`\``;
+
+  const envRelative =
+    hasFrontend && !needsMonorepo ? "apps/web/.env.example" : ".env.example";
+  const envTarget =
+    hasFrontend && !needsMonorepo ? "apps/web/.env" : ".env";
+
+  const requiredEnvBullets =
+    envVars
+      .filter((v) => v.required)
+      .map((v) => `   - \`${v.key}\`: ${v.description}`)
+      .join("\n") || "   - *(no variables marked required)*";
+
+  const devSection = hasFrontend
+    ? `### Run the web app
+
+\`\`\`bash
+cd apps/web && ${pm} dev
+\`\`\`
+
+Open [http://localhost:3000](http://localhost:3000).
+`
+    : "";
+
+  const contractSection = hasContracts
+    ? `### Smart contracts (build / deploy)
+
+Use the Stylus / Rust workflow for folders under \`contracts/\`. See \`docs/\` for node-specific steps and any \`scripts/\` helpers.
+`
+    : "";
+
+  const prerequisites = [
+    "- **Node.js** 18+ and a package manager (**pnpm** recommended; npm/yarn work if you adapt commands)",
+    hasContracts
+      ? "- **Rust** toolchain and **cargo-stylus** for building/deploying Stylus contracts (see `docs/` and [Stylus SDK](https://github.com/OffchainLabs/stylus-sdk-rs))"
+      : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const scriptsNote =
+    needsMonorepo && dedupedScripts.length > 0
+      ? `Run these from the **repository root** (root \`package.json\`).`
+      : !needsMonorepo
+        ? `Root \`package.json\` was not generated for this layout. Next.js scripts (\`dev\`, \`build\`, \`lint\`) are in \`apps/web/package.json\`. Other commands below may require running from the repo root if \`scripts/\` was generated.`
+        : "";
 
   return `# ${project.name}
 
@@ -1052,80 +1160,54 @@ ${
   "A Web3 dApp composed with [[N]skills](https://www.nskills.xyz)."
 }
 
-## 📁 Project Structure
+${pluginsSection}## Project structure
 
 ${structureBlock}
 
-## 🚀 Quick Start
+## Quick start
 
 ### Prerequisites
-- Node.js 18+
-- npm, yarn, or pnpm
 
-### Installation
+${prerequisites}
 
-1. **Clone the repository:**
+### Step-by-step
+
+1. **Clone and enter the project**
+
    \`\`\`bash
    git clone <your-repo-url>
    cd ${appSlug}
    \`\`\`
 
-2. **Install dependencies:**
+${installBlock}
+
+3. **Environment variables**
+
    \`\`\`bash
-   npm install
-   # or
-   pnpm install
+   cp ${envRelative} ${envTarget}
    \`\`\`
 
-3. **Set up environment variables:**
-   \`\`\`bash
-   cp .env.example .env
-   \`\`\`
+   Edit \`${envTarget}\` and set:
 
-   Edit \`.env\` and configure:
-   ${
-     envVars
-       .filter((v) => v.required)
-       .map((v) => `   - \`${v.key}\`: ${v.description}`)
-       .join("\n") || "   - No required variables"
-   }
+${requiredEnvBullets}
 
-4. **Deploy contracts** (from repo root): \`pnpm deploy:sepolia\` or \`pnpm deploy:mainnet\`
+${contractSection}${devSection}
 
-5. **Scripts (Windows):** Run \`pnpm fix-scripts\` or \`dos2unix scripts/*.sh\` if you see line-ending errors.
+### Line endings (Windows)
 
-## 🔗 Smart Contracts
+If shell scripts fail with \`\\r\` errors, normalize line endings (e.g. \`dos2unix scripts/*.sh\`) or configure Git to check out LF on Windows.
 
-The \`contracts/\` folder contains Rust/Stylus smart contract source code. See \`docs/\` for deployment and integration guides.
+## Generated scripts
 
-## 🛠 Available Scripts
+${scriptsNote}
 
 | Command | Description |
 |---------|-------------|
-| \`pnpm deploy:sepolia\` | Deploy to Arbitrum Sepolia |
-| \`pnpm deploy:mainnet\` | Deploy to Arbitrum One |
-| \`pnpm fix-scripts\` | Fix CRLF line endings (Windows) |
+${scriptsTable}
 
-## 🌐 Supported Networks
+## Documentation
 
-- Arbitrum Sepolia (Testnet)
-- Arbitrum One (Mainnet)
-- Superposition
-- Superposition Testnet
-
-## 📚 Tech Stack
-
-- **Framework:** Next.js 14 (App Router)
-- **Styling:** Tailwind CSS
-- **Web3:** wagmi + viem
-- **Wallet Connection:** RainbowKit
-
-## 📖 Documentation
-
-See the \`docs/\` folder for:
-- Contract interaction guide
-- Deployment instructions
-- API reference
+Check the \`docs/\` folder for guides that match your blueprint (e.g. frontend setup, contract deployment, API routes).
 
 ## License
 
@@ -1133,6 +1215,6 @@ ${project.license}
 
 ---
 
-Generated with ❤️ by [[N]skills](https://www.nskills.xyz)
+Generated with [[N]skills](https://www.nskills.xyz)
 `;
 }

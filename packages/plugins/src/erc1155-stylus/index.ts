@@ -44,6 +44,7 @@ export class ERC1155StylusPlugin extends BasePlugin<z.infer<typeof ERC1155Stylus
   readonly componentPathMappings: Record<string, PathCategory> = {
     'src/hooks/**': 'frontend-hooks',
     'src/ERC1155InteractionPanel.tsx': 'frontend-components',
+    'src/Select.tsx': 'frontend-components',
     'src/cn.ts': 'frontend-lib',
     'src/constants.ts': 'frontend-lib',
     'src/deployment.ts': 'frontend-lib',

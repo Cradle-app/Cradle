@@ -55,6 +55,7 @@ export function generatePackageJson(config: Config): string {
   // Contract interaction dependencies (for ERC panels)
   dependencies['ethers'] = '^6.13.0';
   dependencies['lucide-react'] = '^0.400.0';
+  dependencies['@radix-ui/react-select'] = '^2.0.0';
 
   // State management
   if (config.stateManagement === 'zustand') {
