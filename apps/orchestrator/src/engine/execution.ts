@@ -1202,11 +1202,11 @@ ${prerequisites}
    cd ${appSlug}
    \`\`\`
 
-   ![Clone and enter the project](apps/web/public/clone-and-enter.png)
+   ![Clone and enter the project](https://raw.githubusercontent.com/Cradle-app/NSkills/main/apps/web/public/clone-and-enter.png)
 
 ${installBlock}
 
-   ![Install dependencies](apps/web/public/install-dep.png)
+   ![Install dependencies](https://raw.githubusercontent.com/Cradle-app/NSkills/main/apps/web/public/install-dep.png)
 
 3. **Environment variables**
 
@@ -1218,7 +1218,7 @@ ${installBlock}
 
 ${requiredEnvBullets}
 
-   ![Environment variables](apps/web/public/env-var.png)
+   ![Environment variables](https://raw.githubusercontent.com/Cradle-app/NSkills/main/apps/web/public/env-var.png)
 
 ${erc721Section}${devSection}
 
