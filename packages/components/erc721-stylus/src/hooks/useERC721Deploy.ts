@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * React hook for deploying ERC721 NFT collections
  */

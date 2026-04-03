@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * React hook for interacting with ERC721 NFT collections using wagmi
  */
@@ -36,32 +38,32 @@ export function useERC721Interactions(options: UseERC721InteractionsOptions): Us
     setCollectionInfo({ status: 'loading' });
     try {
       const [name, symbol, baseUri, totalSupply, owner, paused] = await Promise.all([
-        publicClient.readContract({
+        (publicClient as any).readContract({
           address: contractAddress,
           abi: ERC721_ABI,
           functionName: 'name',
         }) as Promise<string>,
-        publicClient.readContract({
+        (publicClient as any).readContract({
           address: contractAddress,
           abi: ERC721_ABI,
           functionName: 'symbol',
         }) as Promise<string>,
-        publicClient.readContract({
+        (publicClient as any).readContract({
           address: contractAddress,
           abi: ERC721_ABI,
           functionName: 'baseUri',
         }) as Promise<string>,
-        publicClient.readContract({
+        (publicClient as any).readContract({
           address: contractAddress,
           abi: ERC721_ABI,
           functionName: 'totalSupply',
         }) as Promise<bigint>,
-        publicClient.readContract({
+        (publicClient as any).readContract({
           address: contractAddress,
           abi: ERC721_ABI,
           functionName: 'owner',
         }) as Promise<Address>,
-        publicClient.readContract({
+        (publicClient as any).readContract({
           address: contractAddress,
           abi: ERC721_ABI,
           functionName: 'paused',

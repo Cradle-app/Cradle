@@ -1042,7 +1042,7 @@ function generateReadme(
 
   let structureBlock = `\`\`\`\n${appSlug}/\n`;
   if (needsMonorepo) {
-    structureBlock += `├── package.json                # Workspace root (pnpm)\n`;
+    structureBlock += `├── package.json                # Workspace root\n`;
   }
   if (hasFrontend) {
     structureBlock += `├── apps/\n│   └── web/                    # Next.js app (${needsMonorepo ? "workspace package" : "install dependencies here"})\n│       ├── src/\n│       ├── package.json\n│       └── ...\n`;
@@ -1092,9 +1092,9 @@ ${pluginLines.join("\n")}
           .join("\n")
       : "| *(none merged to root package.json)* | For a standalone frontend, see \`apps/web/package.json\` for \`dev\`, \`build\`, and \`lint\`. |";
 
-  const pm = "pnpm";
+  const pm = "npm";
   const installBlock = needsMonorepo
-    ? `2. **Install dependencies** (workspace root — uses [pnpm](https://pnpm.io) workspaces):
+    ? `2. **Install dependencies** (workspace root):
 
    \`\`\`bash
    ${pm} install
@@ -1137,8 +1137,42 @@ Use the Stylus / Rust workflow for folders under \`contracts/\`. See \`docs/\` f
 `
     : "";
 
+  const erc721Section = nodeTypes.has("erc721-stylus")
+    ? `### ERC-721 Integration
+
+Add the \`ERC721InteractionPanel\` to \`apps/web/src/app/page.tsx\`:
+
+\`\`\`tsx
+import { WalletButton } from '@/components/wallet-button';
+import { ERC721InteractionPanel } from '@/lib/erc721-stylus/src';
+
+export default function Home() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="max-w-5xl w-full text-center">
+        <h1 className="text-4xl font-bold mb-8">
+          My DApp
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400 mb-12">
+          A Web3 application built with Cradle
+        </p>
+
+        <div className="flex justify-center">
+          <WalletButton />
+        </div>
+
+        <ERC721InteractionPanel />
+      </div>
+    </main>
+  );
+}
+\`\`\`
+
+`
+    : "";
+
   const prerequisites = [
-    "- **Node.js** 18+ and a package manager (**pnpm** recommended; npm/yarn work if you adapt commands)",
+    "- **Node.js** 18+ and **npm** (comes with Node.js)",
     hasContracts
       ? "- **Rust** toolchain and **cargo-stylus** for building/deploying Stylus contracts (see `docs/` and [Stylus SDK](https://github.com/OffchainLabs/stylus-sdk-rs))"
       : null,
@@ -1152,6 +1186,8 @@ Use the Stylus / Rust workflow for folders under \`contracts/\`. See \`docs/\` f
       : !needsMonorepo
         ? `Root \`package.json\` was not generated for this layout. Next.js scripts (\`dev\`, \`build\`, \`lint\`) are in \`apps/web/package.json\`. Other commands below may require running from the repo root if \`scripts/\` was generated.`
         : "";
+
+
 
   return `# ${project.name}
 
@@ -1191,7 +1227,7 @@ ${installBlock}
 
 ${requiredEnvBullets}
 
-${contractSection}${devSection}
+${contractSection}${erc721Section}${devSection}
 
 ### Line endings (Windows)
 
