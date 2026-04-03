@@ -207,21 +207,29 @@ export function Header({ setShowAI }: HeaderProps = {}) {
         </div>
 
         {/* Primary Action */}
-        <AuthGuard onClick={() => setShowGenerate(true)} requireGitHub={true}>
-          <Button
-            type="button"
-            size="sm"
-            data-tour="generate"
-            className={cn(
-              "h-9 pl-3 pr-4 ml-1 shadow-md shadow-[hsl(var(--color-accent-primary)/0.2)]",
-              "bg-gradient-to-r from-[hsl(var(--color-accent-primary))] to-[hsl(var(--color-accent-primary)/0.9)]",
-              "hover:brightness-110 transition-all"
-            )}
-          >
-            <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
-            Build
-          </Button>
-        </AuthGuard>
+        <SimpleTooltip
+          content={blueprint.nodes.length === 0 ? "Add a block or template to the canvas to build a repo" : undefined}
+          side="bottom"
+        >
+          <span>
+            <AuthGuard onClick={() => blueprint.nodes.length > 0 && setShowGenerate(true)} requireGitHub={true}>
+              <Button
+                type="button"
+                size="sm"
+                data-tour="generate"
+                disabled={blueprint.nodes.length === 0}
+                className={cn(
+                  "h-9 pl-3 pr-4 ml-1 shadow-md shadow-[hsl(var(--color-accent-primary)/0.2)]",
+                  "bg-gradient-to-r from-[hsl(var(--color-accent-primary))] to-[hsl(var(--color-accent-primary)/0.9)]",
+                  "hover:brightness-110 transition-all"
+                )}
+              >
+                <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
+                Build
+              </Button>
+            </AuthGuard>
+          </span>
+        </SimpleTooltip>
       </motion.div>
 
       {/* Dialogs - AIChatModal is rendered at page level for state stability */}
