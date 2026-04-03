@@ -48,6 +48,7 @@ export interface ExecutionOptions {
   dryRun?: boolean;
   createGitHubRepo?: boolean;
   githubToken?: string; // User's OAuth token from session
+  injectVol?: Volume;  // Extra memfs Volume whose files are merged in before GitHub push
 }
 
 export interface ExecutionResult {
@@ -224,6 +225,24 @@ export class ExecutionEngine {
       const lintResult = await formatAndLint(fs, "/output");
       if (!lintResult.success) {
         logger.warn("Lint/format warnings", { warnings: lintResult.warnings });
+      }
+
+      // Merge any extra files from an injected volume (e.g. .nskils/ from skills generator)
+      if (options.injectVol) {
+        const injectFs = createFsFromVolume(options.injectVol);
+        const copyDir = (dir: string) => {
+          for (const entry of injectFs.readdirSync(dir) as string[]) {
+            const fullPath = `${dir}/${entry}`;
+            const stat = injectFs.statSync(fullPath);
+            if (stat.isDirectory()) {
+              fs.mkdirSync(fullPath, { recursive: true });
+              copyDir(fullPath);
+            } else {
+              fs.writeFileSync(fullPath, injectFs.readFileSync(fullPath));
+            }
+          }
+        };
+        copyDir("/output");
       }
 
       // Create manifest
@@ -1081,17 +1100,6 @@ ${pluginLines.join("\n")}
 `
       : "";
 
-  const dedupedScripts = dedupeScriptsByName(scripts);
-  const scriptsTable =
-    dedupedScripts.length > 0
-      ? dedupedScripts
-          .map(
-            (s) =>
-              `| \`${s.name}\` | ${s.description || s.command.replace(/\|/g, "\\|")} |`,
-          )
-          .join("\n")
-      : "| *(none merged to root package.json)* | For a standalone frontend, see \`apps/web/package.json\` for \`dev\`, \`build\`, and \`lint\`. |";
-
   const pm = "npm";
   const installBlock = needsMonorepo
     ? `2. **Install dependencies** (workspace root):
@@ -1108,11 +1116,6 @@ ${pluginLines.join("\n")}
    ${pm} install
    \`\`\``;
 
-  const envRelative =
-    hasFrontend && !needsMonorepo ? "apps/web/.env.example" : ".env.example";
-  const envTarget =
-    hasFrontend && !needsMonorepo ? "apps/web/.env" : ".env";
-
   const requiredEnvBullets =
     envVars
       .filter((v) => v.required)
@@ -1123,17 +1126,10 @@ ${pluginLines.join("\n")}
     ? `### Run the web app
 
 \`\`\`bash
-cd apps/web && ${pm} dev
+cd apps/web && ${pm} run dev
 \`\`\`
 
 Open [http://localhost:3000](http://localhost:3000).
-`
-    : "";
-
-  const contractSection = hasContracts
-    ? `### Smart contracts (build / deploy)
-
-Use the Stylus / Rust workflow for folders under \`contracts/\`. See \`docs/\` for node-specific steps and any \`scripts/\` helpers.
 `
     : "";
 
@@ -1180,15 +1176,6 @@ export default function Home() {
     .filter(Boolean)
     .join("\n");
 
-  const scriptsNote =
-    needsMonorepo && dedupedScripts.length > 0
-      ? `Run these from the **repository root** (root \`package.json\`).`
-      : !needsMonorepo
-        ? `Root \`package.json\` was not generated for this layout. Next.js scripts (\`dev\`, \`build\`, \`lint\`) are in \`apps/web/package.json\`. Other commands below may require running from the repo root if \`scripts/\` was generated.`
-        : "";
-
-
-
   return `# ${project.name}
 
 ${
@@ -1215,31 +1202,25 @@ ${prerequisites}
    cd ${appSlug}
    \`\`\`
 
+   ![Clone and enter the project](apps/web/public/clone-and-enter.png)
+
 ${installBlock}
+
+   ![Install dependencies](apps/web/public/install-dep.png)
 
 3. **Environment variables**
 
    \`\`\`bash
-   cp ${envRelative} ${envTarget}
+   cp .env.example .env
    \`\`\`
 
-   Edit \`${envTarget}\` and set:
+   Edit \`.env\` and set:
 
 ${requiredEnvBullets}
 
-${contractSection}${erc721Section}${devSection}
+   ![Environment variables](apps/web/public/env-var.png)
 
-### Line endings (Windows)
-
-If shell scripts fail with \`\\r\` errors, normalize line endings (e.g. \`dos2unix scripts/*.sh\`) or configure Git to check out LF on Windows.
-
-## Generated scripts
-
-${scriptsNote}
-
-| Command | Description |
-|---------|-------------|
-${scriptsTable}
+${erc721Section}${devSection}
 
 ## Documentation
 

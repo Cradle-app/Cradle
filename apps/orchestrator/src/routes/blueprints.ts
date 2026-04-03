@@ -122,20 +122,22 @@ export const blueprintRoutes: FastifyPluginCallback = (fastify, _opts, done) => 
         // Skills repo only
         result = await skillsGenerator.generate(blueprint, run.id, execOptions);
       } else if (options.generateMode === 'both') {
-        // Run both: codegen + skills repo, merge file lists
-        const [codeResult, skillsResult] = await Promise.all([
-          engine.execute(blueprint, run.id, execOptions),
-          skillsGenerator.generate(blueprint, `${run.id}-skills`, {
-            ...execOptions,
-            createGitHubRepo: false, // Don't push skills separately in 'both' mode
-          }),
-        ]);
+        // 1. Generate skills files first (no GitHub push) to get the .nskils vol
+        const skillsResult = await skillsGenerator.generate(blueprint, `${run.id}-skills`, {
+          ...execOptions,
+          createGitHubRepo: false,
+        });
 
-        // Merge: code files + skills files, dedupe env vars / scripts
-        const allFiles = [...codeResult.files, ...skillsResult.files];
+        // 2. Run codegen, injecting the skills vol so .nskils files are included in the GitHub push
+        const codeResult = await engine.execute(blueprint, run.id, {
+          ...execOptions,
+          injectVol: skillsResult.vol,
+        });
+
+        // Merge file manifests for the response
         result = {
           ...codeResult,
-          files: allFiles,
+          files: [...codeResult.files, ...skillsResult.files],
         };
       } else {
         // Default: codebase only (existing behavior, unchanged)

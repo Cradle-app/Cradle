@@ -117,10 +117,6 @@ export class ERC721StylusPlugin extends BasePlugin<z.infer<typeof ERC721StylusCo
       required: false,
       defaultValue: config.contractAddress,
     });
-    this.addEnvVar(output, 'PRIVATE_KEY', 'Private key for deployment and transactions', {
-      required: true,
-      secret: true,
-    });
     this.addEnvVar(output, 'ERC721_DEPLOYMENT_API_URL', 'URL of the ERC721 deployment API', {
       required: false,
       defaultValue: 'http://localhost:4001',

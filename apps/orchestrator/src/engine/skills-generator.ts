@@ -20,6 +20,10 @@ import { createManifest } from "./filesystem";
 import { GitHubIntegration } from "./github";
 import type { ExecutionResult, ExecutionOptions } from "./execution";
 
+export interface SkillsGenerationResult extends ExecutionResult {
+  vol: InstanceType<typeof Volume>;
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -481,7 +485,7 @@ function renderClaudeMd(
     .map((n, i) => {
       const registryEntry = PLUGIN_REGISTRY[n.type];
       const name = registryEntry?.name || humanizeKey(n.type);
-      return `${i + 1}. **${name}** (\`${n.type}\`) — see \`.cradle/components/${n.type}--${shortId(n.id)}.md\``;
+      return `${i + 1}. **${name}** (\`${n.type}\`) — see \`\.nskils/components/${n.type}--${shortId(n.id)}.md\``;
     })
     .join("\n");
 
@@ -490,7 +494,7 @@ function renderClaudeMd(
     .map((n) => {
       const registryEntry = PLUGIN_REGISTRY[n.type];
       const name = registryEntry?.name || humanizeKey(n.type);
-      return `- [${name}](.cradle/components/${n.type}--${shortId(n.id)}.md)`;
+      return `- [${name}](\.nskils/components/${n.type}--${shortId(n.id)}.md)`;
     })
     .join("\n");
 
@@ -539,12 +543,12 @@ ${specLinks}
 
 ## Additional Context
 
-- [Project Configuration](.cradle/project.md)
-- [Full Architecture Details](.cradle/architecture.md)
-- [All Environment Variables](.cradle/environment.md)
-- [Verified Dependencies](.cradle/dependencies.md)
-- [Scripts Reference](.cradle/scripts.md)
-- [Integration Map](.cradle/integration-map.md)
+- [Project Configuration](\.nskils/project.md)
+- [Full Architecture Details](\.nskils/architecture.md)
+- [All Environment Variables](\.nskils/environment.md)
+- [Verified Dependencies](\.nskils/dependencies.md)
+- [Scripts Reference](\.nskils/scripts.md)
+- [Integration Map](\.nskils/integration-map.md)
 
 ---
 
@@ -572,7 +576,7 @@ export class SkillsRepoGenerator {
     blueprint: Blueprint,
     runId: string,
     options: ExecutionOptions = {}
-  ): Promise<ExecutionResult> {
+  ): Promise<SkillsGenerationResult> {
     const logger = createExecutionLogger(runId);
     this.runStore.start(runId);
     logger.info("Starting skills repo generation", {
@@ -584,7 +588,7 @@ export class SkillsRepoGenerator {
       const vol = new Volume();
       const fs = createFsFromVolume(vol);
       fs.mkdirSync("/output", { recursive: true });
-      fs.mkdirSync("/output/.cradle/components", { recursive: true });
+      fs.mkdirSync("/output/\.nskils/components", { recursive: true });
 
       // Sort nodes topologically
       const sortedNodes = topologicalSort(blueprint.nodes, blueprint.edges);
@@ -713,45 +717,45 @@ export class SkillsRepoGenerator {
         );
         const filename = `${node.type}--${shortId(node.id)}.md`;
         fs.writeFileSync(
-          `/output/.cradle/components/${filename}`,
+          `/output/\.nskils/components/${filename}`,
           componentMd
         );
       }
 
       // Project
       fs.writeFileSync(
-        "/output/.cradle/project.md",
+        "/output/\.nskils/project.md",
         renderProjectMd(blueprint)
       );
 
       // Architecture
       fs.writeFileSync(
-        "/output/.cradle/architecture.md",
+        "/output/\.nskils/architecture.md",
         renderArchitectureMd(sortedNodes, blueprint.edges)
       );
 
       // Environment
       const dedupedEnvVars = dedupeEnvVars(allEnvVars);
       fs.writeFileSync(
-        "/output/.cradle/environment.md",
+        "/output/\.nskils/environment.md",
         renderEnvironmentMd(dedupedEnvVars)
       );
 
       // Dependencies
       fs.writeFileSync(
-        "/output/.cradle/dependencies.md",
+        "/output/\.nskils/dependencies.md",
         renderDependenciesMd(deps)
       );
 
       // Scripts
       fs.writeFileSync(
-        "/output/.cradle/scripts.md",
+        "/output/\.nskils/scripts.md",
         renderScriptsMd(allScripts)
       );
 
       // Integration map
       fs.writeFileSync(
-        "/output/.cradle/integration-map.md",
+        "/output/\.nskils/integration-map.md",
         renderIntegrationMapMd(blueprint.edges, nodesById, pluginPorts)
       );
 
@@ -817,6 +821,7 @@ export class SkillsRepoGenerator {
         envVars: dedupedEnvVars,
         scripts: allScripts,
         repoUrl,
+        vol,
       };
     } catch (error) {
       const message =
