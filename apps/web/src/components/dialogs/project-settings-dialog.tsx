@@ -73,7 +73,7 @@ export function ProjectSettingsDialog({ open, onOpenChange }: Props) {
               label="Project Name"
               value={project.name}
               onChange={(e) => handleProjectChange('name', e.target.value)}
-              placeholder="My Dapp"
+              placeholder="My App"
             />
 
             <div>

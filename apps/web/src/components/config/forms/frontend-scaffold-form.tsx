@@ -92,7 +92,7 @@ export function FrontendScaffoldForm({ nodeId, config }: Props) {
                     <Textarea
                         value={appDescription}
                         onChange={(e) => updateConfig('appDescription', e.target.value)}
-                        placeholder="A Web3 application composed with [N]skills"
+                        placeholder="An application composed with [N]skills"
                         className="h-16 resize-none"
                     />
                 </div>

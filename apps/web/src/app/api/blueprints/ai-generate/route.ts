@@ -702,7 +702,7 @@ function generateMockWorkflowResponse(query: string): AIWorkflowResponse {
     } else if (hasAnalytics) {
       description = `Wallet analytics architecture with ${componentNames}. This enables tracking and displaying onchain activity.`;
     } else {
-      description = `Web3 application architecture with ${componentNames}. Built for Arbitrum with modern development practices.`;
+      description = `Application architecture with ${componentNames}. Built for Arbitrum with modern development practices.`;
     }
   }
 

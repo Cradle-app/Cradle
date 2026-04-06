@@ -89,11 +89,11 @@ const createInitialBlueprint = (): Blueprint => ({
   edges: [],
   config: {
     project: {
-      name: 'My Dapp',
-      description: 'A Web3 application - composed with [N]skills',
+      name: 'My App',
+      description: '',
       version: '0.1.0',
       license: 'MIT',
-      keywords: ['web3', 'dapp'],
+      keywords: [],
     },
     network: {
       chainId: 421614,
