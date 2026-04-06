@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { useBlueprintStore } from '@/store/blueprint';
 import { useToast } from '@/components/ui/toaster';
 import { generateContractInstructions } from '@/lib/contract-instructions-generator';
@@ -41,7 +40,7 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
   const stableDefaultSteps = useMemo(() => defaultSteps, []); // ensure effect deps don't loop
 
   const [status, setStatus] = useState<GenerationStatus>('idle');
-  const [createGitHubRepo, setCreateGitHubRepo] = useState(false);
+  const createGitHubRepo = true;
   const [repoName, setRepoName] = useState(
     blueprint.config.project.name?.toLowerCase().replace(/\s+/g, '-') || 'my-dapp'
   );
@@ -286,7 +285,7 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
             Build Your Project
           </DialogTitle>
           <DialogDescription>
-            Generate a skills repo that Claude Code can consume for full-context scaffolding, a production codebase, or both.
+            Choose your output mode and provide a repo name — your project will be pushed to GitHub.
           </DialogDescription>
         </DialogHeader>
 
@@ -326,63 +325,52 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
             </div>
           </div>
 
-          {/* GitHub option */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-[hsl(var(--color-bg-base))] border border-[hsl(var(--color-border-default))]">
+          {/* GitHub repo — always on */}
+          <div className="space-y-3 p-4 rounded-lg bg-[hsl(var(--color-bg-base))] border border-[hsl(var(--color-border-default))]">
             <div className="flex items-center gap-3">
               <Github className="w-5 h-5 text-[hsl(var(--color-text-muted))]" />
               <div>
-                <p className="text-sm font-medium text-[hsl(var(--color-text-primary))]">Create GitHub Repository</p>
+                <p className="text-sm font-medium text-[hsl(var(--color-text-primary))]">GitHub Repository</p>
                 <p className="text-xs text-[hsl(var(--color-text-muted))]">
-                  {githubSession?.authenticated
-                    ? `Connected as ${githubSession.github?.username}`
-                    : 'Push generated code to GitHub'}
+                  Your project will be pushed to a new GitHub repository.
                 </p>
               </div>
             </div>
-            <Switch
-              checked={createGitHubRepo}
-              onCheckedChange={setCreateGitHubRepo}
+
+            {!githubSession?.authenticated && (
+              <div className="p-3 bg-[hsl(var(--color-warning)/0.1)] border border-[hsl(var(--color-warning)/0.3)] rounded-lg">
+                <p className="text-xs text-[hsl(var(--color-warning))] mb-2">
+                  Connect your GitHub account to create the repository.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={handleConnectGitHub}
+                  className="bg-[#24292f] hover:bg-[#30363d] text-white text-xs"
+                >
+                  <Github className="w-3 h-3 mr-1.5" />
+                  Connect GitHub
+                </Button>
+              </div>
+            )}
+            {githubSession?.authenticated && githubSession.github && (
+              <div className="flex items-center gap-2 p-2 bg-[hsl(var(--color-success)/0.1)] border border-[hsl(var(--color-success)/0.3)] rounded-lg">
+                <img
+                  src={githubSession.github.avatar}
+                  alt={githubSession.github.username}
+                  className="w-5 h-5 rounded-full"
+                />
+                <span className="text-xs text-[hsl(var(--color-success))]">
+                  Creating as {githubSession.github.username}
+                </span>
+              </div>
+            )}
+            <Input
+              label="Repository Name"
+              value={repoName}
+              onChange={(e) => setRepoName(e.target.value)}
+              placeholder="my-dapp"
             />
           </div>
-
-          {/* GitHub config */}
-          {createGitHubRepo && (
-            <div className="space-y-3 pl-4 border-l-2 border-[hsl(var(--color-accent-primary)/0.3)]">
-              {!githubSession?.authenticated && (
-                <div className="p-3 bg-[hsl(var(--color-warning)/0.1)] border border-[hsl(var(--color-warning)/0.3)] rounded-lg">
-                  <p className="text-xs text-[hsl(var(--color-warning))] mb-2">
-                    You&apos;ll need to connect your GitHub account to create repositories.
-                  </p>
-                  <Button
-                    size="sm"
-                    onClick={handleConnectGitHub}
-                    className="bg-[#24292f] hover:bg-[#30363d] text-white text-xs"
-                  >
-                    <Github className="w-3 h-3 mr-1.5" />
-                    Connect GitHub
-                  </Button>
-                </div>
-              )}
-              {githubSession?.authenticated && githubSession.github && (
-                <div className="flex items-center gap-2 p-2 bg-[hsl(var(--color-success)/0.1)] border border-[hsl(var(--color-success)/0.3)] rounded-lg">
-                  <img
-                    src={githubSession.github.avatar}
-                    alt={githubSession.github.username}
-                    className="w-5 h-5 rounded-full"
-                  />
-                  <span className="text-xs text-[hsl(var(--color-success))]">
-                    Creating as {githubSession.github.username}
-                  </span>
-                </div>
-              )}
-              <Input
-                label="Repository Name"
-                value={repoName}
-                onChange={(e) => setRepoName(e.target.value)}
-                placeholder="my-dapp"
-              />
-            </div>
-          )}
 
           {/* Status display */}
           {status !== 'idle' && (

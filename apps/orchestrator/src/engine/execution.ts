@@ -1216,7 +1216,7 @@ ${prerequisites}
 
    \`\`\`bash
    git clone <your-repo-url>
-   cd ${appSlug}
+   cd <your-repo-name>
    \`\`\`
 
    ![Clone and enter the project](https://raw.githubusercontent.com/Cradle-app/NSkills/main/apps/web/public/clone-and-enter.png)
