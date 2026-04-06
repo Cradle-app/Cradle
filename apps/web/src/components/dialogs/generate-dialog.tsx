@@ -191,7 +191,7 @@ export function GenerateDialog({ open, onOpenChange }: Props) {
           github: createGitHubRepo ? {
             owner: githubOwner,
             repoName: repoName,
-            visibility: 'private',
+            visibility: 'public',
             defaultBranch: 'main',
           } : undefined,
         },

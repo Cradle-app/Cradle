@@ -8,6 +8,13 @@ interface CreateRepoResult {
   prUrl?: string;
 }
 
+/** Response fields we need from POST /user/repos */
+interface CreatedRepoApi {
+  html_url: string;
+  clone_url: string;
+  owner: { login: string };
+}
+
 /**
  * GitHub integration for repository creation and code commits
  * Supports both OAuth tokens (per-user) and App tokens
@@ -54,13 +61,18 @@ export class GitHubIntegration {
     // Create repository
     const repo = await this.createRepo(token, config);
 
+    // Git data API URLs must use the repo owner returned by GitHub. POST /user/repos
+    // always creates under the authenticated user; config.owner from the client can be
+    // wrong or stale and causes 404 on git/blobs if it does not match.
+    const gitConfig = { ...config, owner: repo.ownerLogin };
+
     // Commit files
-    await this.commitFiles(token, config, fs, sourcePath);
+    await this.commitFiles(token, gitConfig, fs, sourcePath);
 
     // Optionally create PR
     let prUrl: string | undefined;
     if (config.createPR) {
-      prUrl = await this.createPullRequest(token, config);
+      prUrl = await this.createPullRequest(token, gitConfig);
     }
 
     return {
@@ -76,7 +88,7 @@ export class GitHubIntegration {
   private async createRepo(
     token: string,
     config: GitHubConfig,
-  ): Promise<{ html_url: string; clone_url: string }> {
+  ): Promise<{ html_url: string; clone_url: string; ownerLogin: string }> {
     const response = await fetch(`${this.baseUrl}/user/repos`, {
       method: "POST",
       headers: {
@@ -141,7 +153,13 @@ export class GitHubIntegration {
       );
     }
 
-    return response.json();
+    const data = (await response.json()) as CreatedRepoApi;
+    const ownerLogin = data.owner?.login ?? config.owner;
+    return {
+      html_url: data.html_url,
+      clone_url: data.clone_url,
+      ownerLogin,
+    };
   }
 
   /**
@@ -175,6 +193,7 @@ export class GitHubIntegration {
             Authorization: `Bearer ${token}`,
             Accept: "application/vnd.github+json",
             "Content-Type": "application/json",
+            "X-GitHub-Api-Version": "2022-11-28",
           },
           body: JSON.stringify({
             content: Buffer.from(content as Buffer).toString("base64"),
@@ -208,6 +227,7 @@ export class GitHubIntegration {
           Authorization: `Bearer ${token}`,
           Accept: "application/vnd.github+json",
           "Content-Type": "application/json",
+          "X-GitHub-Api-Version": "2022-11-28",
         },
         body: JSON.stringify({
           tree: blobs.map((blob) => ({
@@ -235,6 +255,7 @@ export class GitHubIntegration {
           Authorization: `Bearer ${token}`,
           Accept: "application/vnd.github+json",
           "Content-Type": "application/json",
+          "X-GitHub-Api-Version": "2022-11-28",
         },
         body: JSON.stringify({
           message: "Initial commit from [N]skills",
@@ -258,6 +279,7 @@ export class GitHubIntegration {
           Authorization: `Bearer ${token}`,
           Accept: "application/vnd.github+json",
           "Content-Type": "application/json",
+          "X-GitHub-Api-Version": "2022-11-28",
         },
         body: JSON.stringify({
           ref: `refs/heads/${branch}`,
@@ -276,6 +298,7 @@ export class GitHubIntegration {
             Authorization: `Bearer ${token}`,
             Accept: "application/vnd.github+json",
             "Content-Type": "application/json",
+            "X-GitHub-Api-Version": "2022-11-28",
           },
           body: JSON.stringify({
             sha: commit.sha,
@@ -304,6 +327,7 @@ export class GitHubIntegration {
           Authorization: `Bearer ${token}`,
           Accept: "application/vnd.github+json",
           "Content-Type": "application/json",
+          "X-GitHub-Api-Version": "2022-11-28",
         },
         body: JSON.stringify({
           title: config.prTitle || "[N]skills: Generated code",
