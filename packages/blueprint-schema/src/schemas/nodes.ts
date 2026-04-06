@@ -21,6 +21,7 @@ export const NodeCategory = z.enum([
   'superposition', // Superposition L3 integrations
   'robinhood',    // Robinhood Chain integrations
   'analytics',    // Dune Analytics integrations
+  'logic',        // Web2 logic & automation blocks
 ]);
 export type NodeCategory = z.infer<typeof NodeCategory>;
 
@@ -112,6 +113,17 @@ export const NodeType = z.enum([
   'dune-transaction-history',
   'dune-gas-price',
   'dune-protocol-tvl',
+
+  // Logic & Automation (Web2)
+  'if-else',
+  'switch-case',
+  'http-api',
+  'email-smtp',
+  'delay-timer',
+  'variable-store',
+  'transform',
+  'loop-iterator',
+  'web2-frontend-scaffold',
 ]);
 export type NodeType = z.infer<typeof NodeType>;
 
@@ -1058,6 +1070,129 @@ export const DuneProtocolTVLConfig = BaseNodeConfig.extend({
 });
 export type DuneProtocolTVLConfig = z.infer<typeof DuneProtocolTVLConfig>;
 
+// ============================================================================
+// LOGIC & AUTOMATION (WEB2) CONFIGURATIONS
+// ============================================================================
+
+/**
+ * If/Else conditional branching configuration
+ */
+export const IfElseConfig = BaseNodeConfig.extend({
+  conditionType: z.enum(['expression', 'value-compare', 'exists']).default('value-compare'),
+  condition: z.string().max(2000).default(''),
+  compareOperator: z.enum(['eq', 'neq', 'gt', 'lt', 'gte', 'lte', 'contains', 'startsWith']).default('eq'),
+  compareValue: z.string().max(1000).default(''),
+});
+export type IfElseConfig = z.infer<typeof IfElseConfig>;
+
+/**
+ * Switch/Case multi-way branching configuration
+ */
+export const SwitchCaseConfig = BaseNodeConfig.extend({
+  switchExpression: z.string().max(2000).default(''),
+  cases: z.array(z.object({
+    value: z.string().max(500),
+    label: z.string().max(100),
+  })).default([{ value: '', label: 'Case 1' }]),
+  hasDefault: z.boolean().default(true),
+});
+export type SwitchCaseConfig = z.infer<typeof SwitchCaseConfig>;
+
+/**
+ * HTTP API request configuration
+ */
+export const HttpApiConfig = BaseNodeConfig.extend({
+  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).default('GET'),
+  url: z.string().max(2000).default('https://api.example.com/data'),
+  headers: z.array(z.object({
+    key: z.string().max(200),
+    value: z.string().max(2000),
+  })).default([]),
+  bodyType: z.enum(['json', 'form', 'raw', 'none']).default('none'),
+  body: z.string().max(50000).default(''),
+  timeout: z.number().int().min(1000).max(120000).default(30000),
+  retries: z.number().int().min(0).max(10).default(3),
+  authType: z.enum(['none', 'bearer', 'api-key', 'basic']).default('none'),
+  responseMapping: z.string().max(2000).default(''),
+  generateProxy: z.boolean().default(true),
+});
+export type HttpApiConfig = z.infer<typeof HttpApiConfig>;
+
+/**
+ * Email SMTP / service configuration
+ */
+export const EmailSmtpConfig = BaseNodeConfig.extend({
+  provider: z.enum(['smtp', 'sendgrid', 'resend', 'ses']).default('resend'),
+  to: z.string().max(500).default(''),
+  subject: z.string().max(500).default(''),
+  bodyTemplate: z.string().max(50000).default(''),
+  bodyFormat: z.enum(['html', 'text', 'markdown']).default('html'),
+  fromName: z.string().max(100).default(''),
+  fromEmail: z.string().max(200).default(''),
+});
+export type EmailSmtpConfig = z.infer<typeof EmailSmtpConfig>;
+
+/**
+ * Delay / Timer configuration
+ */
+export const DelayTimerConfig = BaseNodeConfig.extend({
+  delayType: z.enum(['fixed', 'expression']).default('fixed'),
+  delayMs: z.number().int().min(0).max(86400000).default(1000),
+  unit: z.enum(['ms', 'seconds', 'minutes', 'hours']).default('seconds'),
+});
+export type DelayTimerConfig = z.infer<typeof DelayTimerConfig>;
+
+/**
+ * Variable / Store configuration
+ */
+export const VariableStoreConfig = BaseNodeConfig.extend({
+  variableName: z.string().min(1).max(100).regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/).default('myVariable'),
+  variableType: z.enum(['string', 'number', 'boolean', 'object', 'array']).default('string'),
+  defaultValue: z.string().max(10000).default(''),
+  scope: z.enum(['local', 'global']).default('local'),
+});
+export type VariableStoreConfig = z.infer<typeof VariableStoreConfig>;
+
+/**
+ * Transform / data mapping configuration
+ */
+export const TransformConfig = BaseNodeConfig.extend({
+  transformType: z.enum(['jq', 'jsonpath', 'template', 'javascript']).default('template'),
+  inputMapping: z.string().max(5000).default(''),
+  outputFormat: z.enum(['json', 'text', 'csv']).default('json'),
+  transformExpression: z.string().max(10000).default(''),
+});
+export type TransformConfig = z.infer<typeof TransformConfig>;
+
+/**
+ * Loop / Iterator configuration
+ */
+export const LoopIteratorConfig = BaseNodeConfig.extend({
+  loopType: z.enum(['for-each', 'count', 'while']).default('for-each'),
+  iterableExpression: z.string().max(2000).default(''),
+  count: z.number().int().min(0).max(100000).default(10),
+  maxIterations: z.number().int().min(1).max(100000).default(1000),
+});
+export type LoopIteratorConfig = z.infer<typeof LoopIteratorConfig>;
+
+/**
+ * Web2 Frontend Scaffold configuration
+ * Clean Next.js scaffold without Web3 dependencies
+ */
+export const Web2FrontendScaffoldConfig = BaseNodeConfig.extend({
+  framework: z.enum(['nextjs']).default('nextjs'),
+  styling: z.enum(['tailwind', 'css-modules', 'vanilla']).default('tailwind'),
+  darkModeSupport: z.boolean().default(true),
+  stateManagement: z.enum(['tanstack-query', 'zustand', 'none']).default('tanstack-query'),
+  authProvider: z.enum(['nextauth', 'clerk', 'none']).default('none'),
+  projectStructure: z.enum(['app-router', 'pages-router']).default('app-router'),
+  srcDirectory: z.boolean().default(true),
+  strictMode: z.boolean().default(true),
+  appName: z.string().min(1).max(100).default('My App'),
+  appDescription: z.string().max(500).optional(),
+});
+export type Web2FrontendScaffoldConfig = z.infer<typeof Web2FrontendScaffoldConfig>;
+
 /**
  * Union of all node configurations
  */
@@ -1120,6 +1255,16 @@ export const NodeConfig = z.discriminatedUnion('type', [
   z.object({ type: z.literal('dune-transaction-history'), config: DuneTransactionHistoryConfig }),
   z.object({ type: z.literal('dune-gas-price'), config: DuneGasPriceConfig }),
   z.object({ type: z.literal('dune-protocol-tvl'), config: DuneProtocolTVLConfig }),
+  // Logic & Automation (Web2)
+  z.object({ type: z.literal('if-else'), config: IfElseConfig }),
+  z.object({ type: z.literal('switch-case'), config: SwitchCaseConfig }),
+  z.object({ type: z.literal('http-api'), config: HttpApiConfig }),
+  z.object({ type: z.literal('email-smtp'), config: EmailSmtpConfig }),
+  z.object({ type: z.literal('delay-timer'), config: DelayTimerConfig }),
+  z.object({ type: z.literal('variable-store'), config: VariableStoreConfig }),
+  z.object({ type: z.literal('transform'), config: TransformConfig }),
+  z.object({ type: z.literal('loop-iterator'), config: LoopIteratorConfig }),
+  z.object({ type: z.literal('web2-frontend-scaffold'), config: Web2FrontendScaffoldConfig }),
 ]);
 export type NodeConfig = z.infer<typeof NodeConfig>;
 
@@ -1206,6 +1351,16 @@ export function getNodeCategory(type: NodeType): NodeCategory {
     'dune-transaction-history': 'analytics',
     'dune-gas-price': 'analytics',
     'dune-protocol-tvl': 'analytics',
+    // Logic & Automation (Web2)
+    'if-else': 'logic',
+    'switch-case': 'logic',
+    'http-api': 'logic',
+    'email-smtp': 'logic',
+    'delay-timer': 'logic',
+    'variable-store': 'logic',
+    'transform': 'logic',
+    'loop-iterator': 'logic',
+    'web2-frontend-scaffold': 'app',
   };
   return categoryMap[type];
 }
@@ -1278,6 +1433,16 @@ export function getConfigSchemaForType(type: NodeType) {
     'dune-transaction-history': DuneTransactionHistoryConfig,
     'dune-gas-price': DuneGasPriceConfig,
     'dune-protocol-tvl': DuneProtocolTVLConfig,
+    // Logic & Automation (Web2)
+    'if-else': IfElseConfig,
+    'switch-case': SwitchCaseConfig,
+    'http-api': HttpApiConfig,
+    'email-smtp': EmailSmtpConfig,
+    'delay-timer': DelayTimerConfig,
+    'variable-store': VariableStoreConfig,
+    'transform': TransformConfig,
+    'loop-iterator': LoopIteratorConfig,
+    'web2-frontend-scaffold': Web2FrontendScaffoldConfig,
   };
   return schemaMap[type];
 }

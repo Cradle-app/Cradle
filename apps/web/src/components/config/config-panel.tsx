@@ -71,6 +71,17 @@ import { AuditwareAnalyzingForm } from './forms/auditware-analyzing-form';
 import { OpenClawAgentForm } from './forms/openclaw-agent-form';
 import { EigenAIAgentForm } from './forms/eigen-ai-agent-form';
 
+// Logic & Automation (Web2) forms
+import { IfElseForm } from './forms/if-else-form';
+import { SwitchCaseForm } from './forms/switch-case-form';
+import { HttpApiForm } from './forms/http-api-form';
+import { EmailSmtpForm } from './forms/email-smtp-form';
+import { DelayTimerForm } from './forms/delay-timer-form';
+import { VariableStoreForm } from './forms/variable-store-form';
+import { TransformForm } from './forms/transform-form';
+import { LoopIteratorForm } from './forms/loop-iterator-form';
+import { Web2FrontendScaffoldForm } from './forms/web2-frontend-scaffold-form';
+
 /**
  * Collapsible AI Prompt section -- shared across ALL node types.
  * Lets users describe their intent for each block in free-text.
@@ -463,6 +474,35 @@ export function ConfigPanel() {
               selectedNode.type === 'dune-protocol-tvl') && (
                 <DuneAnalyticsForm nodeId={selectedNode.id} type={selectedNode.type} config={selectedNode.config} />
               )}
+
+            {/* Logic & Automation (Web2) nodes */}
+            {selectedNode.type === 'if-else' && (
+              <IfElseForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'switch-case' && (
+              <SwitchCaseForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'http-api' && (
+              <HttpApiForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'email-smtp' && (
+              <EmailSmtpForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'delay-timer' && (
+              <DelayTimerForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'variable-store' && (
+              <VariableStoreForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'transform' && (
+              <TransformForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'loop-iterator' && (
+              <LoopIteratorForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
+            {selectedNode.type === 'web2-frontend-scaffold' && (
+              <Web2FrontendScaffoldForm nodeId={selectedNode.id} config={selectedNode.config} />
+            )}
           </AuthOverlay>
         </motion.div>
       </AnimatePresence>

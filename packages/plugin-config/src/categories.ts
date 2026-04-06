@@ -67,6 +67,12 @@ export const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
         icon: 'Sparkles',
         color: 'accent-pink'
     },
+    {
+        id: 'logic',
+        name: 'Logic & Automation',
+        icon: 'Zap',
+        color: 'accent-amber',
+    },
 ];
 
 export const getCategoryById = (id: PluginCategory): CategoryDefinition | undefined => {

@@ -12,7 +12,8 @@ export type PluginCategory =
     | 'superposition'
     | 'robinhood'
     | 'analytics'
-    | 'protocols';
+    | 'protocols'
+    | 'logic';
 
 /**
  * Lucide icon names used in the UI
@@ -36,7 +37,14 @@ export type PluginIcon =
     | 'TrendingUp'
     | 'Zap'
     | 'Coins'
-    | 'Search';
+    | 'Search'
+    | 'GitBranch'
+    | 'ListTree'
+    | 'Mail'
+    | 'Timer'
+    | 'Variable'
+    | 'Shuffle'
+    | 'Repeat';
 
 /**
  * Plugin compatibility relationships

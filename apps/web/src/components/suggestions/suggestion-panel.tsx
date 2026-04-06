@@ -24,6 +24,13 @@ import {
     Search,
     Plus,
     X,
+    GitBranch,
+    ListTree,
+    Mail,
+    Timer,
+    Variable,
+    Shuffle,
+    Repeat,
     type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -54,6 +61,13 @@ const ICON_MAP: Record<PluginIcon, LucideIcon> = {
     Zap,
     Coins,
     Search,
+    GitBranch,
+    ListTree,
+    Mail,
+    Timer,
+    Variable,
+    Shuffle,
+    Repeat,
 };
 
 function getIconComponent(iconName: PluginIcon): LucideIcon {

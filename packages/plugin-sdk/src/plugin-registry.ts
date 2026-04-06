@@ -172,6 +172,16 @@ export function getDefaultRegistry(): PluginRegistry {
       'dune-transaction-history',
       'dune-gas-price',
       'dune-protocol-tvl',
+      // Logic & Automation (Web2)
+      'if-else',
+      'switch-case',
+      'http-api',
+      'email-smtp',
+      'delay-timer',
+      'variable-store',
+      'transform',
+      'loop-iterator',
+      'web2-frontend-scaffold',
     ]);
   }
   return defaultRegistry;

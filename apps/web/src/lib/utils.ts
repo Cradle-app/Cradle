@@ -99,6 +99,16 @@ export function nodeTypeToLabel(type: string): string {
     'dune-transaction-history': 'Dune Transaction History',
     'dune-gas-price': 'Dune Gas Price',
     'dune-protocol-tvl': 'Dune Protocol TVL',
+    // Logic & Automation (Web2)
+    'if-else': 'If / Else',
+    'switch-case': 'Switch / Case',
+    'http-api': 'HTTP API',
+    'email-smtp': 'Email',
+    'delay-timer': 'Delay / Timer',
+    'variable-store': 'Variable',
+    'transform': 'Transform',
+    'loop-iterator': 'Loop',
+    'web2-frontend-scaffold': 'Web2 Frontend',
     // Protocol Plugins
     'aave': 'Aave',
     'compound': 'Compound',
@@ -182,6 +192,16 @@ export function nodeTypeToColor(type: string): string {
     'dune-transaction-history': 'accent-purple',
     'dune-gas-price': 'accent-purple',
     'dune-protocol-tvl': 'accent-purple',
+    // Logic & Automation (Web2)
+    'if-else': 'accent-amber',
+    'switch-case': 'accent-amber',
+    'http-api': 'accent-amber',
+    'email-smtp': 'accent-amber',
+    'delay-timer': 'accent-amber',
+    'variable-store': 'accent-amber',
+    'transform': 'accent-amber',
+    'loop-iterator': 'accent-amber',
+    'web2-frontend-scaffold': 'node-tertiary',
     // Protocol Plugins
     'aave': 'node-agents',
     'compound': 'node-agents',

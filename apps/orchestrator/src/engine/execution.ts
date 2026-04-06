@@ -21,6 +21,7 @@ import {
   FRONTEND_SCAFFOLD_TYPES,
   BACKEND_SCAFFOLD_TYPES,
   CONTRACT_TYPES,
+  blueprintUsesWeb2PrimaryScaffold,
   type NodePlugin,
   type PathContext,
 } from "@dapp-forge/plugin-sdk";
@@ -155,7 +156,17 @@ export class ExecutionEngine {
         const isScaffold =
           FRONTEND_SCAFFOLD_TYPES.includes(node.type) ||
           BACKEND_SCAFFOLD_TYPES.includes(node.type);
-        const scope = isScaffold ? undefined : node.type;
+
+        let scope: string | undefined;
+        if (!isScaffold) {
+          const sameTypeCount = sortedNodes.filter(
+            (n) => n.type === node.type,
+          ).length;
+          scope =
+            sameTypeCount > 1
+              ? `${node.type}--${node.id.slice(0, 8)}`
+              : node.type;
+        }
 
         output.files = rewriteOutputPaths(output.files, pathContext, { scope });
 
@@ -227,7 +238,7 @@ export class ExecutionEngine {
         logger.warn("Lint/format warnings", { warnings: lintResult.warnings });
       }
 
-      // Merge any extra files from an injected volume (e.g. .nskils/ from skills generator)
+      // Merge any extra files from an injected volume (e.g. .nskills/ from skills generator)
       if (options.injectVol) {
         const injectFs = createFsFromVolume(options.injectVol);
         const copyDir = (dir: string) => {
@@ -1021,6 +1032,13 @@ function generateReadme(
   const nodeList = nodes || [];
   const nodeTypes = new Set(nodeList.map((n) => n.type));
   const registry = pluginRegistry ?? getDefaultRegistry();
+  const isWeb2Primary = blueprintUsesWeb2PrimaryScaffold(nodeList);
+  const defaultTagline = isWeb2Primary
+    ? "A Web2 application composed with [[N]skills](https://www.nskills.xyz)."
+    : "A Web3 dApp composed with [[N]skills](https://www.nskills.xyz).";
+  const docsFolderHint = isWeb2Primary
+    ? "Check the `docs/` folder for guides that match your blueprint (e.g. frontend setup, API routes)."
+    : "Check the `docs/` folder for guides that match your blueprint (e.g. frontend setup, contract deployment, API routes).";
 
   // Build contracts section based on which plugins are present
   let contractsStructure =
@@ -1049,7 +1067,9 @@ function generateReadme(
     contractsStructure += `│   └── (contract source)\n`;
   }
 
-  const hasFrontend = pathContext?.hasFrontend ?? nodeTypes.has("frontend-scaffold");
+  const hasFrontend =
+    pathContext?.hasFrontend ??
+    [...nodeTypes].some((t) => FRONTEND_SCAFFOLD_TYPES.includes(t));
   const contractTypeSet = new Set<string>([
     ...CONTRACT_TYPES,
     "stylus-rust-contract",
@@ -1178,10 +1198,7 @@ export default function Home() {
 
   return `# ${project.name}
 
-${
-  project.description ||
-  "A Web3 dApp composed with [[N]skills](https://www.nskills.xyz)."
-}
+${project.description || defaultTagline}
 
 ${pluginsSection}## Project structure
 
@@ -1224,7 +1241,7 @@ ${erc721Section}${devSection}
 
 ## Documentation
 
-Check the \`docs/\` folder for guides that match your blueprint (e.g. frontend setup, contract deployment, API routes).
+${docsFolderHint}
 
 ## License
 

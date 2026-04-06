@@ -108,7 +108,16 @@ export interface ResolverOptions {
 /**
  * Plugin types that indicate a primary scaffold
  */
-export const FRONTEND_SCAFFOLD_TYPES = ["frontend-scaffold"];
+export const FRONTEND_SCAFFOLD_TYPES = ["frontend-scaffold", "web2-frontend-scaffold"];
+export const WEB2_FRONTEND_SCAFFOLD_TYPE = "web2-frontend-scaffold";
+
+/** True when the blueprint uses the Web2 Next.js scaffold (tailored README / docs copy). */
+export function blueprintUsesWeb2PrimaryScaffold(
+  nodes: ReadonlyArray<Pick<BlueprintNode, "type">>,
+): boolean {
+  return nodes.some((n) => n.type === WEB2_FRONTEND_SCAFFOLD_TYPE);
+}
+
 export const BACKEND_SCAFFOLD_TYPES: string[] = [];
 export const CONTRACT_TYPES = [
   "stylus-contract",
@@ -137,7 +146,9 @@ export function buildPathContext(nodes: BlueprintNode[]): PathContext {
   const hasContracts = nodeTypesArray.some((t) => CONTRACT_TYPES.includes(t));
 
   // Get frontend config to determine structure
-  const frontendNode = nodes.find((n) => n.type === "frontend-scaffold");
+  const frontendNode = nodes.find((n) =>
+    FRONTEND_SCAFFOLD_TYPES.includes(n.type),
+  );
   const frontendConfig = frontendNode?.config as
     | Record<string, unknown>
     | undefined;

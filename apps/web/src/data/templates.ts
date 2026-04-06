@@ -37,7 +37,8 @@ export type TemplateCategory =
   | "superposition"
   | "robinhood"
   | "payments"
-  | "infrastructure";
+  | "infrastructure"
+  | "web2";
 
 export interface Template {
   id: string;
@@ -1172,6 +1173,65 @@ export const TEMPLATES: Template[] = [
       { source: 4, target: 12 }, // frontend → dune-transaction-history
       { source: 4, target: 13 }, // frontend → arbitrum-bridge
       { source: 5, target: 14 }, // wallet-auth → eip7702-smart-eoa
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  // Web2 API Workflow
+  // -----------------------------------------------------------------------
+  {
+    id: "web2-api-workflow",
+    name: "Web2 API Workflow",
+    description:
+      "Fetch external data via HTTP API, transform the response, conditionally branch, and send results by email. A clean Web2 frontend scaffold ties it all together.",
+    icon: "Globe",
+    colorClass: "accent-amber",
+    category: "web2",
+    tags: ["web2", "api", "email", "logic", "automation"],
+    explainer:
+      "The Web2 Frontend Scaffold provides a clean Next.js app without Web3 dependencies. The HTTP API block fetches external data with retry logic and an optional server-side proxy. Transform maps the response into the shape you need. If/Else conditionally branches based on the transformed data, and Email sends the results via Resend, SendGrid, or SMTP. Ghost blocks suggest adding variables for state, delays for rate-limiting, and loops for batch processing.",
+    nodes: [
+      {
+        type: "web2-frontend-scaffold",
+        position: { x: 100, y: 130 },
+        config: { appName: "API Workflow App", styling: "tailwind", stateManagement: "tanstack-query", authProvider: "none" },
+      },
+      {
+        type: "http-api",
+        position: { x: 400, y: 0 },
+        config: { method: "GET", url: "https://api.example.com/data", timeout: 30000, retries: 3, authType: "none", generateProxy: true },
+      },
+      {
+        type: "transform",
+        position: { x: 700, y: 0 },
+        config: { transformType: "jsonpath", inputMapping: "response.data", outputFormat: "json", transformExpression: "data.results" },
+      },
+      {
+        type: "if-else",
+        position: { x: 1000, y: 0 },
+        config: { conditionType: "value-compare", compareOperator: "gt", compareValue: "0" },
+      },
+      {
+        type: "email-smtp",
+        position: { x: 1300, y: 0 },
+        config: { provider: "resend", bodyFormat: "html", subject: "Workflow Results" },
+      },
+    ],
+    edges: [
+      { source: 0, target: 1 }, // scaffold → http-api
+      { source: 1, target: 2 }, // http-api → transform
+      { source: 2, target: 3 }, // transform → if-else
+      { source: 3, target: 4 }, // if-else → email
+    ],
+    ghostNodes: [
+      { type: "variable-store", position: { x: 400, y: 260 } },
+      { type: "delay-timer", position: { x: 700, y: 260 } },
+      { type: "loop-iterator", position: { x: 1000, y: 260 } },
+    ],
+    ghostEdges: [
+      { source: 0, target: 5 }, // scaffold → variable-store
+      { source: 5, target: 6 }, // variable-store → delay-timer
+      { source: 6, target: 7 }, // delay-timer → loop-iterator
     ],
   },
 ];

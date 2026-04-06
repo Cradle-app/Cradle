@@ -8,7 +8,8 @@ import {
   Box, CreditCard, Bot, Layout, ShieldCheck, Trash2,
   Lock, Key, Wallet, Globe, ArrowLeftRight, Database,
   HardDrive, Layers, TrendingUp, Zap, Sparkles, Search,
-  DollarSign, Fuel, Send, Link, Coins, Plus, X as XIcon
+  DollarSign, Fuel, Send, Link, Coins, Plus, X as XIcon,
+  GitBranch, ListTree, Mail, Timer, Variable, Shuffle, Repeat,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useBlueprintStore } from '@/store/blueprint';
@@ -161,6 +162,16 @@ const iconMap: Record<string, typeof Box> = {
   'dune-transaction-history': Database,
   'dune-gas-price': Fuel,
   'dune-protocol-tvl': Lock,
+  // Logic & Automation (Web2)
+  'if-else': GitBranch,
+  'switch-case': ListTree,
+  'http-api': Globe,
+  'email-smtp': Mail,
+  'delay-timer': Timer,
+  'variable-store': Variable,
+  'transform': Shuffle,
+  'loop-iterator': Repeat,
+  'web2-frontend-scaffold': Layout,
 };
 
 /**
@@ -175,8 +186,9 @@ type NodeColorScheme = {
   borderSelected: string;
   text: string;
   glow: string;
-  accentBar: string;
+  accentBar?: string;
   handleActive: string;
+  handleDefault?: string;
 };
 
 const colorMap: Record<string, NodeColorScheme> = {
@@ -256,6 +268,18 @@ const colorMap: Record<string, NodeColorScheme> = {
     glow: 'shadow-[0_0_20px_-4px_hsl(200_70%_45%/0.3),_0_0_6px_-1px_hsl(200_70%_45%/0.2)]',
     accentBar: 'bg-gradient-to-r from-[hsl(200_70%_45%/0.6)] via-[hsl(200_70%_45%/0.3)] to-transparent',
     handleActive: '!border-[hsl(200_70%_45%/0.6)]',
+  },
+  // Logic & Automation (Web2)
+  'accent-amber': {
+    bgGradient: 'from-[hsl(38_92%_50%/0.08)] via-transparent to-transparent',
+    iconBg: 'bg-[hsl(38_92%_50%/0.12)]',
+    border: 'border-[hsl(38_92%_50%/0.18)]',
+    borderHover: 'hover:border-[hsl(38_92%_50%/0.35)]',
+    borderSelected: '!border-[hsl(38_92%_50%/0.5)]',
+    text: 'text-[hsl(38_92%_50%)]',
+    glow: 'shadow-[0_0_15px_hsl(38_92%_50%/0.15)]',
+    handleDefault: 'border-[hsl(38_92%_50%/0.3)]',
+    handleActive: '!border-[hsl(38_92%_50%/0.6)]',
   },
   // Fallback for legacy types
   'accent-purple': {

@@ -58,6 +58,16 @@ const toolTypeMap: Record<string, string> = {
   'aixbt_signals': 'aixbt-signals',
   'aixbt_indigo': 'aixbt-indigo',
   'aixbt_observer': 'aixbt-observer',
+  // Logic & Automation (Web2)
+  'if_else': 'if-else',
+  'switch_case': 'switch-case',
+  'http_api': 'http-api',
+  'email_smtp': 'email-smtp',
+  'delay_timer': 'delay-timer',
+  'variable_store': 'variable-store',
+  'transform': 'transform',
+  'loop_iterator': 'loop-iterator',
+  'web2_frontend_scaffold': 'web2-frontend-scaffold',
 };
 
 // Valid node types in our system
@@ -97,6 +107,16 @@ const validNodeTypes = [
   'aixbt-signals',
   'aixbt-indigo',
   'aixbt-observer',
+  // Logic & Automation (Web2)
+  'if-else',
+  'switch-case',
+  'http-api',
+  'email-smtp',
+  'delay-timer',
+  'variable-store',
+  'transform',
+  'loop-iterator',
+  'web2-frontend-scaffold',
 ];
 
 // Default node configs matching the blueprint store
@@ -294,6 +314,69 @@ const DEFAULT_NODE_CONFIGS: Record<string, Record<string, unknown>> = {
     outputFormat: 'both',
     severityFilter: ['low', 'medium', 'high'],
     projectPath: '.',
+  },
+  // Logic & Automation (Web2)
+  'if-else': {
+    conditionType: 'value-compare',
+    condition: '',
+    compareOperator: 'eq',
+    compareValue: '',
+  },
+  'switch-case': {
+    switchExpression: '',
+    cases: [{ value: '', label: 'Case 1' }],
+    hasDefault: true,
+  },
+  'http-api': {
+    method: 'GET',
+    url: 'https://api.example.com/data',
+    headers: [],
+    bodyType: 'none',
+    body: '',
+    timeout: 30000,
+    retries: 3,
+    authType: 'none',
+    responseMapping: '',
+    generateProxy: true,
+  },
+  'email-smtp': {
+    provider: 'resend',
+    to: '',
+    subject: '',
+    bodyTemplate: '',
+    bodyFormat: 'html',
+    fromName: '',
+    fromEmail: '',
+  },
+  'delay-timer': {
+    delayType: 'fixed',
+    delayMs: 1000,
+    unit: 'seconds',
+  },
+  'variable-store': {
+    variableName: 'myVariable',
+    variableType: 'string',
+    defaultValue: '',
+    scope: 'local',
+  },
+  'transform': {
+    transformType: 'template',
+    inputMapping: '',
+    outputFormat: 'json',
+    transformExpression: '',
+  },
+  'loop-iterator': {
+    loopType: 'for-each',
+    iterableExpression: '',
+    count: 10,
+    maxIterations: 1000,
+  },
+  'web2-frontend-scaffold': {
+    framework: 'nextjs',
+    styling: 'tailwind',
+    stateManagement: 'tanstack-query',
+    authProvider: 'none',
+    appName: 'My App',
   },
 };
 
@@ -496,5 +579,16 @@ TELEGRAM:
 
 QUALITY:
 - quality_gates: CI/CD, testing, linting setup
+
+LOGIC & AUTOMATION (Web2):
+- if_else: Conditional branching based on expressions or value comparison
+- switch_case: Multi-way branching with pattern matching
+- http_api: Make external HTTP requests (GET/POST/PUT/DELETE) with retry and proxy
+- email_smtp: Send emails via Resend, SendGrid, AWS SES, or custom SMTP
+- delay_timer: Pause execution or schedule delayed actions
+- variable_store: Declare and set variables for use across blocks
+- transform: Map and transform data between blocks (JSONPath, template, JS)
+- loop_iterator: Iterate over arrays or repeat actions N times
+- web2_frontend_scaffold: Next.js frontend scaffold without Web3 dependencies (Tailwind, auth, state management)
 `.trim();
 }

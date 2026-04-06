@@ -122,13 +122,13 @@ export const blueprintRoutes: FastifyPluginCallback = (fastify, _opts, done) => 
         // Skills repo only
         result = await skillsGenerator.generate(blueprint, run.id, execOptions);
       } else if (options.generateMode === 'both') {
-        // 1. Generate skills files first (no GitHub push) to get the .nskils vol
+        // 1. Generate skills files first (no GitHub push) to get the .nskills vol
         const skillsResult = await skillsGenerator.generate(blueprint, `${run.id}-skills`, {
           ...execOptions,
           createGitHubRepo: false,
         });
 
-        // 2. Run codegen, injecting the skills vol so .nskils files are included in the GitHub push
+        // 2. Run codegen, injecting the skills vol so .nskills files are included in the GitHub push
         const codeResult = await engine.execute(blueprint, run.id, {
           ...execOptions,
           injectVol: skillsResult.vol,

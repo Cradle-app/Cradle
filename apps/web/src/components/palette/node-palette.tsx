@@ -25,6 +25,13 @@ import {
   Zap,
   Coins,
   Star,
+  GitBranch,
+  ListTree,
+  Mail,
+  Timer,
+  Variable,
+  Shuffle,
+  Repeat,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -109,7 +116,7 @@ function getLogoAsset(logoAsset?: string): any | null {
 const ICON_MAP: Record<PluginIcon, LucideIcon> = {
   Box, CreditCard, Bot, Layout, ShieldCheck, Wallet, Globe, Database,
   HardDrive, Layers, Lock, Link, ArrowLeftRight, Key, Sparkles, TrendingUp,
-  Zap, Coins, Search
+  Zap, Coins, Search, GitBranch, ListTree, Mail, Timer, Variable, Shuffle, Repeat,
 };
 
 function getIconComponent(iconName: PluginIcon): LucideIcon {

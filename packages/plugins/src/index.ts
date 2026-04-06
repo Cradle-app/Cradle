@@ -71,6 +71,17 @@ export {
   DuneProtocolTVLPlugin,
 } from './dune-analytics';
 
+// Logic & Automation (Web2) plugins
+export { IfElsePlugin } from './if-else';
+export { SwitchCasePlugin } from './switch-case';
+export { HttpApiPlugin } from './http-api';
+export { EmailSmtpPlugin } from './email-smtp';
+export { DelayTimerPlugin } from './delay-timer';
+export { VariableStorePlugin } from './variable-store';
+export { TransformPlugin } from './transform';
+export { LoopIteratorPlugin } from './loop-iterator';
+export { Web2FrontendScaffoldPlugin } from './web2-frontend-scaffold';
+
 import { StylusContractPlugin } from './stylus-contract';
 import { StylusZKContractPlugin } from './stylus-zk-contract';
 import { StylusRustContractPlugin } from './stylus-rust-contract';
@@ -138,6 +149,17 @@ import {
   DuneGasPricePlugin,
   DuneProtocolTVLPlugin,
 } from './dune-analytics';
+
+// Logic & Automation (Web2) plugins
+import { IfElsePlugin } from './if-else';
+import { SwitchCasePlugin } from './switch-case';
+import { HttpApiPlugin } from './http-api';
+import { EmailSmtpPlugin } from './email-smtp';
+import { DelayTimerPlugin } from './delay-timer';
+import { VariableStorePlugin } from './variable-store';
+import { TransformPlugin } from './transform';
+import { LoopIteratorPlugin } from './loop-iterator';
+import { Web2FrontendScaffoldPlugin } from './web2-frontend-scaffold';
 
 import { PluginRegistry, getDefaultRegistry } from '@dapp-forge/plugin-sdk';
 
@@ -215,6 +237,17 @@ export function registerOfficialPlugins(registry?: PluginRegistry): void {
   targetRegistry.register(new DuneTransactionHistoryPlugin());
   targetRegistry.register(new DuneGasPricePlugin());
   targetRegistry.register(new DuneProtocolTVLPlugin());
+
+  // Logic & Automation (Web2) plugins
+  targetRegistry.register(new IfElsePlugin());
+  targetRegistry.register(new SwitchCasePlugin());
+  targetRegistry.register(new HttpApiPlugin());
+  targetRegistry.register(new EmailSmtpPlugin());
+  targetRegistry.register(new DelayTimerPlugin());
+  targetRegistry.register(new VariableStorePlugin());
+  targetRegistry.register(new TransformPlugin());
+  targetRegistry.register(new LoopIteratorPlugin());
+  targetRegistry.register(new Web2FrontendScaffoldPlugin());
 }
 
 /**
@@ -286,5 +319,15 @@ export function getOfficialPlugins() {
     new DuneTransactionHistoryPlugin(),
     new DuneGasPricePlugin(),
     new DuneProtocolTVLPlugin(),
+    // Logic & Automation (Web2) plugins
+    new IfElsePlugin(),
+    new SwitchCasePlugin(),
+    new HttpApiPlugin(),
+    new EmailSmtpPlugin(),
+    new DelayTimerPlugin(),
+    new VariableStorePlugin(),
+    new TransformPlugin(),
+    new LoopIteratorPlugin(),
+    new Web2FrontendScaffoldPlugin(),
   ];
 }
